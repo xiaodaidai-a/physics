@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <script src="../pages-demo.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>光学等厚干涉虚拟仿真实验平台 - 格物致知</title>
+
+    <link rel="stylesheet" href="styles.css">
+    <script src="js/back-to-wave-home.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        window.addEventListener('error', function (event) {
+            if (event.filename && event.filename.includes('tfjs') && event.message && event.message.includes('源映射')) {
+                event.preventDefault();
+                return true;
+            }
+        }, true);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0/dist/tf.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: 'global'
+            },
+            options: {
+                renderActions: {
+                    addMenu: [0, '', ''],
+                    checkLoading: [0, '', '']
+                }
+            }
+        };
+    </script>
+    <style>
+        /* Video container styles */
+        .video-container {
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .video-container video {
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .video-container video:fullscreen,
+        .video-container video:-webkit-full-screen,
+        .video-container video:-moz-full-screen,
+        .video-container video:-ms-fullscreen {
+            max-width: 100% !important;
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 0;
+        }
+
+        .video-description {
+            margin-top: 1rem;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* Quiz styles */
+        .question-block {
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .question-text {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+        }
+
+        .question-type-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-left: 0.5rem;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .options label {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .options label:hover {
+            background: #e3f2fd;
+            transform: translateX(5px);
+        }
+
+        .options input {
+            margin-right: 0.8rem;
+            cursor: pointer;
+        }
+
+        /* Submit button */
+        #submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 2rem;
+            transition: all 0.3s;
+        }
+
+        #submit-btn:hover {
+            background: #1565c0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(41, 121, 255, 0.3);
+        }
+
+        #submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Result panel */
+        #result-panel {
+            margin-top: 2rem;
+            padding: 2rem;
+            background: #f0f7ff;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .score {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .percentage {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+
+        .answer-details {
+            margin-top: 1.5rem;
+        }
+
+        .answer-item {
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 6px;
+        }
+
+        .answer-item.correct {
+            background: #e8f5e9;
+            border-left: 3px solid #4caf50;
+        }
+
+        .answer-item.wrong {
+            background: #ffebee;
+            border-left: 3px solid #f44336;
+        }
+
+        .answer-item p {
+            margin: 0.5rem 0;
+        }
+
+        .explanation {
+            margin-top: 0.5rem;
+            color: #666;
+            font-style: italic;
+            font-size: 0.95rem;
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 1rem;
+            background: #ff5722;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.3s;
+        }
+
+        .reset-btn:hover {
+            background: #e64a19;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
+        }
+    </style>
+</head>
+
+<body>
+    
+    
+
+    <header>
+        <a href="../index.html" class="back-link" style="position: absolute; left: 20px; top: 20px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="white" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+            返回首页
+        </a>
+        <h1>光学等厚干涉虚拟仿真实验平台</h1>
+    </header>
+
+    <main>
+        <div class="tabs">
+            <a href="theory.html" class="tab-btn" style="text-decoration: none;">实验原理</a>
+            <a href="3d-demo.html" class="tab-btn" style="text-decoration: none;">3D实验演示</a>
+            <a href="simulation.html" class="tab-btn" style="text-decoration: none;">仿真实验</a>
+            <a href="ai-prediction.html" class="tab-btn" style="text-decoration: none;">实验数据分析</a>
+            <a href="ideological-education.html" class="tab-btn active" style="text-decoration: none;">格物致知</a>
+            <a href="extension.html" class="tab-btn" style="text-decoration: none;">课外拓展</a>
+        </div>
+
+        <div class="tab-content">
+            <!-- 格物致知视频 -->
+            <div class="theory-panel">
+                <h3>格物致知视频</h3>
+                <div class="theory-content">
+                    <div class="video-container">
+                        <p class="video-unavailable">此教学视频暂未收录到在线展示版，请使用实验原理与仿真操作页面。</p>
+                        <p class="video-description">通过格物致知，探索牛顿环背后的科学原理，感悟基础研究对大国重器的支撑作用。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 思政习题 -->
+            <div class="theory-panel">
+                <h3>思政习题</h3>
+                <div class="theory-content">
+                    <form id="quiz-form">
+                        <!-- Questions will be dynamically generated here -->
+                    </form>
+                    <button id="submit-btn">提交答案</button>
+                    <div id="result-panel" style="display:none;">
+                        <!-- Results will be displayed here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2026 光学等厚干涉虚拟仿真实验平台</p>
+    </footer>
+
+    <!-- Scroll to top button -->
+    <div class="scroll-to-top" id="scrollToTop">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="white" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+        </svg>
+    </div>
+
+    <script>
+        // Quiz data
+        const quizData = {
+            singleChoice: [
+                {
+                    id: 'sc1',
+                    question: '牛顿环等厚干涉原理，是郭守敬望远镜(LAMOST)哪项核心环节的关键技术？',
+                    options: ['A. 天体观测数据记录', 'B. 超大镜面精密检测校准', 'C. 望远镜位置调节', 'D. 巡天范围规划'],
+                    answer: 1,
+                    explanation: '牛顿环等厚干涉原理是LAMOST超大镜面精密检测校准的关键技术，确保望远镜的观测精度达到纳米级，体现了基础物理原理在国家重大科技工程中的重要应用。'
+                },
+                {
+                    id: 'sc2',
+                    question: '"小小牛顿环守护LAMOST巡天精度"，这体现了基础学科的核心意义是？',
+                    options: ['A. 仅用于课堂实验，无实际用途', 'B. 是大国重器研发的重要根基', 'C. 只服务高端科研，与日常学习无关', 'D. 难度低，容易掌握'],
+                    answer: 1,
+                    explanation: '基础学科是大国重器研发的重要根基。牛顿环这样的基础物理原理在LAMOST等国家重大科技工程中发挥着关键作用，体现了基础研究对科技创新的支撑作用。'
+                },
+                {
+                    id: 'sc3',
+                    question: '"学好基础就是科技报国的第一步"，作为学生，最贴合的做法是？',
+                    options: ['A. 认真做好每一次基础物理实验，夯实知识', 'B. 只关注高端科研动态，忽视课堂学习', 'C. 认为基础学科枯燥，敷衍对待', 'D. 不用实操，只背理论知识点'],
+                    answer: 0,
+                    explanation: '科技报国从学好基础开始。认真做好每一次基础物理实验，夯实知识基础，培养严谨的科学态度，是学生践行科技报国精神的最佳途径。'
+                }
+            ],
+            multipleChoice: [
+                {
+                    id: 'mc1',
+                    question: 'LAMOST靠干涉原理实现纳米级精度检测，这份科研严谨性，对我们做物理实验的启发有哪些？（多选）',
+                    options: ['A. 实验操作精准规范，不随意敷衍', 'B. 认真观测数据，不篡改、不遗漏', 'C. 反复调试装置，追求准确结果', 'D. 差不多就行，不用过分较真'],
+                    answer: [0, 1, 2],
+                    explanation: 'LAMOST的纳米级精度检测体现了科研的严谨性，启发我们在物理实验中要精准规范操作、认真观测数据、反复调试装置，追求准确结果，培养一丝不苟的科学态度。'
+                }
+            ],
+            trueFalse: []
+        };
+
+        // Generate quiz HTML
+        function generateQuiz() {
+            const form = document.getElementById('quiz-form');
+            let html = '';
+            let questionNumber = 1;
+
+            // Single choice questions
+            html += '<h4 style="margin-top: 1.5rem; color: var(--primary-color);">一、单选题</h4>';
+            quizData.singleChoice.forEach((q, index) => {
+                html += `
+                    <div class="question-block">
+                        <p class="question-text">${questionNumber}. ${q.question}<span class="question-type-badge">单选</span></p>
+                        <div class="options">
+                `;
+                q.options.forEach((option, optIndex) => {
+                    html += `
+                        <label>
+                            <input type="radio" name="${q.id}" value="${optIndex}">
+                            ${option}
+                        </label>
+                    `;
+                });
+                html += `
+                        </div>
+                    </div>
+                `;
+                questionNumber++;
+            });
+
+            // Multiple choice questions
+            html += '<h4 style="margin-top: 1.5rem; color: var(--primary-color);">二、多选题</h4>';
+            quizData.multipleChoice.forEach((q, index) => {
+                html += `
+                    <div class="question-block">
+                        <p class="question-text">${questionNumber}. ${q.question}<span class="question-type-badge">多选</span></p>
+                        <div class="options">
+                `;
+                q.options.forEach((option, optIndex) => {
+                    html += `
+                        <label>
+                            <input type="checkbox" name="${q.id}" value="${optIndex}">
+                            ${option}
+                        </label>
+                    `;
+                });
+                html += `
+                        </div>
+                    </div>
+                `;
+                questionNumber++;
+            });
+
+            form.innerHTML = html;
+        }
+
+        // Submit quiz and calculate score
+        function submitQuiz() {
+            let score = 0;
+            let totalQuestions = 0;
+            let results = [];
+            let questionNumber = 1;
+
+            // Check single choice questions
+            quizData.singleChoice.forEach(q => {
+                const selected = document.querySelector(`input[name="${q.id}"]:checked`);
+                const userAnswer = selected ? parseInt(selected.value) : null;
+                const isCorrect = userAnswer !== null && userAnswer === q.answer;
+                if (isCorrect) score++;
+                totalQuestions++;
+
+                results.push({
+                    number: questionNumber++,
+                    type: '单选题',
+                    question: q.question,
+                    userAnswer: userAnswer !== null ? q.options[userAnswer] : '未作答',
+                    correctAnswer: q.options[q.answer],
+                    isCorrect: isCorrect,
+                    explanation: q.explanation
+                });
+            });
+
+            // Check multiple choice questions
+            quizData.multipleChoice.forEach(q => {
+                const selected = Array.from(document.querySelectorAll(`input[name="${q.id}"]:checked`))
+                    .map(input => parseInt(input.value))
+                    .sort();
+                const correctAnswer = [...q.answer].sort();
+                const isCorrect = JSON.stringify(selected) === JSON.stringify(correctAnswer);
+                if (isCorrect) score++;
+                totalQuestions++;
+
+                const userAnswerText = selected.length > 0
+                    ? selected.map(i => q.options[i]).join('、')
+                    : '未作答';
+                const correctAnswerText = q.answer.map(i => q.options[i]).join('、');
+
+                results.push({
+                    number: questionNumber++,
+                    type: '多选题',
+                    question: q.question,
+                    userAnswer: userAnswerText,
+                    correctAnswer: correctAnswerText,
+                    isCorrect: isCorrect,
+                    explanation: q.explanation
+                });
+            });
+
+            displayResults(score, totalQuestions, results);
+
+            // 保存答题结果到 sessionStorage
+            saveQuizResults(score, totalQuestions, results);
+        }
+
+        // Display results
+        function displayResults(score, total, results) {
+            const resultPanel = document.getElementById('result-panel');
+            const percentage = ((score / total) * 100).toFixed(1);
+
+            let html = `
+                <h3>答题结果</h3>
+                <p class="score">得分：<span id="score">${score}</span> / <span id="total">${total}</span></p>
+                <p class="percentage">正确率：<span id="percentage">${percentage}%</span></p>
+                <div class="answer-details">
+                    <h4>答题详情</h4>
+            `;
+
+            results.forEach(result => {
+                const statusIcon = result.isCorrect ? '✓' : '✗';
+                const statusText = result.isCorrect ? '正确' : '错误';
+                const itemClass = result.isCorrect ? 'correct' : 'wrong';
+
+                html += `
+                    <div class="answer-item ${itemClass}">
+                        <p><strong>${statusIcon} 第${result.number}题（${result.type}）：${statusText}</strong></p>
+                        <p><strong>题目：</strong>${result.question}</p>
+                        <p><strong>您的答案：</strong>${result.userAnswer}</p>
+                `;
+
+                if (!result.isCorrect) {
+                    html += `<p><strong>正确答案：</strong>${result.correctAnswer}</p>`;
+                }
+
+                html += `
+                        <p class="explanation"><strong>解析：</strong>${result.explanation}</p>
+                    </div>
+                `;
+            });
+
+            html += `
+                </div>
+                <button class="reset-btn" onclick="resetQuiz()">重新答题</button>
+            `;
+
+            resultPanel.innerHTML = html;
+            resultPanel.style.display = 'block';
+
+            // Scroll to results
+            resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            // Disable submit button
+            document.getElementById('submit-btn').disabled = true;
+        }
+
+        // Reset quiz
+        function resetQuiz() {
+            document.getElementById('quiz-form').reset();
+            document.getElementById('result-panel').style.display = 'none';
+            document.getElementById('submit-btn').disabled = false;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 保存答题结果到 sessionStorage
+        function saveQuizResults(score, total, results) {
+            const quizData = {
+                score: score,
+                total: total,
+                percentage: ((score / total) * 100).toFixed(1),
+                results: results,
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                sessionStorage.setItem('quizResults', JSON.stringify(quizData));
+                console.log('答题结果已保存用于报告生成');
+            } catch (error) {
+                console.error('保存答题结果失败:', error);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function () {
+            generateQuiz();
+
+            // Submit button event
+            document.getElementById('submit-btn').addEventListener('click', function (e) {
+                e.preventDefault();
+                submitQuiz();
+            });
+
+            // Scroll to top button
+            const scrollToTopBtn = document.getElementById('scrollToTop');
+
+            window.addEventListener('scroll', function () {
+                if (window.pageYOffset > 300) {
+                    scrollToTopBtn.classList.add('visible');
+                } else {
+                    scrollToTopBtn.classList.remove('visible');
+                }
+            });
+
+            scrollToTopBtn.addEventListener('click', function () {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+
+            // 视频播放时强制全屏，退出全屏自动暂停
+            const video = document.getElementById('ideological-video');
+
+            if (video) {
+                // 确保一点击播放就全屏
+                video.addEventListener('play', function () {
+                    const isFullscreen = document.fullscreenElement || document.webkitIsFullScreen || document.mozFullScreen || document.msFullscreenElement;
+
+                    if (!isFullscreen) {
+                        if (video.requestFullscreen) {
+                            video.requestFullscreen().catch(err => {
+                                console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                            });
+                        } else if (video.webkitRequestFullscreen) { /* Safari */
+                            video.webkitRequestFullscreen().catch(err => {
+                                console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                            });
+                        } else if (video.msRequestFullscreen) { /* IE11 */
+                            video.msRequestFullscreen().catch(err => {
+                                console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                            });
+                        }
+                    }
+                });
+
+                // 监听全屏变动，如果强制退出了全屏，则立即暂停视频
+                const exitHandler = function () {
+                    if (!document.fullscreenElement && !document.webkitIsFullScreen && !document.mozFullScreen && !document.msFullscreenElement) {
+                        // 检测到退出了全屏，直接强制暂停
+                        video.pause();
+                    }
+                };
+
+                document.addEventListener('fullscreenchange', exitHandler, false);
+                document.addEventListener('mozfullscreenchange', exitHandler, false);
+                document.addEventListener('MSFullscreenChange', exitHandler, false);
+                document.addEventListener('webkitfullscreenchange', exitHandler, false);
+            }
+        });
+    </script>
+</body>
+
+</html>

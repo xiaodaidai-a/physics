@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <script src="../pages-demo.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>光学等厚干涉虚拟仿真实验平台 - 课外拓展</title>
+
+    <link rel="stylesheet" href="styles.css">
+    <script src="js/back-to-wave-home.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        window.addEventListener('error', function (event) {
+            if (event.filename && event.filename.includes('tfjs') && event.message && event.message.includes('源映射')) {
+                event.preventDefault();
+                return true;
+            }
+        }, true);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0/dist/tf.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: 'global'
+            },
+            options: {
+                renderActions: {
+                    addMenu: [0, '', ''],
+                    checkLoading: [0, '', '']
+                }
+            }
+        };
+    </script>
+</head>
+
+<body>
+    
+    
+
+    <header>
+        <a href="../index.html" class="back-link" style="position: absolute; left: 20px; top: 20px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="white" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+            返回首页
+        </a>
+        <h1>光学等厚干涉虚拟仿真实验平台</h1>
+    </header>
+
+    <main>
+        <div class="tabs">
+            <a href="theory.html" class="tab-btn" style="text-decoration: none;">实验原理</a>
+            <a href="3d-demo.html" class="tab-btn" style="text-decoration: none;">3D实验演示</a>
+            <a href="simulation.html" class="tab-btn" style="text-decoration: none;">仿真实验</a>
+            <a href="ai-prediction.html" class="tab-btn" style="text-decoration: none;">实验数据分析</a>
+            <a href="ideological-education.html" class="tab-btn" style="text-decoration: none;">格物致知</a>
+            <a href="extension.html" class="tab-btn active" style="text-decoration: none;">课外拓展</a>
+        </div>
+
+        <div class="tab-content">
+            <!-- 课外拓展 -->
+            <div id="extension" class="tab-pane active">
+                <div class="theory-panel">
+                    <h3>科学前沿应用</h3>
+                    <div class="theory-content">
+                        <p>牛顿环干涉原理在现代科技中有广泛应用，不仅限于基础物理实验，也扩展到了许多前沿科技领域：</p>
+
+                        <div class="frontier-applications">
+                            <div class="application-card">
+                                <h4>光学元件测试</h4>
+                                <p>现代天文望远镜和高精度光学仪器使用干涉原理检测透镜和反射镜表面的精度，可达纳米级精度。</p>
+                            </div>
+
+                            <div class="application-card">
+                                <h4>薄膜厚度测量</h4>
+                                <p>半导体行业使用干涉测量技术监控硅片上薄膜沉积的均匀性和厚度，支持微电子制造工艺。</p>
+                            </div>
+
+                            <div class="application-card">
+                                <h4>精密长度测量</h4>
+                                <p>干涉仪可测量亚波长级别的微小位移，是精密仪器制造的基础技术。</p>
+                            </div>
+
+                            <div class="application-card">
+                                <h4>引力波探测</h4>
+                                <p>LIGO引力波探测器利用激光干涉原理，将引力波引起的微小空间变化转变为可测量的光程差，实现了引力波的探测。这一技术突破导致了2017年诺贝尔物理学奖的颁发。</p>
+                            </div>
+
+                            <div class="application-video-container" id="application-video-container">
+                                <div class="slideshow-container" id="slideshow-container">
+                                    <div class="slideshow-wrapper" id="slideshow-wrapper">
+                                        <div class="slide">
+                                            <img src="images/s1.png" alt="应用展示图片1">
+                                        </div>
+                                        <div class="slide">
+                                            <img src="images/s2.png" alt="应用展示图片2">
+                                        </div>
+                                        <div class="slide">
+                                            <img src="images/s3.png" alt="应用展示图片3">
+                                        </div>
+                                        <div class="slide">
+                                            <img src="images/s4.png" alt="应用展示图片4">
+                                        </div>
+                                        <div class="slide">
+                                            <img src="images/s5.png" alt="应用展示图片5">
+                                        </div>
+                                    </div>
+
+                                    <div class="slideshow-dots" id="slideshow-dots">
+                                        <span class="slide-dot active" data-index="0"></span>
+                                        <span class="slide-dot" data-index="1"></span>
+                                        <span class="slide-dot" data-index="2"></span>
+                                        <span class="slide-dot" data-index="3"></span>
+                                        <span class="slide-dot" data-index="4"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <style>
+                                .application-video-container {
+                                    margin: 40px auto;
+                                    max-width: 1100px;
+                                    width: 95%;
+                                }
+
+                                .slideshow-container {
+                                    position: relative;
+                                    width: 100%;
+                                    height: 550px;
+                                    border-radius: 24px;
+                                    overflow: hidden;
+                                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+                                    background: linear-gradient(145deg, #1a1a2e, #16213e);
+                                }
+
+                                .slideshow-wrapper {
+                                    display: flex;
+                                    width: 500%;
+                                    height: 100%;
+                                    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+                                }
+
+                                .slide {
+                                    width: 20%;
+                                    height: 100%;
+                                    position: relative;
+                                    flex-shrink: 0;
+                                }
+
+                                .slide img {
+                                    width: 100%;
+                                    height: 100%;
+                                    object-fit: cover;
+                                }
+
+                                .slide-caption {
+                                    position: absolute;
+                                    bottom: 0;
+                                    left: 0;
+                                    right: 0;
+                                    padding: 25px 30px;
+                                    background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+                                    color: white;
+                                    font-size: 1.2rem;
+                                    font-weight: 500;
+                                    text-align: center;
+                                }
+
+                                .slideshow-dots {
+                                    position: absolute;
+                                    bottom: 25px;
+                                    left: 50%;
+                                    transform: translateX(-50%);
+                                    display: flex !important;
+                                    gap: 14px;
+                                    z-index: 10;
+                                    padding: 12px 24px;
+                                    background: rgba(0, 0, 0, 0.4);
+                                    backdrop-filter: blur(10px);
+                                    border-radius: 30px;
+                                }
+
+                                .slide-dot {
+                                    width: 14px;
+                                    height: 14px;
+                                    border-radius: 50%;
+                                    background: rgba(255, 255, 255, 0.4);
+                                    cursor: pointer;
+                                    transition: all 0.3s ease;
+                                    display: block !important;
+                                }
+
+                                .slide-dot:hover {
+                                    background: rgba(255, 255, 255, 0.7);
+                                    transform: scale(1.2);
+                                }
+
+                                .slide-dot.active {
+                                    background: #2979ff;
+                                    box-shadow: 0 0 12px rgba(41, 121, 255, 0.7);
+                                    transform: scale(1.3);
+                                }
+
+                                @media (max-width: 1024px) {
+                                    .slideshow-container {
+                                        height: 450px;
+                                    }
+                                }
+
+                                @media (max-width: 768px) {
+                                    .slideshow-container {
+                                        height: 320px;
+                                    }
+                                }
+                            </style>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="theory-panel">
+                    <h3>格物致知</h3>
+                    <div class="theory-content">
+                        <p>通过牛顿环实验，我们不仅学习物理知识，也培养多方面能力和素养：</p>
+
+                        <div class="ideological-content">
+                            <div class="ideological-item">
+                                <div class="ideological-icon">🔬</div>
+                                <div class="ideological-text">
+                                    <h4>严谨求实的科学态度</h4>
+                                    <p>实验过程中的细致观察、准确测量和数据分析，培养严谨的科学精神和实事求是的态度。</p>
+                                </div>
+                            </div>
+
+                            <div class="ideological-item">
+                                <div class="ideological-icon">💡</div>
+                                <div class="ideological-text">
+                                    <h4>创新思维能力</h4>
+                                    <p>拓展思考题引导学生从多角度分析问题，培养创新思维和解决复杂问题的能力。</p>
+                                </div>
+                            </div>
+
+                            <div class="ideological-item">
+                                <div class="ideological-icon">⚙️</div>
+                                <div class="ideological-text">
+                                    <h4>精益求精的工匠精神</h4>
+                                    <p>通过提高测量精度的方法学习，培养追求卓越、精益求精的工匠精神。</p>
+                                </div>
+                            </div>
+
+                            <div class="ideological-item">
+                                <div class="ideological-icon">🤝</div>
+                                <div class="ideological-text">
+                                    <h4>团队协作能力</h4>
+                                    <p>实验过程中的分工合作，培养团队意识和协作能力。</p>
+                                </div>
+                            </div>
+
+                            <div class="ideological-item">
+                                <div class="ideological-icon">🌟</div>
+                                <div class="ideological-text">
+                                    <h4>民族自豪感</h4>
+                                    <p>了解中国在光学领域的重大成就，如王之江院士领导的超大口径非球面光学元件磨制技术，增强民族自豪感和科技创新的使命感。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="theory-panel">
+                    <h3>拓展思考题</h3>
+                    <div class="theory-content">
+                        <div class="thinking-questions">
+                            <div class="question-card">
+                                <h4>思考题1</h4>
+                                <p>如果使用白光代替单色光，牛顿环会呈现什么样的图案？为什么？</p>
+                                <div class="hint">
+                                    <p>提示：白光由不同波长的可见光组成，不同波长的光会产生不同尺寸的干涉环</p>
+                                </div>
+                            </div>
+
+                            <div class="question-card">
+                                <h4>思考题2</h4>
+                                <p>为什么牛顿环中心是暗的而不是亮的？</p>
+                                <div class="hint">
+                                    <p>提示：考虑透镜和平板接触处的光波反射相位变化</p>
+                                </div>
+                            </div>
+
+                            <div class="question-card">
+                                <h4>思考题3</h4>
+                                <p>如果空气薄膜中充入其他折射率不同的气体，会对牛顿环产生什么影响？</p>
+                                <div class="hint">
+                                    <p>提示：介质折射率会影响光的波长</p>
+                                </div>
+                            </div>
+
+                            <div class="question-card">
+                                <h4>思考题4</h4>
+                                <p>牛顿环实验中，测量哪些环的直径会得到更精确的结果？为什么？</p>
+                                <div class="hint">
+                                    <p>提示：考虑环的尺寸与测量误差的关系</p>
+                                </div>
+                            </div>
+
+                            <div class="question-card">
+                                <h4>思考题5</h4>
+                                <p>如果透镜表面不是球面而是非球面，牛顿环会呈现什么样的图案？</p>
+                                <div class="hint">
+                                    <p>提示：空气薄膜厚度的空间分布决定了干涉图样</p>
+                                </div>
+                            </div>
+
+                            <div class="question-card">
+                                <h4>思考题6</h4>
+                                <p>已知牛顿环直径的分布规律，如何利用牛顿环测量光的波长？请设计一个简单的实验方案。</p>
+                                <div class="hint">
+                                    <p>提示：将公式D<sub>m</sub><sup>2</sup> = 4mλR变形，以波长λ作为未知量</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="report-generation-container">
+                            <h2>实验报告生成</h2>
+                            <hr>
+
+                            <p class="description">完成实验后，可以生成实验报告保存或打印。报告包含实验参数、测量结果、误差分析和思考题。</p>
+
+                            <div class="report-options-grid">
+                                <div class="option-group">
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" id="include-data" checked>
+                                        <span class="checkmark"></span>
+                                        包含测量数据
+                                    </label>
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" id="include-error-analysis" checked>
+                                        <span class="checkmark"></span>
+                                        包含误差分析
+                                    </label>
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" id="include-thinking-questions" checked>
+                                        <span class="checkmark"></span>
+                                        包含拓展思考题
+                                    </label>
+                                </div>
+                                <div class="student-info">
+                                    <div class="info-row">
+                                        <label for="student-name">学生姓名:</label>
+                                        <input type="text" id="student-name" placeholder="输入姓名">
+                                    </div>
+                                    <div class="info-row">
+                                        <label for="student-id">学号:</label>
+                                        <input type="text" id="student-id" placeholder="输入学号">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="report-buttons">
+                                <button id="preview-report-btn" class="report-btn preview-btn"
+                                    onclick="previewComprehensiveReport()">预览报告</button>
+                                <button id="print-report-btn" class="report-btn print-btn">打印报告</button>
+                                <button id="download-report-btn" class="report-btn download-btn"
+                                    onclick="downloadComprehensiveReport()">下载报告</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2026 光学等厚干涉虚拟仿真实验平台</p>
+    </footer>
+
+    <!-- 实验报告预览模态框 -->
+    <div id="report-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>实验报告预览</h2>
+                <span class="report-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="report-content" class="report-content"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-print-btn" class="report-btn print-btn">打印报告</button>
+                <button id="modal-download-btn" class="report-btn download-btn"
+                    onclick="downloadComprehensiveReport()">下载报告</button>
+                <button id="modal-close-btn" class="report-btn close-btn">关闭预览</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 上划按钮 -->
+    <div class="scroll-to-top" id="scrollToTop">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="white" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+        </svg>
+    </div>
+
+    <script>
+        // 上划按钮功能
+        document.addEventListener('DOMContentLoaded', function () {
+            const scrollToTopBtn = document.getElementById('scrollToTop');
+
+            // 滚动事件监听
+            window.addEventListener('scroll', function () {
+                if (window.pageYOffset > 300) {
+                    scrollToTopBtn.classList.add('visible');
+                } else {
+                    scrollToTopBtn.classList.remove('visible');
+                }
+            });
+
+            // 点击事件
+            scrollToTopBtn.addEventListener('click', function () {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+
+            // 轮播图功能
+            let slideIndex = 0;
+            const slidesCount = 5;
+            const slideshow = document.getElementById('slideshow-wrapper');
+            const dots = document.querySelectorAll('.slide-dot');
+
+            // 初始化轮播图
+            updateActiveDot(0);
+            startSlideshow();
+
+            // 为导航点添加点击事件
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => {
+                    goToSlide(index);
+                });
+            });
+
+            // 自动切换轮播图
+            function startSlideshow() {
+                window.slideInterval = setInterval(nextSlide, 4000);
+            }
+
+            // 切换到下一张幻灯片
+            function nextSlide() {
+                slideIndex = (slideIndex + 1) % slidesCount;
+                slideshow.style.transform = `translateX(-${slideIndex * 20}%)`;
+                updateActiveDot(slideIndex);
+            }
+
+            // 跳转到指定幻灯片
+            function goToSlide(index) {
+                clearInterval(window.slideInterval);
+                slideIndex = index;
+                slideshow.style.transform = `translateX(-${slideIndex * 20}%)`;
+                updateActiveDot(slideIndex);
+                startSlideshow();
+            }
+
+            // 更新导航点激活状态
+            function updateActiveDot(index) {
+                dots.forEach((dot, i) => {
+                    dot.classList.toggle('active', i === index);
+                });
+            }
+        });
+    </script>
+
+    <!-- 不再使用app.js，避免与extension.js冲突 -->
+    <!-- <script src="app.js"></script> -->
+    <script src="simulation.js"></script>
+    <script src="3d-demo.js"></script>
+    <script src="ai-model.js"></script>
+    <script src="report-config.js"></script>
+    <script src="score-calculator.js"></script>
+    <script src="report-pdf.js"></script>
+    <script src="extension.js"></script>
+    <script src="download-report.js"></script>
+    <!--
+    <script>
+    window.addEventListener('load', function() {
+      // 移除所有可能的指示器
+      const elements = document.querySelectorAll('body > div');
+      elements.forEach(el => {
+        if (el.style.position === 'fixed' && el.getBoundingClientRect().top < 50) {
+          el.remove();
+        }
+      });
+    });
+    </script>
+    -->
+
+</body>
+
+</html>

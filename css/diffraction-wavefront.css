@@ -1,0 +1,246 @@
+/* =====================================================
+   衍射波前传播观察舱 专用样式
+   （与 styles.css 配合使用，类名统一使用 dwf- 前缀避免冲突）
+   ===================================================== */
+
+/* ---------- 顶部工具栏 ---------- */
+.dwf-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.dwf-enter-lab-btn {
+    background: linear-gradient(135deg, #6a5cff 0%, #8e2de2 100%);
+    color: #fff;
+    border: none;
+    padding: 12px 26px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(106, 92, 255, 0.35);
+    transition: all 0.25s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.dwf-enter-lab-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(106, 92, 255, 0.5);
+}
+
+/* ---------- 全宽主体布局 ---------- */
+.dwf-layout {
+    width: 100%;
+}
+
+/* 左右卡片 */
+.dwf-card {
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: 16px;
+    padding: 18px 16px;
+    box-shadow: 0 8px 24px rgba(29, 53, 87, 0.08);
+    border: 1px solid rgba(120, 170, 255, 0.25);
+}
+
+.dwf-card h3 {
+    font-size: 1.05rem;
+    color: #1d3557;
+    margin: 0 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid rgba(77, 217, 255, 0.4);
+}
+
+.dwf-card h4 {
+    font-size: 0.92rem;
+    color: #2a4d7a;
+    margin: 16px 0 8px;
+}
+
+/* 原理速览条目 */
+.dwf-principle-item {
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    background: linear-gradient(135deg, rgba(232, 246, 255, 0.8), rgba(244, 250, 255, 0.6));
+    border-radius: 10px;
+    border-left: 3px solid #4dd9ff;
+}
+
+.dwf-principle-item strong {
+    display: block;
+    color: #1d6fa5;
+    font-size: 0.88rem;
+    margin-bottom: 3px;
+}
+
+.dwf-principle-item span {
+    color: #51637c;
+    font-size: 0.82rem;
+    line-height: 1.55;
+}
+
+/* ---------- 3D 场景容器（与导航栏同宽） ---------- */
+.dwf-scene-wrap {
+    position: relative;
+    width: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(11, 29, 51, 0.35);
+    background: #0b1d33;
+    min-height: 600px;
+}
+
+#dwf-scene-container {
+    width: 100%;
+    height: 600px;
+}
+
+#dwf-scene-container canvas {
+    display: block;
+}
+
+/* ---------- 按钮组 ---------- */
+.dwf-btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dwf-btn {
+    width: 100%;
+    border: 1px solid rgba(120, 170, 255, 0.35);
+    background: rgba(244, 250, 255, 0.9);
+    color: #2a4d7a;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.dwf-btn:hover:not(:disabled) {
+    border-color: #4dd9ff;
+    background: rgba(225, 245, 255, 0.95);
+    transform: translateY(-1px);
+}
+
+.dwf-btn.active {
+    background: linear-gradient(135deg, #38b6ff 0%, #4dd9ff 100%);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(56, 182, 255, 0.45);
+}
+
+.dwf-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* ---------- 控制按钮条（顶部工具栏内） ---------- */
+.dwf-controls-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+    flex: 1;
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.dwf-controls-bar .dwf-divider {
+    width: 1px;
+    height: 26px;
+    background: rgba(120, 170, 255, 0.4);
+}
+
+.dwf-controls-bar .dwf-group-label {
+    font-size: 13px;
+    color: #5a6b82;
+    font-weight: 600;
+}
+
+.dwf-ctrl-btn {
+    border: none;
+    padding: 10px 22px;
+    border-radius: 22px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.dwf-ctrl-btn:hover {
+    transform: translateY(-2px);
+}
+
+.dwf-ctrl-btn.start {
+    background: linear-gradient(135deg, #2bc0e4 0%, #4dd9ff 100%);
+    box-shadow: 0 4px 14px rgba(43, 192, 228, 0.4);
+}
+
+.dwf-ctrl-btn.pause {
+    background: linear-gradient(135deg, #ffb199 0%, #ff8a80 100%);
+    box-shadow: 0 4px 14px rgba(255, 138, 128, 0.4);
+}
+
+.dwf-ctrl-btn.reset {
+    background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+    box-shadow: 0 4px 14px rgba(108, 92, 231, 0.4);
+}
+
+.dwf-ctrl-btn.slice {
+    background: rgba(244, 250, 255, 0.95);
+    color: #2a4d7a;
+    border: 1px solid rgba(120, 170, 255, 0.35);
+    box-shadow: none;
+}
+
+.dwf-ctrl-btn.slice:hover {
+    border-color: #4dd9ff;
+}
+
+.dwf-ctrl-btn.slice.active {
+    background: linear-gradient(135deg, #38b6ff 0%, #4dd9ff 100%);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(56, 182, 255, 0.45);
+}
+
+.dwf-ctrl-btn.start.active,
+.dwf-ctrl-btn.pause.active {
+    outline: 2px solid rgba(29, 53, 87, 0.35);
+    outline-offset: 2px;
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 1100px) {
+    #dwf-scene-container {
+        height: 480px;
+    }
+}
+
+@media (max-width: 600px) {
+    #dwf-scene-container {
+        height: 360px;
+    }
+
+    .dwf-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .dwf-enter-lab-btn {
+        width: 100%;
+        text-align: center;
+    }
+}

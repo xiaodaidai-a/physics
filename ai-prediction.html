@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <script src="./pages-demo.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>夫琅禾费单缝衍射虚拟仿真实验平台 - 实验数据分析</title>
+
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        window.addEventListener('error', function (event) {
+            if (event.filename && event.filename.includes('tfjs') && event.message && event.message.includes('源映射')) {
+                event.preventDefault();
+                return true;
+            }
+        }, true);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0/dist/tf.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: 'global'
+            },
+            options: {
+                renderActions: {
+                    addMenu: [0, '', ''],
+                    checkLoading: [0, '', '']
+                }
+            }
+        };
+    </script>
+
+    <style>
+        /* 按钮状态样式 */
+        .primary-btn,
+        .secondary-btn {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .primary-btn:disabled,
+        .secondary-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .button-success {
+            animation: button-success 1s ease;
+        }
+
+        @keyframes button-success {
+            0% {
+                background-color: #4CAF50;
+            }
+
+            70% {
+                background-color: #4CAF50;
+            }
+
+            100% {
+                background-color: #2196F3;
+            }
+        }
+
+        /* 主按钮悬停效果 */
+        .primary-btn:hover:not(:disabled) {
+            background-color: #1976D2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 次要按钮悬停效果 */
+        .secondary-btn:hover:not(:disabled) {
+            background-color: #e0e0e0;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 按钮点击效果 */
+        .primary-btn:active:not(:disabled),
+        .secondary-btn:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 加载状态旋转动画 */
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 添加反馈波纹效果 */
+        .primary-btn::after,
+        .secondary-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%, -50%);
+            transform-origin: 50% 50%;
+        }
+
+        .primary-btn:focus:not(:active)::after,
+        .secondary-btn:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+
+            20% {
+                transform: scale(25, 25);
+                opacity: 0.3;
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(40, 40);
+            }
+        }
+
+        .prediction-actions {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #new-predict-btn {
+            padding: 10px 20px;
+            font-size: 1.1em;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .combined-data-view {
+            width: 95%;
+            margin: 0 auto 20px auto;
+        }
+
+        .combined-chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .results-panel {
+            display: flex;
+            justify-content: space-around;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            border: 1px solid #eee;
+        }
+
+        .result-column {
+            flex: 1;
+            min-width: 200px;
+            padding: 0 15px;
+            text-align: left;
+        }
+
+        .result-column h4 {
+            margin-top: 0;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .result-column p {
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.95em;
+        }
+
+        .result-column p span {
+            font-weight: bold;
+            color: #1976D2;
+        }
+
+        /* 数据分析模块美化 */
+        .prediction-comparison {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .combined-chart-container {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .results-panel {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .result-column {
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .result-column:hover {
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(41, 121, 255, 0.15);
+        }
+
+        .result-column h4 {
+            color: #1565c0;
+            border-bottom: 2px solid #2979ff;
+            padding-bottom: 10px;
+        }
+
+        .result-column p span {
+            color: #0d47a1;
+            font-size: 1.05em;
+        }
+
+        /* 交互式分析标签 */
+        .analysis-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .analysis-tab {
+            padding: 12px 24px;
+            background: linear-gradient(145deg, #f5f7fa, #ffffff);
+            border: 2px solid #e3f2fd;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #546e7a;
+            transition: all 0.3s ease;
+        }
+
+        .analysis-tab:hover {
+            background: linear-gradient(145deg, #e3f2fd, #bbdefb);
+            border-color: #90caf9;
+        }
+
+        .analysis-tab.active {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e);
+            color: white;
+            border-color: #e73c7e;
+            box-shadow: 0 4px 12px rgba(231, 60, 126, 0.3);
+        }
+
+        .analysis-pane {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .analysis-pane.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 统计网格 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            border-color: #90caf9;
+            box-shadow: 0 4px 12px rgba(41, 121, 255, 0.1);
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #78909c;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #1565c0;
+        }
+
+        /* 参数控制 */
+        .parameter-control {
+            background: linear-gradient(145deg, #f5f7fa, #ffffff);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            border: 1px solid #e3f2fd;
+        }
+
+        .parameter-control label {
+            font-weight: 600;
+            color: #37474f;
+        }
+
+        .parameter-control input[type="range"] {
+            flex: 1;
+            min-width: 150px;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(to right, #e3f2fd, #bbdefb);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .parameter-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ee7752, #e73c7e);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(231, 60, 126, 0.4);
+        }
+
+        .parameter-control span {
+            font-weight: 600;
+            color: #1565c0;
+            min-width: 80px;
+        }
+
+        /* 波长选择按钮 */
+        .wavelength-selection {
+            margin-bottom: 20px;
+        }
+
+        .selection-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .wavelength-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .wavelength-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .wavelength-btn.active {
+            border-color: white;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+        }
+
+        .color-indicator {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        /* 比较表格 */
+        .comparison-table,
+        .impact-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-table th,
+        .comparison-table td,
+        .impact-table th,
+        .impact-table td {
+            padding: 12px 15px;
+            text-align: center;
+        }
+
+        .comparison-table th,
+        .impact-table th {
+            background: linear-gradient(145deg, #2979ff, #1565c0);
+            color: white;
+            font-weight: 600;
+        }
+
+        .comparison-table tr:nth-child(even),
+        .impact-table tr:nth-child(even) {
+            background: #f5f7fa;
+        }
+
+        .comparison-table tr:hover,
+        .impact-table tr:hover {
+            background: #e3f2fd;
+        }
+
+        /* 误差分析卡片 */
+        .error-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .error-category-card {
+            background: linear-gradient(145deg, #ffffff, #f5f7fa);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e3f2fd;
+        }
+
+        .error-category-card.systematic .error-category-header {
+            background: linear-gradient(145deg, #ff6b6b, #ee5a5a);
+        }
+
+        .error-category-card.random .error-category-header {
+            background: linear-gradient(145deg, #4ecdc4, #45b7aa);
+        }
+
+        .error-category-header {
+            padding: 15px 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .error-category-header h4 {
+            margin: 0;
+            font-size: 1.1em;
+        }
+
+        .error-percentage {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+
+        .error-category-body {
+            padding: 20px;
+        }
+
+        .error-category-body p {
+            color: #546e7a;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .error-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .error-card {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 12px;
+            border-left: 3px solid #2979ff;
+        }
+
+        .error-card h5 {
+            margin: 0 0 5px 0;
+            color: #1565c0;
+            font-size: 0.95em;
+        }
+
+        .error-card p {
+            margin: 0;
+            font-size: 0.85em;
+            color: #78909c;
+        }
+
+        /* 误差模拟控制 */
+        .error-simulation {
+            background: linear-gradient(145deg, #ffffff, #f5f7fa);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid #e3f2fd;
+        }
+
+        .error-simulation h4 {
+            color: #1565c0;
+            margin-bottom: 15px;
+        }
+
+        .error-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .error-control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .error-control-group label {
+            font-weight: 600;
+            color: #37474f;
+        }
+
+        .error-control-group select {
+            padding: 10px 15px;
+            border: 2px solid #e3f2fd;
+            border-radius: 10px;
+            font-size: 1em;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .error-control-group select:focus {
+            border-color: #2979ff;
+            outline: none;
+        }
+
+        /* 方法卡片 */
+        .method-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
+
+        .method-card {
+            display: flex;
+            gap: 15px;
+            background: linear-gradient(145deg, #ffffff, #f5f7fa);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid #e3f2fd;
+            transition: all 0.3s ease;
+        }
+
+        .method-card:hover {
+            border-color: #90caf9;
+            box-shadow: 0 4px 12px rgba(41, 121, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .method-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(145deg, #2979ff, #1565c0);
+            color: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2em;
+            flex-shrink: 0;
+        }
+
+        .method-content h4 {
+            margin: 0 0 5px 0;
+            color: #1565c0;
+            font-size: 1em;
+        }
+
+        .method-content p {
+            margin: 0;
+            font-size: 0.85em;
+            color: #78909c;
+            line-height: 1.5;
+        }
+
+        /* 图表容器 */
+        .chart-container {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+            min-height: 300px;
+        }
+
+        /* 洞察卡片 */
+        .insight-card {
+            background: linear-gradient(145deg, #e3f2fd, #f5f9ff);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(41, 121, 255, 0.15);
+        }
+
+        .insight-card h4 {
+            color: #1565c0;
+            margin-bottom: 10px;
+        }
+
+        .insight-card p {
+            color: #546e7a;
+            line-height: 1.6;
+            margin: 8px 0;
+        }
+
+        .insight-card span {
+            font-weight: 700;
+            color: #0d47a1;
+        }
+
+        /* 波长说明 */
+        .wavelength-note {
+            background: linear-gradient(145deg, #fff8e1, #ffffff);
+            border-radius: 12px;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin-top: 15px;
+        }
+
+        .wavelength-note p {
+            margin: 0;
+            color: #5d4037;
+        }
+
+        .note-icon {
+            margin-right: 8px;
+        }
+
+        /* 误差影响总结 */
+        .error-impact-summary {
+            background: linear-gradient(145deg, #ffffff, #f5f7fa);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid #e3f2fd;
+        }
+
+        .error-impact-summary h4 {
+            color: #1565c0;
+            margin-bottom: 15px;
+        }
+
+        /* 误差处理方法面板 */
+        .error-methods-panel {
+            background: linear-gradient(145deg, #ffffff, #f5f7fa);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid #e3f2fd;
+        }
+
+        .error-methods-panel h3 {
+            color: #1565c0;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    
+    
+    <header>
+        <a href="index.html" class="back-link" style="position: absolute; left: 20px; top: 20px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="white" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+            返回首页
+        </a>
+        <h1>夫琅禾费单缝衍射虚拟仿真实验平台</h1>
+    </header>
+
+    <main>
+        <div class="tabs">
+            <a href="theory.html" class="tab-btn" style="text-decoration: none;">实验原理</a>
+            <a href="3d-demo.html" class="tab-btn" style="text-decoration: none;">3D实验演示</a>
+            <a href="simulation.html" class="tab-btn" style="text-decoration: none;">仿真实验</a>
+            <a href="ai-prediction.html" class="tab-btn active" style="text-decoration: none;">实验数据分析</a>
+            <a href="ideological-education.html" class="tab-btn" style="text-decoration: none;">格物致知</a>
+            <a href="extension.html" class="tab-btn" style="text-decoration: none;">课外拓展</a>
+        </div>
+
+        <div class="tab-content">
+            <div id="ai-prediction" class="tab-pane active">
+                <div class="theory-panel">
+                    <h3>单缝衍射实验数据分析</h3>
+                    <div class="theory-content">
+                        <p>本页对应仿真实验中的夫琅禾费单缝衍射数据。分析对象为暗纹级次 <strong>k</strong> 与暗纹位置
+                            <strong>y<sub>k</sub></strong>，通过线性关系 \(y_k \approx k\lambda f/a\)
+                            拟合相邻暗纹间距，并反推单缝宽度。</p>
+                    </div>
+                </div>
+
+                <div class="prediction-comparison">
+                    <div class="prediction-actions">
+                        <button id="run-analysis-btn" class="primary-btn">加载并分析仿真数据</button>
+                        <a href="simulation.html" class="secondary-btn" style="text-decoration: none;">返回仿真实验采集数据</a>
+                    </div>
+                    <div id="empty-analysis-state" class="theory-panel" style="display: none; margin-top: 18px;">
+                        <h3>暂无可分析数据</h3>
+                        <div class="theory-content">
+                            <p>请先进入“仿真实验”页面，点击暗纹位置并添加暗纹点，然后使用“发送至数据分析”将采集表传入本页。</p>
+                        </div>
+                    </div>
+                    <div class="combined-data-view">
+                        <div class="chart-header">
+                            <h3>暗纹位置线性拟合结果</h3>
+                        </div>
+                        <div class="combined-chart-container">
+                            <canvas id="combined-chart"></canvas>
+                        </div>
+                        <div class="results-panel">
+                            <div class="result-column">
+                                <h4>仿真实验参数</h4>
+                                <p>入射波长: <span id="param-wavelength">-- nm</span></p>
+                                <p>透镜焦距: <span id="param-focal">-- mm</span></p>
+                                <p>设定缝宽: <span id="param-slit">-- mm</span></p>
+                            </div>
+                            <div class="result-column">
+                                <h4>采集数据统计</h4>
+                                <p>暗纹点数: <span id="measurement-points">--</span></p>
+                                <p>平均相邻间距: <span id="avg-delta-y">-- mm</span></p>
+                                <p>位置残差标准差: <span id="position-std-dev">-- mm</span></p>
+                            </div>
+                            <div class="result-column">
+                                <h4>反推结果</h4>
+                                <p>拟合斜率 Δy: <span id="fit-slope">-- mm/级</span></p>
+                                <p>反推缝宽: <span id="fitted-slit-width">-- mm</span></p>
+                                <p>相对误差: <span id="relative-error">--%</span></p>
+                                <p>拟合优度 R²: <span id="r-squared">--</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="interactive-analysis">
+                    <h3>交互式数据探索</h3>
+                    <div class="analysis-tabs">
+                        <div class="analysis-tab active" data-tab="basic-analysis">基础分析</div>
+                        <div class="analysis-tab" data-tab="slit-analysis">缝宽分析</div>
+                        <div class="analysis-tab" data-tab="wavelength-analysis">波长分析</div>
+                        <div class="analysis-tab" data-tab="error-analysis">误差分析</div>
+                    </div>
+                    <div class="analysis-content">
+                        <div id="basic-analysis" class="analysis-pane active">
+                            <p class="analysis-description">查看暗纹级次与位置的线性关系，并用拟合斜率反推单缝宽度。</p>
+                            <div class="simple-controls">
+                                <div class="control-row">
+                                    <button id="plot-data" class="primary-btn">刷新基础图表</button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="basic-chart"></canvas>
+                            </div>
+                            <div class="analysis-info">
+                                <h4>基本数据统计</h4>
+                                <div class="stats-grid">
+                                    <div class="stat-item">
+                                        <div class="stat-label">数据点数:</div>
+                                        <div class="stat-value" id="data-count">--</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-label">拟合斜率:</div>
+                                        <div class="stat-value" id="basic-fit-slope">-- mm/级</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-label">反推缝宽:</div>
+                                        <div class="stat-value" id="calc-slit-width">-- mm</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-label">测量准确度:</div>
+                                        <div class="stat-value" id="measure-precision">--%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="slit-analysis" class="analysis-pane">
+                            <p class="analysis-description">分析单缝宽度变化对暗纹间距和中央明纹宽度的影响。</p>
+                            <div class="parameter-control">
+                                <label for="slit-slider">测试单缝宽度 a:</label>
+                                <input type="range" id="slit-slider" min="2" max="50" value="10" step="1">
+                                <span id="slit-value">0.10 mm</span>
+                                <button id="apply-slit" class="secondary-btn">应用</button>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="slit-chart"></canvas>
+                            </div>
+                            <div class="radius-insights">
+                                <div class="insight-card">
+                                    <h4>缝宽变化分析</h4>
+                                    <p>在波长和焦距不变时，暗纹间距 \(\Delta y=\lambda f/a\)。缝越窄，暗纹间距和中央明纹宽度越大；缝越宽，衍射条纹越密。</p>
+                                    <p>当前 Δy 预估: <span id="slit-delta-y">-- mm</span></p>
+                                    <p>中央明纹宽度 Δx₀: <span id="central-width">-- mm</span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="wavelength-analysis" class="analysis-pane">
+                            <p class="analysis-description">探索不同入射波长对暗纹间距和中央明纹宽度的影响。</p>
+                            <div class="wavelength-selection">
+                                <div class="selection-row">
+                                    <button class="wavelength-btn" data-wavelength="450"
+                                        style="background-color: rgba(0, 0, 255, 0.7);">
+                                        <div class="color-indicator" style="background-color: #0000FF;"></div>
+                                        <span>蓝光 (450nm)</span>
+                                    </button>
+                                    <button class="wavelength-btn" data-wavelength="550"
+                                        style="background-color: rgba(0, 255, 0, 0.5);">
+                                        <div class="color-indicator" style="background-color: #00FF00;"></div>
+                                        <span>绿光 (550nm)</span>
+                                    </button>
+                                    <button class="wavelength-btn active" data-wavelength="632"
+                                        style="background-color: rgba(255, 80, 80, 0.65);">
+                                        <div class="color-indicator" style="background-color: #FF4040;"></div>
+                                        <span>红光 (632nm)</span>
+                                    </button>
+                                    <button class="wavelength-btn" data-wavelength="650"
+                                        style="background-color: rgba(255, 0, 0, 0.7);">
+                                        <div class="color-indicator" style="background-color: #FF0000;"></div>
+                                        <span>深红光 (650nm)</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="wavelength-chart"></canvas>
+                            </div>
+                            <div class="wavelength-comparison">
+                                <table class="comparison-table">
+                                    <thead>
+                                        <tr>
+                                            <th>波长 (nm)</th>
+                                            <th>相邻暗纹间距 Δy</th>
+                                            <th>中央明纹宽度 Δx₀</th>
+                                            <th>用当前斜率反推 a</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>450</td>
+                                            <td id="dy-450">--</td>
+                                            <td id="central-450">--</td>
+                                            <td id="a-450">--</td>
+                                        </tr>
+                                        <tr>
+                                            <td>550</td>
+                                            <td id="dy-550">--</td>
+                                            <td id="central-550">--</td>
+                                            <td id="a-550">--</td>
+                                        </tr>
+                                        <tr>
+                                            <td>632</td>
+                                            <td id="dy-632">--</td>
+                                            <td id="central-632">--</td>
+                                            <td id="a-632">--</td>
+                                        </tr>
+                                        <tr>
+                                            <td>650</td>
+                                            <td id="dy-650">--</td>
+                                            <td id="central-650">--</td>
+                                            <td id="a-650">--</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="wavelength-note">
+                                <p>波长越长，暗纹间距越大；若用错误波长代入反推缝宽，结果会按波长比例产生系统偏差。</p>
+                            </div>
+                        </div>
+
+                        <div id="error-analysis" class="analysis-pane">
+                            <div class="error-analysis-description">
+                                <h3>误差影响模拟</h3>
+                                <p>选择单缝衍射实验中的常见误差，观察其对反推缝宽的影响。</p>
+                            </div>
+
+                            <div class="error-categories">
+                                <div class="error-category-card systematic">
+                                    <div class="error-category-header">
+                                        <h4>系统误差</h4>
+                                        <div class="error-percentage">主要来自参数标定</div>
+                                    </div>
+                                    <div class="error-category-body">
+                                        <p>焦距、波长或缝宽标定偏差会使反推结果整体偏高或偏低，需要通过仪器校准减少。</p>
+                                        <div class="error-cards">
+                                            <div class="error-card">
+                                                <h5>焦距标定误差</h5>
+                                                <p>焦距进入公式 \(a=\lambda f/\Delta y\)，焦距偏差会同比传递到缝宽结果。</p>
+                                            </div>
+                                            <div class="error-card">
+                                                <h5>波长标定误差</h5>
+                                                <p>若实际光源波长与记录值不一致，反推缝宽会出现比例性偏差。</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="error-category-card random">
+                                    <div class="error-category-header">
+                                        <h4>随机误差</h4>
+                                        <div class="error-percentage">主要来自读数判断</div>
+                                    </div>
+                                    <div class="error-category-body">
+                                        <p>暗纹位置点击和读数会引入随机波动，可通过记录多个级次并做线性拟合降低影响。</p>
+                                        <div class="error-cards">
+                                            <div class="error-card">
+                                                <h5>暗纹位置读数</h5>
+                                                <p>暗纹附近亮度变化平缓时，点击位置可能偏离理论暗纹中心。</p>
+                                            </div>
+                                            <div class="error-card">
+                                                <h5>零点偏移</h5>
+                                                <p>屏幕中心或光轴零点判断偏移会表现为拟合截距变化。</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="error-simulation">
+                                <h4>误差模拟</h4>
+                                <div class="error-controls">
+                                    <div class="error-control-group">
+                                        <label for="error-type-select">误差类型:</label>
+                                        <select id="error-type-select">
+                                            <option value="reading">暗纹读数误差</option>
+                                            <option value="focal">焦距标定误差</option>
+                                            <option value="wavelength">波长标定误差</option>
+                                            <option value="slit">缝宽标定误差</option>
+                                            <option value="zero">零点偏移</option>
+                                        </select>
+                                    </div>
+                                    <div class="error-control-group">
+                                        <label for="error-magnitude">误差幅度 (%):</label>
+                                        <input type="range" id="error-magnitude" min="0" max="10" value="2" step="0.5">
+                                        <span id="error-magnitude-value">2%</span>
+                                    </div>
+                                    <button id="calculate-error-effect" class="primary-btn">计算误差影响</button>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="error-impact-chart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="error-impact-summary">
+                                <h4>误差影响总结</h4>
+                                <table class="impact-table">
+                                    <thead>
+                                        <tr>
+                                            <th>误差类型</th>
+                                            <th>缝宽偏差</th>
+                                            <th>相对误差</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>暗纹读数误差</td>
+                                            <td id="reading-impact">-- mm</td>
+                                            <td id="reading-relative">--%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>焦距标定误差</td>
+                                            <td id="focal-impact">-- mm</td>
+                                            <td id="focal-relative">--%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>波长标定误差</td>
+                                            <td id="wavelength-impact">-- mm</td>
+                                            <td id="wavelength-relative">--%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>缝宽标定误差</td>
+                                            <td id="slit-impact">-- mm</td>
+                                            <td id="slit-relative">--%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>零点偏移</td>
+                                            <td id="zero-impact">-- mm</td>
+                                            <td id="zero-relative">--%</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="error-methods-panel">
+                                <h3>误差处理方法</h3>
+                                <div class="method-cards">
+                                    <div class="method-card">
+                                        <div class="method-icon">1</div>
+                                        <div class="method-content">
+                                            <h4>多级次线性拟合</h4>
+                                            <p>用多个暗纹级次拟合 \(y_k-k\) 关系，利用斜率估计 \(\Delta y\)，削弱单点读数误差。</p>
+                                        </div>
+                                    </div>
+                                    <div class="method-card">
+                                        <div class="method-icon">2</div>
+                                        <div class="method-content">
+                                            <h4>正负级次对称测量</h4>
+                                            <p>尽量在中心两侧记录对称暗纹位置，减少零点偏移对结果的影响。</p>
+                                        </div>
+                                    </div>
+                                    <div class="method-card">
+                                        <div class="method-icon">3</div>
+                                        <div class="method-content">
+                                            <h4>参数校准</h4>
+                                            <p>核对波长、焦距和单缝标称宽度，使系统误差不会被误判为读数误差。</p>
+                                        </div>
+                                    </div>
+                                    <div class="method-card">
+                                        <div class="method-icon">4</div>
+                                        <div class="method-content">
+                                            <h4>残差检查</h4>
+                                            <p>观察拟合残差是否随机分布，若残差呈趋势变化，应重新检查中心位置和参数设置。</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 返回顶部按钮 -->
+    <div id="scrollToTop"
+        style="position: fixed; right: 30px; bottom: 100px; width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, #2979ff, #1565c0); color: white; display: none; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 8px 25px rgba(41, 121, 255, 0.4); transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 9999; border: none;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="white" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+        </svg>
+    </div>
+
+    <footer>
+        <p>© 2026 夫琅禾费单缝衍射虚拟仿真实验平台</p>
+    </footer>
+
+    <!-- 实验报告预览模态框 -->
+    <div id="report-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>实验报告预览</h2>
+                <span class="report-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="report-content" class="report-content"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-print-btn" class="report-btn print-btn" onclick="printReport()">打印报告</button>
+                <button id="modal-download-btn" class="report-btn download-btn" onclick="downloadReport()">下载报告</button>
+                <button id="modal-close-btn" class="report-btn close-btn"
+                    onclick="document.getElementById('report-modal').style.display='none'">关闭预览</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const analysisState = {
+            raw: null,
+            result: null,
+            charts: {}
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            bindTabs();
+            bindControls();
+            initCharts();
+            runSingleSlitAnalysis();
+            bindScrollToTop();
+
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise().catch(function () { /* ignore */ });
+            }
+        });
+
+        function $(id) {
+            return document.getElementById(id);
+        }
+
+        function setText(id, value) {
+            const el = $(id);
+            if (el) el.textContent = value;
+        }
+
+        function fmt(value, digits = 4, suffix = '') {
+            return Number.isFinite(value) ? `${value.toFixed(digits)}${suffix}` : `--${suffix}`;
+        }
+
+        function bindTabs() {
+            document.querySelectorAll('.analysis-tab').forEach(tab => {
+                tab.addEventListener('click', function () {
+                    const tabId = this.getAttribute('data-tab');
+                    document.querySelectorAll('.analysis-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.analysis-pane').forEach(pane => pane.classList.remove('active'));
+                    this.classList.add('active');
+                    const pane = $(tabId);
+                    if (pane) pane.classList.add('active');
+                });
+            });
+        }
+
+        function bindControls() {
+            $('run-analysis-btn')?.addEventListener('click', runSingleSlitAnalysis);
+            $('plot-data')?.addEventListener('click', updateBasicChart);
+            $('apply-slit')?.addEventListener('click', function () {
+                updateSlitAnalysis(getSliderSlitWidth());
+            });
+            $('slit-slider')?.addEventListener('input', function () {
+                setText('slit-value', `${getSliderSlitWidth().toFixed(2)} mm`);
+            });
+            document.querySelectorAll('.wavelength-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    document.querySelectorAll('.wavelength-btn').forEach(item => item.classList.remove('active'));
+                    this.classList.add('active');
+                    updateWavelengthAnalysis(parseFloat(this.getAttribute('data-wavelength')));
+                });
+            });
+            $('calculate-error-effect')?.addEventListener('click', calculateErrorEffect);
+            $('error-magnitude')?.addEventListener('input', function () {
+                setText('error-magnitude-value', `${this.value}%`);
+            });
+        }
+
+        function getSliderSlitWidth() {
+            return parseInt($('slit-slider')?.value || '10', 10) / 100;
+        }
+
+        function readSimulationData() {
+            try {
+                const raw = sessionStorage.getItem('simulationData');
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                if (parsed.experimentType && parsed.experimentType !== 'singleSlit') return null;
+                return parsed;
+            } catch (error) {
+                console.error('读取仿真实验数据失败:', error);
+                return null;
+            }
+        }
+
+        function normalizeData(raw) {
+            const params = raw?.parameters || {};
+            const wavelengthNm = Number(params.wavelength);
+            const focalMm = Number(params.focalLengthMm);
+            const slitWidthMm = Number(params.slitWidthMm);
+            const measurements = Array.isArray(raw?.measurements) ? raw.measurements : [];
+            const points = measurements
+                .map(item => ({
+                    k: Number(item.k),
+                    yMm: Math.abs(Number(item.y_mm)),
+                    deltaYMm: Number(item.deltaY_mm),
+                    aCalcMm: Number(item.a_calc_mm),
+                    relErrPercent: Number(item.rel_err_percent)
+                }))
+                .filter(item => Number.isFinite(item.k) && item.k > 0 && Number.isFinite(item.yMm))
+                .sort((a, b) => a.k - b.k);
+
+            let prevY = 0;
+            points.forEach(point => {
+                if (!Number.isFinite(point.deltaYMm)) {
+                    point.deltaYMm = point.k === 1 ? point.yMm : point.yMm - prevY;
+                }
+                prevY = point.yMm;
+                if (!Number.isFinite(point.aCalcMm) && wavelengthNm && focalMm && point.yMm > 0) {
+                    point.aCalcMm = (point.k * wavelengthNm * 1e-6 * focalMm) / point.yMm;
+                }
+                if (!Number.isFinite(point.relErrPercent) && Number.isFinite(point.aCalcMm) && slitWidthMm > 0) {
+                    point.relErrPercent = Math.abs(point.aCalcMm - slitWidthMm) / slitWidthMm * 100;
+                }
+            });
+
+            return { params: { wavelengthNm, focalMm, slitWidthMm }, points };
+        }
+
+        function linearRegression(points) {
+            const n = points.length;
+            if (n < 2) return { slope: NaN, intercept: NaN, r2: NaN };
+            const sums = points.reduce((acc, p) => {
+                acc.x += p.x;
+                acc.y += p.y;
+                acc.xy += p.x * p.y;
+                acc.x2 += p.x * p.x;
+                return acc;
+            }, { x: 0, y: 0, xy: 0, x2: 0 });
+            const denominator = n * sums.x2 - sums.x * sums.x;
+            if (Math.abs(denominator) < 1e-12) return { slope: NaN, intercept: NaN, r2: NaN };
+            const slope = (n * sums.xy - sums.x * sums.y) / denominator;
+            const intercept = (sums.y - slope * sums.x) / n;
+            const meanY = sums.y / n;
+            let ssTot = 0;
+            let ssRes = 0;
+            points.forEach(p => {
+                const fitted = slope * p.x + intercept;
+                ssTot += Math.pow(p.y - meanY, 2);
+                ssRes += Math.pow(p.y - fitted, 2);
+            });
+            return { slope, intercept, r2: ssTot === 0 ? 1 : 1 - ssRes / ssTot };
+        }
+
+        function analyzeSingleSlit(raw) {
+            const normalized = normalizeData(raw);
+            const chartPoints = normalized.points.map(point => ({ x: point.k, y: point.yMm }));
+            const regression = linearRegression(chartPoints);
+            const { wavelengthNm, focalMm, slitWidthMm } = normalized.params;
+            const lambdaMm = wavelengthNm * 1e-6;
+            const slitFromSlope = Number.isFinite(regression.slope) && regression.slope > 0
+                ? (lambdaMm * focalMm) / regression.slope
+                : NaN;
+            const deltaValues = normalized.points.map(p => p.deltaYMm).filter(Number.isFinite);
+            const avgDeltaY = deltaValues.length
+                ? deltaValues.reduce((sum, value) => sum + value, 0) / deltaValues.length
+                : NaN;
+            const residuals = chartPoints.map(p => p.y - (regression.slope * p.x + regression.intercept));
+            const residualStd = residuals.length > 1
+                ? Math.sqrt(residuals.reduce((sum, value) => sum + value * value, 0) / (residuals.length - 1))
+                : NaN;
+            const relativeError = Number.isFinite(slitFromSlope) && slitWidthMm > 0
+                ? Math.abs(slitFromSlope - slitWidthMm) / slitWidthMm * 100
+                : NaN;
+
+            return {
+                ...normalized,
+                chartPoints,
+                regression,
+                avgDeltaY,
+                residualStd,
+                slitFromSlope,
+                relativeError
+            };
+        }
+
+        function runSingleSlitAnalysis() {
+            const raw = readSimulationData();
+            analysisState.raw = raw;
+
+            if (!raw) {
+                const emptyText = $('empty-analysis-state')?.querySelector('p');
+                if (emptyText) {
+                    emptyText.textContent = '请先进入“仿真实验”页面，点击暗纹位置并添加暗纹点，然后使用“发送至数据分析”将采集表传入本页。';
+                }
+                showEmptyState(true);
+                resetSummary();
+                updateAllCharts(null);
+                return;
+            }
+
+            const result = analyzeSingleSlit(raw);
+            analysisState.result = result;
+            const hasEnoughData = result.points.length >= 2;
+            showEmptyState(!hasEnoughData);
+            updateSummary(result);
+            updateAllCharts(result);
+            if (!hasEnoughData) {
+                $('empty-analysis-state').querySelector('p').textContent = '已读取仿真实验参数，但至少需要 2 个暗纹点才能进行线性拟合。请返回仿真实验继续添加暗纹点。';
+            }
+        }
+
+        function showEmptyState(visible) {
+            const el = $('empty-analysis-state');
+            if (el) el.style.display = visible ? 'block' : 'none';
+        }
+
+        function resetSummary() {
+            [
+                'param-wavelength', 'param-focal', 'param-slit', 'measurement-points', 'avg-delta-y',
+                'position-std-dev', 'fit-slope', 'fitted-slit-width', 'relative-error', 'r-squared',
+                'data-count', 'basic-fit-slope', 'calc-slit-width', 'measure-precision'
+            ].forEach(id => setText(id, id.includes('error') || id.includes('precision') ? '--%' : '--'));
+        }
+
+        function updateSummary(result) {
+            const { wavelengthNm, focalMm, slitWidthMm } = result.params;
+            setText('param-wavelength', fmt(wavelengthNm, 0, ' nm'));
+            setText('param-focal', fmt(focalMm, 1, ' mm'));
+            setText('param-slit', fmt(slitWidthMm, 4, ' mm'));
+            setText('measurement-points', String(result.points.length));
+            setText('avg-delta-y', fmt(result.avgDeltaY, 4, ' mm'));
+            setText('position-std-dev', fmt(result.residualStd, 4, ' mm'));
+            setText('fit-slope', fmt(result.regression.slope, 4, ' mm/级'));
+            setText('fitted-slit-width', fmt(result.slitFromSlope, 4, ' mm'));
+            setText('relative-error', fmt(result.relativeError, 2, '%'));
+            setText('r-squared', Number.isFinite(result.regression.r2) ? result.regression.r2.toFixed(4) : '--');
+            updateBasicStats(result);
+        }
+
+        function updateBasicStats(result) {
+            setText('data-count', String(result?.points?.length || 0));
+            setText('basic-fit-slope', fmt(result?.regression?.slope, 4, ' mm/级'));
+            setText('calc-slit-width', fmt(result?.slitFromSlope, 4, ' mm'));
+            const precision = Number.isFinite(result?.relativeError) ? Math.max(0, 100 - result.relativeError) : NaN;
+            setText('measure-precision', fmt(precision, 2, '%'));
+        }
+
+        function fitLineData(result) {
+            if (!result || !Number.isFinite(result.regression.slope)) return [];
+            const maxK = Math.max(...result.chartPoints.map(p => p.x), 1);
+            return [
+                { x: 0, y: result.regression.intercept },
+                { x: maxK + 0.5, y: result.regression.slope * (maxK + 0.5) + result.regression.intercept }
+            ];
+        }
+
+        function chartOptions(title, xTitle, yTitle) {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: title, font: { size: 16 } },
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    x: { type: 'linear', title: { display: true, text: xTitle } },
+                    y: { title: { display: true, text: yTitle } }
+                }
+            };
+        }
+
+        function initCharts() {
+            analysisState.charts.combined = createScatterChart('combined-chart', '暗纹级次与位置拟合', '暗纹级次 k', '暗纹位置 y_k / mm');
+            analysisState.charts.basic = createScatterChart('basic-chart', '采集暗纹数据分析', '暗纹级次 k', '暗纹位置 y_k / mm');
+            analysisState.charts.slit = createLineChart('slit-chart', '缝宽变化对暗纹间距的影响', '暗纹级次 k', '暗纹位置 y_k / mm');
+            analysisState.charts.wavelength = createLineChart('wavelength-chart', '波长变化对暗纹位置的影响', '暗纹级次 k', '暗纹位置 y_k / mm');
+            analysisState.charts.error = createErrorChart();
+        }
+
+        function createScatterChart(canvasId, title, xTitle, yTitle) {
+            const canvas = $(canvasId);
+            if (!canvas) return null;
+            return new Chart(canvas.getContext('2d'), {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: '仿真采集暗纹点',
+                            data: [],
+                            backgroundColor: 'rgba(54, 162, 235, 0.65)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            pointRadius: 5
+                        },
+                        {
+                            label: '线性拟合 y_k = Δy·k + b',
+                            data: [],
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            showLine: true,
+                            fill: false
+                        }
+                    ]
+                },
+                options: chartOptions(title, xTitle, yTitle)
+            });
+        }
+
+        function createLineChart(canvasId, title, xTitle, yTitle) {
+            const canvas = $(canvasId);
+            if (!canvas) return null;
+            return new Chart(canvas.getContext('2d'), {
+                type: 'line',
+                data: { labels: [1, 2, 3, 4, 5, 6], datasets: [] },
+                options: chartOptions(title, xTitle, yTitle)
+            });
+        }
+
+        function createErrorChart() {
+            const canvas = $('error-impact-chart');
+            if (!canvas) return null;
+            return new Chart(canvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['基准反推缝宽', '加入误差后'],
+                    datasets: [{
+                        label: '反推缝宽 a / mm',
+                        data: [0, 0],
+                        backgroundColor: ['rgba(75, 192, 192, 0.6)', 'rgba(255, 99, 132, 0.6)'],
+                        borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: true, text: '误差对反推缝宽的影响', font: { size: 16 } }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: { display: true, text: '单缝宽度 a / mm' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateAllCharts(result) {
+            updateFitChart(analysisState.charts.combined, result);
+            updateFitChart(analysisState.charts.basic, result);
+            if (!result) {
+                clearChartDatasets(analysisState.charts.slit);
+                clearChartDatasets(analysisState.charts.wavelength);
+                if (analysisState.charts.error) {
+                    analysisState.charts.error.data.datasets[0].data = [0, 0];
+                    analysisState.charts.error.update();
+                }
+                return;
+            }
+            updateSlitAnalysis(result?.params?.slitWidthMm || getSliderSlitWidth());
+            updateWavelengthAnalysis(result?.params?.wavelengthNm || 632);
+            calculateErrorEffect();
+        }
+
+        function clearChartDatasets(chart) {
+            if (!chart) return;
+            chart.data.datasets = [];
+            chart.update();
+        }
+
+        function updateFitChart(chart, result) {
+            if (!chart) return;
+            chart.data.datasets[0].data = result?.chartPoints || [];
+            chart.data.datasets[1].data = fitLineData(result);
+            chart.update();
+        }
+
+        function updateBasicChart() {
+            updateFitChart(analysisState.charts.basic, analysisState.result);
+            if (analysisState.result) updateBasicStats(analysisState.result);
+        }
+
+        function currentParams() {
+            return analysisState.result?.params || { wavelengthNm: 632, focalMm: 500, slitWidthMm: 0.1 };
+        }
+
+        function deltaYFor(params) {
+            if (!(params.wavelengthNm > 0 && params.focalMm > 0 && params.slitWidthMm > 0)) return NaN;
+            return (params.wavelengthNm * 1e-6 * params.focalMm) / params.slitWidthMm;
+        }
+
+        function updateSlitAnalysis(slitWidthMm) {
+            const params = { ...currentParams(), slitWidthMm };
+            const chart = analysisState.charts.slit;
+            const widths = [0.05, 0.1, 0.2, slitWidthMm].filter((value, index, arr) => arr.indexOf(value) === index);
+            if (chart) {
+                chart.data.labels = [1, 2, 3, 4, 5, 6];
+                chart.data.datasets = widths.map((width, index) => {
+                    const dy = deltaYFor({ ...params, slitWidthMm: width });
+                    return {
+                        label: `a=${width.toFixed(2)} mm`,
+                        data: chart.data.labels.map(k => k * dy),
+                        borderColor: ['#1e88e5', '#e53935', '#43a047', '#8e24aa'][index % 4],
+                        backgroundColor: 'rgba(30, 136, 229, 0.12)',
+                        borderWidth: width === slitWidthMm ? 3 : 2,
+                        fill: false
+                    };
+                });
+                chart.update();
+            }
+            const dyCurrent = deltaYFor(params);
+            setText('slit-value', `${slitWidthMm.toFixed(2)} mm`);
+            setText('slit-delta-y', fmt(dyCurrent, 4, ' mm'));
+            setText('central-width', fmt(2 * dyCurrent, 4, ' mm'));
+        }
+
+        function updateWavelengthAnalysis(selectedWavelength) {
+            const params = currentParams();
+            const wavelengths = [450, 550, 632, 650];
+            const chart = analysisState.charts.wavelength;
+            if (chart) {
+                chart.data.labels = [1, 2, 3, 4, 5, 6];
+                chart.data.datasets = wavelengths.map(wavelength => {
+                    const dy = deltaYFor({ ...params, wavelengthNm: wavelength });
+                    return {
+                        label: `${wavelength} nm`,
+                        data: chart.data.labels.map(k => k * dy),
+                        borderColor: wavelengthColor(wavelength),
+                        backgroundColor: 'rgba(54, 162, 235, 0.12)',
+                        borderWidth: wavelength === selectedWavelength ? 3 : 2,
+                        fill: false
+                    };
+                });
+                chart.update();
+            }
+            wavelengths.forEach(wavelength => {
+                const dy = deltaYFor({ ...params, wavelengthNm: wavelength });
+                const aByCurrentSlope = Number.isFinite(analysisState.result?.regression?.slope)
+                    ? (wavelength * 1e-6 * params.focalMm) / analysisState.result.regression.slope
+                    : NaN;
+                setText(`dy-${wavelength}`, fmt(dy, 4, ' mm'));
+                setText(`central-${wavelength}`, fmt(2 * dy, 4, ' mm'));
+                setText(`a-${wavelength}`, fmt(aByCurrentSlope, 4, ' mm'));
+            });
+        }
+
+        function wavelengthColor(wavelength) {
+            if (wavelength < 480) return 'rgba(40, 80, 255, 0.85)';
+            if (wavelength < 590) return 'rgba(20, 170, 80, 0.85)';
+            if (wavelength < 640) return 'rgba(255, 120, 60, 0.85)';
+            return 'rgba(230, 40, 50, 0.85)';
+        }
+
+        function calculateErrorEffect() {
+            const result = analysisState.result;
+            const chart = analysisState.charts.error;
+            const baseSlit = Number.isFinite(result?.slitFromSlope) ? result.slitFromSlope : currentParams().slitWidthMm;
+            const magnitude = parseFloat($('error-magnitude')?.value || '2') / 100;
+            const errorType = $('error-type-select')?.value || 'reading';
+            const factorMap = {
+                reading: 0.8,
+                focal: 1,
+                wavelength: 1,
+                slit: 0.6,
+                zero: 0.25
+            };
+            const factor = factorMap[errorType] || 1;
+            const direction = errorType === 'zero' ? 1 : -1;
+            const errorSlit = baseSlit * (1 + direction * magnitude * factor);
+            const impact = errorSlit - baseSlit;
+            if (chart) {
+                chart.data.datasets[0].data = [baseSlit, errorSlit];
+                chart.options.plugins.title.text = `误差对反推缝宽的影响 (${impact.toFixed(4)} mm)`;
+                const minY = Math.min(baseSlit, errorSlit) * 0.96;
+                const maxY = Math.max(baseSlit, errorSlit) * 1.04;
+                chart.options.scales.y.min = minY;
+                chart.options.scales.y.max = maxY;
+                chart.update();
+            }
+            updateErrorImpactTable(errorType, Math.abs(impact), baseSlit);
+        }
+
+        function updateErrorImpactTable(selectedType, impact, baseSlit) {
+            const ids = {
+                reading: ['reading-impact', 'reading-relative'],
+                focal: ['focal-impact', 'focal-relative'],
+                wavelength: ['wavelength-impact', 'wavelength-relative'],
+                slit: ['slit-impact', 'slit-relative'],
+                zero: ['zero-impact', 'zero-relative']
+            };
+            Object.entries(ids).forEach(([type, pair]) => {
+                const impactEl = $(pair[0]);
+                const relativeEl = $(pair[1]);
+                if (!impactEl || !relativeEl) return;
+                if (type === selectedType) {
+                    impactEl.textContent = fmt(impact, 4, ' mm');
+                    relativeEl.textContent = fmt(baseSlit > 0 ? impact / baseSlit * 100 : NaN, 2, '%');
+                    impactEl.style.fontWeight = 'bold';
+                    impactEl.style.color = '#ff6b6b';
+                    relativeEl.style.fontWeight = 'bold';
+                    relativeEl.style.color = '#ff6b6b';
+                } else {
+                    impactEl.style.fontWeight = 'normal';
+                    impactEl.style.color = '';
+                    relativeEl.style.fontWeight = 'normal';
+                    relativeEl.style.color = '';
+                }
+            });
+        }
+
+        function bindScrollToTop() {
+            const scrollToTopBtn = document.getElementById('scrollToTop');
+            if (!scrollToTopBtn) return;
+
+            window.addEventListener('scroll', function () {
+                if (window.pageYOffset > 300) {
+                    scrollToTopBtn.style.display = 'flex';
+                    scrollToTopBtn.style.opacity = '1';
+                } else {
+                    scrollToTopBtn.style.display = 'none';
+                    scrollToTopBtn.style.opacity = '0';
+                }
+            });
+
+            scrollToTopBtn.addEventListener('click', function () {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+
+            scrollToTopBtn.addEventListener('mouseenter', function () {
+                this.style.transform = 'translateY(-8px) scale(1.1)';
+                this.style.boxShadow = '0 15px 40px rgba(41, 121, 255, 0.5)';
+            });
+
+            scrollToTopBtn.addEventListener('mouseleave', function () {
+                this.style.transform = 'translateY(0) scale(1)';
+                this.style.boxShadow = '0 8px 25px rgba(41, 121, 255, 0.4)';
+            });
+        }
+    </script>
+</body>
+
+</html>

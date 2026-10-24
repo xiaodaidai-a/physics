@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <script src="../pages-demo.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>光学等厚干涉虚拟仿真实验平台 - 仿真实验</title>
+    
+    <link rel="stylesheet" href="styles.css">
+    <script src="js/back-to-wave-home.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        window.addEventListener('error', function(event) {
+            if (event.filename && event.filename.includes('tfjs') && event.message && event.message.includes('源映射')) {
+                event.preventDefault();
+                return true;
+            }
+        }, true);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0/dist/tf.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: 'global'
+            },
+            options: {
+                renderActions: {
+                    addMenu: [0, '', ''],
+                    checkLoading: [0, '', '']
+                }
+            }
+        };
+    </script>
+</head>
+<body>
+    
+    
+
+    <header>
+        <a href="../index.html" class="back-link" style="position: absolute; left: 20px; top: 20px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            返回首页
+        </a>
+        <h1>光学等厚干涉虚拟仿真实验平台</h1>
+    </header>
+    
+    <main>
+        <div class="tabs">
+            <a href="theory.html" class="tab-btn" style="text-decoration: none;">实验原理</a>
+            <a href="3d-demo.html" class="tab-btn" style="text-decoration: none;">3D实验演示</a>
+            <a href="simulation.html" class="tab-btn active" style="text-decoration: none;">仿真实验</a>
+            <a href="ai-prediction.html" class="tab-btn" style="text-decoration: none;">实验数据分析</a>
+            <a href="ideological-education.html" class="tab-btn" style="text-decoration: none;">格物致知</a>
+            <a href="extension.html" class="tab-btn" style="text-decoration: none;">课外拓展</a>
+        </div>
+        
+        <div class="tab-content">
+            <!-- 牛顿环仿真实验 -->
+            <div id="simulation" class="tab-pane active">
+                <div class="simulation-layout-container">
+                    <div class="theory-panel">
+                        <h3>仿真实验说明</h3>
+                        <div class="theory-content">
+                            <p>本仿真实验允许您调整透镜曲率半径和光的波长，观察牛顿环的变化并进行曲率半径测量。</p>
+                            <p>通过调节参数，您可以验证牛顿环干涉理论并进行数据测量分析。</p>
+                        </div>
+                    </div>
+
+                    <div class="interactive-row">
+                        <div class="control-panel">
+                            <h2>实验参数控制</h2>
+                            <div class="control-group">
+                                <label for="radius">透镜曲率半径 (R)</label>
+                                <div class="control-container">
+                                    <div class="slider-section">
+                                        <input type="range" id="radius-slider" min="1000" max="10000" value="5530" step="10" class="parameter-slider">
+                                        <div class="range-labels">
+                                            <span>1000 mm</span>
+                                            <span>10000 mm</span>
+                                        </div>
+                                    </div>
+                                    <div class="input-section">
+                                        <input type="number" id="radius" min="1000" max="10000" step="10" value="5530" class="numeric-input">
+                                        <span class="unit">mm</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label for="wavelength">光的波长 (λ)</label>
+                                <div class="control-container">
+                                    <div class="slider-section wavelength-slider-section">
+                                        <input type="range" id="wavelength-slider" min="380" max="780" value="510" step="1" class="parameter-slider wavelength-slider">
+                                        <div class="range-labels">
+                                            <span>380 nm</span>
+                                            <span>780 nm</span>
+                                        </div>
+                                    </div>
+                                    <div class="input-section">
+                                        <input type="number" id="wavelength" min="380" max="780" value="510" step="1" class="numeric-input">
+                                        <span class="unit">nm</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button id="calculate-btn">计算曲率半径</button>
+                            <div class="result-display">
+                                <div class="result-item">
+                                    <span class="result-label">测量结果</span>
+                                    <span class="result-value" id="measurement-result">5502.62 mm</span>
+                                </div>
+                                <div class="result-item">
+                                    <span class="result-label">测量精度</span>
+                                    <span class="result-value" id="measurement-accuracy">99.50%</span>
+                                </div>
+                                <div class="result-item">
+                                    <span class="result-label">响应时间</span>
+                                    <span class="result-value" id="response-time">802.90 ms</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="simulation-display">
+                            <div class="newton-rings-container">
+                                <canvas id="newton-rings-canvas" width="500" height="500"></canvas>
+                                <div class="canvas-controls">
+                                    <button id="reset-view" title="重置视图"><i class="reset-icon">↺</i></button>
+                                    <div class="zoom-controls">
+                                        <button id="zoom-in" title="放大">+</button>
+                                        <button id="zoom-out" title="缩小">-</button>
+                                    </div>
+                                    <div class="ring-info" id="ring-info">点击选择环</div>
+                                </div>
+                                <div class="loading-overlay" id="canvas-loading">
+                                    <div class="loading-spinner"></div>
+                                    <div class="loading-text">生成牛顿环中...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="data-analysis">
+                        <div class="data-header">
+                            <h3>数据采集与分析</h3>
+                            <div class="data-buttons">
+                                <div class="action-buttons">
+                                    <button id="add-data-point" class="action-btn">添加测量点</button>
+                                    <button id="clear-data" class="action-btn clear-btn">全部清除</button>
+                                    <button id="calculate-from-data" class="action-btn calculate-btn">计算曲率半径</button>
+                                    <button id="send-to-analysis" class="action-btn send-btn">发送至数据分析</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="data-table">
+                            <table id="measurement-table">
+                                <thead>
+                                    <tr>
+                                        <th>环序号(m)</th>
+                                        <th>环类型</th>
+                                        <th>环直径(D<sub>m</sub>) mm</th>
+                                        <th>直径平方(D<sub>m</sub><sup>2</sup>) mm<sup>2</sup></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>--</td>
+                                        <td>--</td>
+                                        <td>--</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>--</td>
+                                        <td>--</td>
+                                        <td>--</td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>--</td>
+                                        <td>--</td>
+                                        <td>--</td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td>--</td>
+                                        <td>--</td>
+                                        <td>--</td>
+                                    </tr>
+                                    <tr>
+                                        <td>5</td>
+                                        <td>--</td>
+                                        <td>--</td>
+                                        <td>--</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <p>© 2026 光学等厚干涉虚拟仿真实验平台</p>
+    </footer>
+    
+    <!-- 实验报告预览模态框 -->
+    <div id="report-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>实验报告预览</h2>
+                <span class="report-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="report-content" class="report-content"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-print-btn" class="report-btn print-btn" onclick="printReport()">打印报告</button>
+                <button id="modal-download-btn" class="report-btn download-btn" onclick="downloadReport()">下载报告</button>
+                <button id="modal-close-btn" class="report-btn close-btn" onclick="document.getElementById('report-modal').style.display='none'">关闭预览</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 上划按钮 -->
+    <div class="scroll-to-top" id="scrollToTop">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </div>
+
+    <script>
+        // 上划按钮功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const scrollToTopBtn = document.getElementById('scrollToTop');
+            
+            // 滚动事件监听
+            window.addEventListener('scroll', function() {
+                if (window.pageYOffset > 300) {
+                    scrollToTopBtn.classList.add('visible');
+                } else {
+                    scrollToTopBtn.classList.remove('visible');
+                }
+            });
+            
+            // 点击事件
+            scrollToTopBtn.addEventListener('click', function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+    <script src="app.js"></script>
+    <script src="simulation.js"></script>
+    <script src="3d-demo.js"></script>
+    <script src="ai-model.js"></script>
+    <!--
+    <script>
+    window.addEventListener('load', function() {
+      // 移除所有可能的指示器
+      const elements = document.querySelectorAll('body > div');
+      elements.forEach(el => {
+        if (el.style.position === 'fixed' && el.getBoundingClientRect().top < 50) {
+          el.remove();
+        }
+      });
+    });
+    </script>
+    -->
+</body>
+</html> 

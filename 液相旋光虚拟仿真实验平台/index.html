@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <script src="../pages-demo.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="基于多智能体教学辅助的偏振光与蔗糖旋光现象仿真实验平台 - 基于三分视场法的蔗糖溶液比旋光度精密测量">
+    <title>基于多智能体教学辅助的偏振光与蔗糖旋光现象仿真实验平台</title>
+
+    <!-- 字体：纯系统字体方案（零网络依赖，秒开） -->
+    <link rel="stylesheet" href="css/styles.css">
+
+    <!-- MathJax 3：本地化 + 延迟加载 -->
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)'], ['$$', '$$'], ['\\[', '\\]']], displayMath: [] },
+            svg: { fontCache: 'global' },
+            startup: { ready: () => { MathJax.startup.defaultReady(); } }
+        };
+    </script>
+    <script src="libs/tex-svg.js" defer></script>
+
+    <!-- Chart.js 3.5.1：本地化 + 延迟加载 -->
+    <script src="libs/chart.min.js" defer></script>
+</head>
+<body>
+
+    <!-- ==================== 导航栏 ==================== -->
+    <nav id="navbar" style="
+        position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+        height: 56px;
+        background: rgba(255,255,255,0.75);
+        border-bottom: 1px solid rgba(148,163,184,0.18);
+        backdrop-filter: blur(12px);
+        display: flex; align-items: center;
+        padding: 0 28px;
+    ">
+        <!-- 左侧：品牌名 -->
+        <a href="index.html" style="display:flex; align-items:center; gap:10px; text-decoration:none;">
+            <span style="font-size:16px;">&#9881;</span>
+            <span style="font-size:13px; font-weight:700; color:#1E293B; letter-spacing:0.03em; white-space:nowrap;">
+                液相旋光（蔗糖溶液）虚拟仿真实验
+            </span>
+        </a>
+
+        <!-- 中间：导航链接 -->
+        <div style="display:flex; align-items:center; gap:2px; margin-left:auto;" class="main-nav">
+            <a href="index.html" class="nav-tab-item nav-active">首页</a>
+            <a href="pages/theory.html" class="nav-tab-item ">理论原理</a>
+            <a href="pages/module-malus.html" class="nav-tab-item ">马吕斯验证</a>
+            <a href="pages/module-polarization-3d.html" class="nav-tab-item ">3D偏振模拟</a>
+            <a href="pages/experiment.html" class="nav-tab-item ">主实验</a>
+            <a href="pages/data-analysis.html" class="nav-tab-item ">数据分析</a>
+            <a href="pages/ideological-education.html" class="nav-tab-item ">课程思政</a>
+            <a href="pages/contact.html" class="nav-tab-item ">关于我们</a>
+        </div>
+    </nav>
+
+    <!-- ==================== Hero 区域 ==================== -->
+    <section class="hero-section" id="heroSection">
+        <canvas id="heroCanvas"></canvas>
+        <div class="hero-content">
+            <h1 class="hero-title">基于多智能体教学辅助的偏振光与蔗糖旋光现象仿真实验平台</h1>
+            <p class="hero-subtitle">基于三分视场法的蔗糖溶液比旋光度精密测量</p>
+            <div class="hero-badges">
+                <span class="badge badge-gold">AI 赋能</span>
+            <span class="badge badge-info">虚实结合</span>
+            <span class="badge badge-success">过程评价</span>
+            </div>
+            <div class="hero-cta">
+                <a href="pages/experiment.html" class="btn btn-primary btn-lg">立即开始实验</a>
+                <a href="pages/theory.html" class="btn btn-secondary btn-lg">了解实验原理</a>
+            </div>
+        </div>
+        <div class="hero-scroll-hint">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
+            </svg>
+        </div>
+    </section>
+
+    <!-- ==================== 三大模块入口 ==================== -->
+    <section class="modules-section section-container" id="modulesSection">
+        <div class="section-header fade-in">
+            <h2>实验模块</h2>
+            <p class="section-desc">从基础到核心，递进式掌握偏振光学与旋光测量技术</p>
+        </div>
+
+        <div class="modules-grid">
+            <!-- 模块一：马吕斯定律验证 -->
+            <div class="glass-card module-card fade-in fade-in-delay-1">
+                <div class="module-icon">
+                    <svg width="80" height="80" viewBox="0 0 100 100" fill="none">
+                        <!-- 波浪线 -->
+                        <path d="M10 50 Q25 30, 40 50 T70 50 T100 50" stroke="#3b82f6" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <path d="M10 60 Q25 40, 40 60 T70 60 T100 60" stroke="#3b82f6" stroke-width="2" fill="none" opacity="0.4" stroke-linecap="round"/>
+                        <!-- 竖线栅格（偏振片） -->
+                        <line x1="55" y1="18" x2="55" y2="82" stroke="#3B82F6" stroke-width="3" stroke-linecap="round"/>
+                        <line x1="48" y1="22" x2="48" y2="78" stroke="#3B82F6" stroke-width="1.8" opacity="0.5" stroke-linecap="round"/>
+                        <line x1="62" y1="22" x2="62" y2="78" stroke="#3B82F6" stroke-width="1.8" opacity="0.5" stroke-linecap="round"/>
+                        <!-- 箭头标注 -->
+                        <text x="22" y="28" fill="#9ca3af" font-size="8" font-family="var(--font-body)">入射光</text>
+                        <text x="72" y="28" fill="#9ca3af" font-size="8" font-family="var(--font-body)">偏振光</text>
+                    </svg>
+                </div>
+                <h3 class="module-title">马吕斯定律验证</h3>
+                <p class="module-desc">从最基础的偏振消光现象入手，理解 $I = I_0 \cos^2\theta$ 的物理本质</p>
+                <div class="module-footer">
+                    <span class="badge badge-info">入门必做</span>
+                    <a href="pages/module-malus.html" class="btn btn-secondary btn-sm">进入学习</a>
+                </div>
+            </div>
+
+            <!-- 模块二：3D 电影偏振模拟 -->
+            <div class="glass-card module-card fade-in fade-in-delay-2">
+                <div class="module-icon">
+                    <svg width="80" height="80" viewBox="0 0 100 100" fill="none">
+                        <!-- 左镜片 -->
+                        <rect x="14" y="32" width="30" height="36" rx="6" stroke="#3b82f6" stroke-width="2.5" fill="rgba(59,130,246,0.08)"/>
+                        <line x1="21" y1="38" x2="21" y2="62" stroke="#3b82f6" stroke-width="1.5" opacity="0.6"/>
+                        <line x1="29" y1="38" x2="29" y2="62" stroke="#3b82f6" stroke-width="1.5" opacity="0.6"/>
+                        <line x1="37" y1="38" x2="37" y2="62" stroke="#3b82f6" stroke-width="1.5" opacity="0.6"/>
+                        <!-- 右镜片 -->
+                        <rect x="56" y="32" width="30" height="36" rx="6" stroke="#3B82F6" stroke-width="2.5" fill="rgba(59,130,246,0.08)"/>
+                        <line x1="63" y1="38" x2="63" y2="62" stroke="#3B82F6" stroke-width="1.5" opacity="0.6"/>
+                        <line x1="71" y1="38" x2="71" y2="62" stroke="#3B82F6" stroke-width="1.5" opacity="0.6"/>
+                        <line x1="79" y1="38" x2="79" y2="62" stroke="#3B82F6" stroke-width="1.5" opacity="0.6"/>
+                        <!-- 镜框连接 -->
+                        <path d="M44 46 Q50 42, 56 46" stroke="#6b7280" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M29 32 Q50 20, 71 32" stroke="#6b7280" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <!-- 3D 文字 -->
+                        <text x="35" y="84" fill="#9ca3af" font-size="9" font-family="var(--font-display)" text-anchor="middle" letter-spacing="2">3D</text>
+                    </svg>
+                </div>
+                <h3 class="module-title">3D 电影偏振模拟</h3>
+                <p class="module-desc">通过电影院偏振分屏演示，将抽象的偏振概念生活化</p>
+                <div class="module-footer">
+                    <span class="badge badge-warning">拓展选做</span>
+                    <a href="pages/module-polarization-3d.html" class="btn btn-secondary btn-sm">趣味体验</a>
+                </div>
+            </div>
+
+            <!-- 模块三：蔗糖旋光主实验 -->
+            <div class="glass-card module-card module-card-highlight fade-in fade-in-delay-3">
+                <div class="module-icon">
+                    <svg width="80" height="80" viewBox="0 0 100 100" fill="none">
+                        <!-- 试管主体 -->
+                        <rect x="38" y="14" width="24" height="58" rx="4" ry="4" stroke="#3B82F6" stroke-width="2.5" fill="rgba(59,130,246,0.06)"/>
+                        <!-- 试管口 -->
+                        <ellipse cx="50" cy="14" rx="12" ry="3" stroke="#3B82F6" stroke-width="2" fill="none"/>
+                        <!-- 液面 -->
+                        <ellipse cx="50" cy="52" rx="11" ry="2.5" stroke="#10b981" stroke-width="1.5" fill="rgba(16,185,129,0.15)" opacity="0.8"/>
+                        <!-- 旋光箭头 -->
+                        <path d="M68 45 A 20 20 0 0 1 68 65" stroke="#10b981" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <polygon points="68,65 64,59 72,61" fill="#10b981"/>
+                        <!-- 刻度线 -->
+                        <line x1="54" y1="26" x2="58" y2="26" stroke="#6b7280" stroke-width="1"/>
+                        <line x1="54" y1="38" x2="58" y2="38" stroke="#6b7280" stroke-width="1"/>
+                        <line x1="54" y1="62" x2="58" y2="62" stroke="#6b7280" stroke-width="1"/>
+                        <!-- 底座 -->
+                        <rect x="34" y="74" width="32" height="6" rx="2" stroke="#6b7280" stroke-width="1.5" fill="rgba(107,114,128,0.15)"/>
+                    </svg>
+                </div>
+                <h3 class="module-title">蔗糖旋光主实验</h3>
+                <p class="module-desc">三分视场等亮调节、旋光度测量、未知浓度反算——完整实验闭环</p>
+                <div class="module-footer">
+                    <span class="badge badge-gold">核心实验</span>
+                    <a href="pages/experiment.html" class="btn btn-primary btn-sm">进入实验台</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== 平台特色区域 ==================== -->
+    <section class="features-section section-container" id="featuresSection">
+        <div class="section-header fade-in">
+            <h2>平台特色</h2>
+            <p class="section-desc">融合前沿技术与教学设计，打造沉浸式虚拟实验体验</p>
+        </div>
+
+        <div class="features-grid">
+            <!-- 特色1：三分视场仿真 -->
+            <div class="feature-card card fade-in fade-in-delay-1">
+                <div class="feature-icon-wrap">
+                    <svg width="40" height="40" viewBox="0 0 48 48" fill="none">
+                        <circle cx="24" cy="24" r="20" stroke="#3b82f6" stroke-width="2" fill="rgba(59,130,246,0.08)"/>
+                        <line x1="24" y1="4" x2="24" y2="44" stroke="#3b82f6" stroke-width="1.5" opacity="0.5"/>
+                        <circle cx="16" cy="24" r="7" fill="rgba(255,255,255,0.06)" stroke="#e8eaed" stroke-width="1"/>
+                        <circle cx="32" cy="17" r="7" fill="rgba(255,255,255,0.03)" stroke="#e8eaed" stroke-width="0.8" opacity="0.5"/>
+                        <circle cx="32" cy="31" r="7" fill="rgba(255,255,255,0.03)" stroke="#e8eaed" stroke-width="0.8" opacity="0.5"/>
+                    </svg>
+                </div>
+                <h3 class="feature-title">三分视场仿真</h3>
+                <p class="feature-desc">Canvas 2D 像素级实时渲染半荫片视场，"一黑两白"交互体验，精准还原光学仪器观测效果。</p>
+            </div>
+
+            <!-- 特色2：严谨物理引擎 -->
+            <div class="feature-card card fade-in fade-in-delay-2">
+                <div class="feature-icon-wrap">
+                    <svg width="40" height="40" viewBox="0 0 48 48" fill="none">
+                        <path d="M8 36 L16 12 L24 28 L32 16 L40 36" stroke="#3B82F6" stroke-width="2.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+                        <circle cx="16" cy="12" r="2.5" fill="#3B82F6"/>
+                        <circle cx="32" cy="16" r="2.5" fill="#3B82F6"/>
+                        <line x1="6" y1="40" x2="42" y2="40" stroke="#6b7280" stroke-width="1.2"/>
+                        <line x1="6" y1="36" x2="6" y2="41" stroke="#6b7280" stroke-width="1"/>
+                        <line x1="24" y1="36" x2="24" y2="39" stroke="#6b7280" stroke-width="1"/>
+                        <line x1="42" y1="36" x2="42" y2="41" stroke="#6b7280" stroke-width="1"/>
+                    </svg>
+                </div>
+                <h3 class="feature-title">严谨物理引擎</h3>
+                <p class="feature-desc">基于库朗-劳仑兹旋光公式 $\alpha = [\alpha] \cdot c \cdot l$，内置温度修正系数与随机误差模型。</p>
+            </div>
+
+            <!-- 特色3：递进式教学 -->
+            <div class="feature-card card fade-in fade-in-delay-3">
+                <div class="feature-icon-wrap">
+                    <svg width="40" height="40" viewBox="0 0 48 48" fill="none">
+                        <rect x="6" y="30" width="10" height="12" rx="2" stroke="#10b981" stroke-width="2" fill="rgba(16,185,129,0.12)"/>
+                        <rect x="19" y="20" width="10" height="22" rx="2" stroke="#10b981" stroke-width="2" fill="rgba(16,185,129,0.12)"/>
+                        <rect x="32" y="8" width="10" height="34" rx="2" stroke="#10b981" stroke-width="2" fill="rgba(16,185,129,0.2)"/>
+                        <!-- 锁图标 -->
+                        <circle cx="37" cy="14" r="3" stroke="#10b981" stroke-width="1.5" fill="none"/>
+                        <rect x="34.5" y="15" width="5" height="4" rx="1" fill="#10b981"/>
+                        <!-- 星星 -->
+                        <polygon points="37,4 38.5,7 42,7 39.2,9.2 40.2,12.5 37,10.5 33.8,12.5 34.8,9.2 32,7 35.5,7" fill="#3B82F6"/>
+                    </svg>
+                </div>
+                <h3 class="feature-title">递进式教学</h3>
+                <p class="feature-desc">三关卡解锁设计，由浅入深掌握偏振光学：马吕斯验证 → 生活化理解 → 完整旋光测量闭环。</p>
+            </div>
+
+            <!-- 特色4：双轨报告系统 -->
+            <div class="feature-card card fade-in fade-in-delay-4">
+                <div class="feature-icon-wrap">
+                    <svg width="40" height="40" viewBox="0 0 48 48" fill="none">
+                        <rect x="8" y="6" width="16" height="22" rx="2" stroke="#8b5cf6" stroke-width="2" fill="rgba(139,92,246,0.1)"/>
+                        <rect x="26" y="14" width="16" height="22" rx="2" stroke="#3B82F6" stroke-width="2" fill="rgba(59,130,246,0.1)"/>
+                        <!-- 文字行 -->
+                        <line x1="12" y1="12" x2="20" y2="12" stroke="#8b5cf6" stroke-width="1.2" opacity="0.6"/>
+                        <line x1="12" y1="16" x2="18" y2="16" stroke="#8b5cf6" stroke-width="1.2" opacity="0.4"/>
+                        <line x1="12" y1="20" x2="19" y2="20" stroke="#8b5cf6" stroke-width="1.2" opacity="0.4"/>
+                        <line x1="30" y1="20" x2="38" y2="20" stroke="#3B82F6" stroke-width="1.2" opacity="0.6"/>
+                        <line x1="30" y1="24" x2="36" y2="24" stroke="#3B82F6" stroke-width="1.2" opacity="0.4"/>
+                        <line x1="30" y1="28" x2="37" y2="28" stroke="#3B82F6" stroke-width="1.2" opacity="0.4"/>
+                        <!-- 导出箭头 -->
+                        <path d="M20 34 L28 34 M25 31 L28 34 L25 37" stroke="#10b981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h3 class="feature-title">双轨报告系统</h3>
+                <p class="feature-desc">物理数据报告 + 课程思政思考论文一键导出，科学素养与价值引领并重培养。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== 页脚 ==================== -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-info">
+                <p class="footer-copyright">&copy; 2026 基于多智能体教学辅助的偏振光与蔗糖旋光现象仿真实验平台. All rights reserved.</p>
+                <p class="footer-icp"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">辽ICP备2026009553号-1</a></p>
+            </div>
+            <div class="footer-links">
+                <a href="pages/contact.html">联系我们</a>
+                <span class="footer-divider">|</span>
+                <a href="#">使用协议</a>
+                <span class="footer-divider">|</span>
+                <a href="#">隐私政策</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 本地脚本 -->
+    <script src="js/physics-engine.js"></script>
+    <script src="js/app.js"></script>
+    
+    
+
+    <!-- 内嵌脚本：首页专用逻辑 -->
+    <script>
+        // ========== 导航栏滚动阴影 ==========
+        const navbar = document.getElementById('navbar');
+        let lastScrollY = 0;
+
+        function handleNavScroll() {
+            const scrollY = window.scrollY;
+            if (scrollY > 20) {
+                navbar.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.3)';
+            } else {
+                navbar.style.boxShadow = 'none';
+            }
+            lastScrollY = scrollY;
+        }
+
+        window.addEventListener('scroll', handleNavScroll, { passive: true });
+
+        // ========== 移动端菜单切换 ==========
+        function toggleMobileMenu() {
+            const navLinks = document.getElementById('navLinks');
+            const toggle = document.getElementById('navToggle');
+
+            navLinks.classList.toggle('mobile-open');
+            toggle.classList.toggle('active');
+
+            if (navLinks.classList.contains('mobile-open')) {
+                navLinks.style.display = 'flex';
+                navLinks.style.flexDirection = 'column';
+                navLinks.style.position = 'absolute';
+                navLinks.style.top = '64px';
+                navLinks.style.left = '0';
+                navLinks.style.right = '0';
+                navLinks.style.background = 'rgba(255,255,255,0.85)';
+                navLinks.style.padding = '1rem';
+                navLinks.style.gap = '4px';
+                navLinks.style.backdropFilter = 'blur(20px)';
+                navLinks.style.borderBottom = '1px solid var(--border-color)';
+            } else {
+                navLinks.style.display = '';
+                navLinks.style.flexDirection = '';
+                navLinks.style.position = '';
+                navLinks.style.top = '';
+                navLinks.style.left = '';
+                navLinks.style.right = '';
+                navLinks.style.background = '';
+                navLinks.style.padding = '';
+                navLinks.style.gap = '';
+                navLinks.style.backdropFilter = '';
+                navLinks.style.borderBottom = '';
+            }
+        }
+
+        // 点击导航链接后关闭移动端菜单
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                const navLinks = document.getElementById('navLinks');
+                if (navLinks.classList.contains('mobile-open')) {
+                    toggleMobileMenu();
+                }
+            });
+        });
+
+        // ========== Hero 区域：终极版偏振光场动画 ==========
+        const heroCanvas = document.getElementById('heroCanvas');
+        const ctx = heroCanvas.getContext('2d');
+        let animationId = null;
+        let time = 0;
+        let particles = [];
+        let lightRays = [];
+        let sparkles = [];
+        let spiralArms = [];
+        const PARTICLE_COUNT = 80;
+        const RAY_COUNT = 12;
+        const SPARKLE_COUNT = 30;
+        const SPIRAL_ARM_COUNT = 3;
+
+        // 初始化粒子
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const dist = Math.random() * Math.max(window.innerWidth, window.innerHeight) * 0.55;
+                particles.push({
+                    x: window.innerWidth / 2 + Math.cos(angle) * dist,
+                    y: window.innerHeight / 2 + Math.sin(angle) * dist,
+                    size: Math.random() * 4.5 + 1,
+                    speedX: (Math.random() - 0.5) * 0.22,
+                    speedY: (Math.random() - 0.5) * 0.18 - 0.06,
+                    opacity: Math.random() * 0.7 + 0.15,
+                    hue: [220, 190, 260, 280, 200][Math.floor(Math.random() * 5)],
+                    pulsePhase: Math.random() * Math.PI * 2,
+                    pulseSpeed: Math.random() * 0.014 + 0.006,
+                    trail: [] // 轨迹
+                });
+            }
+        }
+
+        // 初始化光射线（从中心向外辐射的偏振光线）
+        function initLightRays() {
+            lightRays = [];
+            for (let i = 0; i < RAY_COUNT; i++) {
+                lightRays.push({
+                    angle: (i / RAY_COUNT) * Math.PI * 2,
+                    length: 150 + Math.random() * 220,
+                    width: 2 + Math.random() * 3.5,
+                    speed: (Math.random() - 0.5) * 0.25,
+                    phaseOffset: Math.random() * Math.PI * 2,
+                    color: [[59,130,246],[139,92,246],[6,182,212],[99,102,241]][i % 4]
+                });
+            }
+        }
+
+        // 初始化闪烁星点
+        function initSparkles() {
+            sparkles = [];
+            for (let i = 0; i < SPARKLE_COUNT; i++) {
+                sparkles.push({
+                    x: Math.random() * window.innerWidth,
+                    y: Math.random() * window.innerHeight,
+                    size: Math.random() * 3.5 + 1.2,
+                    phase: Math.random() * Math.PI * 2,
+                    speed: Math.random() * 0.025 + 0.01,
+                    maxOpacity: Math.random() * 0.85 + 0.15,
+                    rotation: Math.random() * Math.PI * 2,
+                    rotSpeed: (Math.random() - 0.5) * 0.018,
+                    shape: Math.floor(Math.random() * 3) // 0=star 1=diamond 2=cross
+                });
+            }
+        }
+
+        // 初始化螺旋臂
+        function initSpiralArms() {
+            spiralArms = [];
+            for (let i = 0; i < SPIRAL_ARM_COUNT; i++) {
+                spiralArms.push({
+                    baseAngle: (i / SPIRAL_ARM_COUNT) * Math.PI * 2,
+                    speed: 0.09 + Math.random() * 0.06,
+                    spread: 0.35 + Math.random() * 0.2,
+                    color: [[59,130,246,0.07],[139,92,246,0.06],[6,182,212,0.06]][i % 3],
+                    lengthFactor: 0.60 + Math.random() * 0.20
+                });
+            }
+        }
+
+        function resizeHeroCanvas() {
+            heroCanvas.width = window.innerWidth;
+            heroCanvas.height = window.innerHeight;
+            initParticles();
+            initLightRays();
+            initSparkles();
+            initSpiralArms();
+        }
+
+        resizeHeroCanvas();
+        window.addEventListener('resize', resizeHeroCanvas);
+
+        function drawEnhancedHero() {
+            const w = heroCanvas.width;
+            const h = heroCanvas.height;
+            const centerX = w / 2;
+            const centerY = h / 2;
+            const maxDim = Math.max(w, h);
+
+            // ════════════ 第 0 层：动态渐变底色（随时间缓慢色相漂移） ════════════
+            const hueShift = time * 8 % 360;
+            const bgGrad = ctx.createRadialGradient(
+                centerX + Math.sin(time * 0.18) * 50,
+                centerY + Math.cos(time * 0.13) * 38,
+                0,
+                centerX, centerY, maxDim * 0.88
+            );
+            bgGrad.addColorStop(0, '#EEF2FF');
+            bgGrad.addColorStop(0.2, '#F5F7FF');
+            bgGrad.addColorStop(0.45, '#F8FAFC');
+            bgGrad.addColorStop(0.72, '#F0F4FA');
+            bgGrad.addColorStop(1, '#E8EDF4');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, w, h);
+
+            // ════════════ 第 0.5 层：极光/光带效果（大面积柔和色块） ════════════
+            drawAuroraBands(ctx, w, h, time);
+
+            // ════════════ 第 1 层：螺旋臂（从中心向外盘旋） ════════════
+            spiralArms.forEach((arm, ai) => {
+                ctx.beginPath();
+                for (let d = 20; d < maxDim * arm.lengthFactor; d += 3) {
+                    const a = arm.baseAngle + time * arm.speed + (d / maxDim) * Math.PI * 2.5;
+                    const spread = Math.sin(d * 0.015 + time * 0.5) * arm.spread * d * 0.08;
+                    const px = centerX + Math.cos(a) * (d + spread);
+                    const py = centerY + Math.sin(a) * (d + spread);
+                    if (d === 20) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                ctx.strokeStyle = 'rgba(' + arm.color[0] + ',' + arm.color[1] + ',' + arm.color[2] + ',' + (arm.color[3] * (0.7 + Math.sin(time * 0.38 + ai) * 0.3)).toFixed(3) + ')';
+                ctx.lineWidth = 24 + Math.sin(time * 0.55 + ai * 2) * 8;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+            });
+
+            // ════════════ 第 2 层：超大偏振波纹环（10层，蓝-青-靛-紫四色交替） ════════════
+            const waveCount = 10;
+            const waveColors = [
+                { r: 59, g: 130, b: 246 },   // blue
+                { r: 6, g: 182, b: 212 },     // cyan
+                { r: 99, g: 102, b: 241 },    // indigo
+                { r: 139, g: 92, b: 246 },    // purple
+                { r: 14, g: 165, b: 233 },    // sky blue
+                { r: 124, g: 58, b: 237 },    // violet
+                { r: 59, g: 130, b: 246 },
+                { r: 6, g: 182, b: 212 },
+                { r: 99, g: 102, b: 241 },
+                { r: 139, g: 92, b: 246 }
+            ];
+
+            for (let i = 0; i < waveCount; i++) {
+                const phaseOffset = (i * Math.PI * 2) / waveCount;
+                const baseRadius = ((time * 35 + i * 80) % (maxDim * 0.90)) + 30;
+                const alphaBase = Math.max(0, 0.34 - baseRadius / (maxDim * 0.52));
+                const c = waveColors[i];
+
+                ctx.beginPath();
+                for (let angle = 0; angle <= Math.PI * 2; angle += 0.008) {
+                    // 三频叠加调制：花瓣状偏振波形
+                    const mod1 = Math.sin(angle * 6 + time * 1.15 + phaseOffset) * 22;
+                    const mod2 = Math.sin(angle * 4 - time * 0.65 + phaseOffset * 1.8) * 11;
+                    const mod3 = Math.sin(angle * 2 + time * 0.32) * 5;
+                    const r = baseRadius + mod1 + mod2 + mod3;
+                    const x = centerX + Math.cos(angle) * r;
+                    const y = centerY + Math.sin(angle) * r;
+
+                    if (angle === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+
+                const layerAlpha = alphaBase * (0.55 + (waveCount - i) / waveCount * 0.45);
+                ctx.strokeStyle = 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + layerAlpha.toFixed(3) + ')';
+                ctx.lineWidth = 2.4 + (1 - i / waveCount) * 3.2;
+                ctx.stroke();
+
+                // 内发光填充（前4层）
+                if (i < 4 && alphaBase > 0.04) {
+                    ctx.fillStyle = 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + (alphaBase * 0.065).toFixed(3) + ')';
+                    ctx.fill();
+                }
+            }
+
+            // ════════════ 第 3 层：中心强光晕系统（五层叠加） ════════════
+
+            // 核心白光（最强）
+            const coreGlow = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 280);
+            coreGlow.addColorStop(0, 'rgba(180,200,255,0.18)');
+            coreGlow.addColorStop(0.15, 'rgba(99,120,255,0.12)');
+            coreGlow.addColorStop(0.38, 'rgba(59,130,246,0.075)');
+            coreGlow.addColorStop(0.62, 'rgba(139,92,246,0.038)');
+            coreGlow.addColorStop(1, 'rgba(248,250,252,0)');
+            ctx.fillStyle = coreGlow;
+            ctx.fillRect(0, 0, w, h);
+
+            // 第二层暖光晕（略微偏移）
+            const warmGlow = ctx.createRadialGradient(
+                centerX + Math.cos(time * 0.24) * 36,
+                centerY + Math.sin(time * 0.18) * 24,
+                0, centerX, centerY, 320
+            );
+            warmGlow.addColorStop(0, 'rgba(139,92,246,0.065)');
+            warmGlow.addColorStop(0.4, 'rgba(99,102,241,0.032)');
+            warmGlow.addColorStop(1, 'rgba(248,250,252,0)');
+            ctx.fillStyle = warmGlow;
+            ctx.fillRect(0, 0, w, h);
+
+            // 脉冲光环组（3层同心环）
+            const pulseConfigs = [
+                { radius: () => 110 + Math.sin(time * 0.78) * 42 + Math.sin(time * 1.6) * 22, alpha: 0.095, width: 3, color: [59,130,246] },
+                { radius: () => 175 + Math.sin(time * 0.51 + 1.2) * 55, alpha: 0.058, width: 2, color: [139,92,246] },
+                { radius: () => 255 + Math.sin(time * 0.33 + 2.5) * 65, alpha: 0.038, width: 1.3, color: [6,182,212] }
+            ];
+            pulseConfigs.forEach(cfg => {
+                const pr = cfg.radius();
+                const pa = cfg.alpha + Math.sin(time * 1.05) * cfg.alpha * 0.4;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, pr, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(' + cfg.color[0] + ',' + cfg.color[1] + ',' + cfg.color[2] + ',' + Math.max(0, pa).toFixed(3) + ')';
+                ctx.lineWidth = cfg.width;
+                ctx.stroke();
+            });
+
+            // ════════════ 第 4 层：辐射光射线（偏振方向指示，带发光尾迹） ════════════
+            lightRays.forEach((ray, ri) => {
+                const a = ray.angle + time * ray.speed;
+                const lenVar = ray.length + Math.sin(time * 0.85 + ray.phaseOffset) * 60;
+                const innerR = 70 + Math.sin(time * 1.3 + ray.phaseOffset) * 28;
+
+                const x1 = centerX + Math.cos(a) * innerR;
+                const y1 = centerY + Math.sin(a) * innerR;
+                const x2 = centerX + Math.cos(a) * (innerR + lenVar);
+                const y2 = centerY + Math.sin(a) * (innerR + lenVar);
+
+                // 光线本体
+                const rayGrad = ctx.createLinearGradient(x1, y1, x2, y2);
+                rayGrad.addColorStop(0, 'rgba(' + ray.color[0] + ',' + ray.color[1] + ',' + ray.color[2] + ',0)');
+                rayGrad.addColorStop(0.2, 'rgba(' + ray.color[0] + ',' + ray.color[1] + ',' + ray.color[2] + ',0.12)');
+                rayGrad.addColorStop(0.65, 'rgba(' + ray.color[0] + ',' + ray.color[1] + ',' + ray.color[2] + ',0.07)');
+                rayGrad.addColorStop(1, 'rgba(' + ray.color[0] + ',' + ray.color[1] + ',' + ray.color[2] + ',0)');
+
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.strokeStyle = rayGrad;
+                ctx.lineWidth = ray.width;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+
+                // 光线外发光
+                ctx.save();
+                ctx.globalAlpha = 0.16;
+                ctx.filter = 'blur(5px)';
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.strokeStyle = 'rgba(' + ray.color[0] + ',' + ray.color[1] + ',' + ray.color[2] + ',0.5)';
+                ctx.lineWidth = ray.width * 3.5;
+                ctx.stroke();
+                ctx.restore();
+
+                // 射线端点小光球
+                const endSize = 2.8 + Math.sin(time * 1.2 + ri) * 1.3;
+                ctx.beginPath();
+                ctx.arc(x2, y2, endSize, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(' + ray.color[0] + ',' + ray.color[1] + ',' + ray.color[2] + ',0.28)';
+                ctx.fill();
+            });
+
+            // ════════════ 第 5 层：浮动粒子（带轨迹拖尾） ════════════
+            particles.forEach(p => {
+                p.x += p.speedX;
+                p.y += p.speedY;
+                p.pulsePhase += p.pulseSpeed;
+
+                // 记录轨迹
+                p.trail.push({ x: p.x, y: p.y });
+                if (p.trail.length > 8) p.trail.shift();
+
+                // 边界循环
+                if (p.x < -40) p.x = w + 40;
+                if (p.x > w + 40) p.x = -40;
+                if (p.y < -40) p.y = h + 40;
+                if (p.y > h + 40) p.y = -40;
+
+                const pulseFactor = 0.55 + Math.sin(p.pulsePhase) * 0.45;
+                const size = p.size * (0.75 + pulseFactor * 0.48);
+
+                // 绘制轨迹拖尾
+                if (p.trail.length >= 2 && p.size > 1.5) {
+                    ctx.beginPath();
+                    ctx.moveTo(p.trail[0].x, p.trail[0].y);
+                    for (let t = 1; t < p.trail.length; t++) {
+                        ctx.lineTo(p.trail[t].x, p.trail[t].y);
+                    }
+                    ctx.strokeStyle = 'hsla(' + p.hue + ',70%,60%,' + (p.opacity * pulseFactor * 0.14).toFixed(3) + ')';
+                    ctx.lineWidth = size * 0.55;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                }
+
+                // 粒子核心
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+                ctx.fillStyle = 'hsla(' + p.hue + ',70%,62%,' + (p.opacity * pulseFactor).toFixed(3) + ')';
+                ctx.fill();
+
+                // 粒子光晕
+                if (p.size > 1.6) {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, size * 4.2, 0, Math.PI * 2);
+                    ctx.fillStyle = 'hsla(' + p.hue + ',70%,60%,' + (p.opacity * pulseFactor * 0.08).toFixed(3) + ')';
+                    ctx.fill();
+                }
+            });
+
+            // ════════════ 第 6 层：闪烁星点（多种形状） ════════════
+            sparkles.forEach(sp => {
+                sp.phase += sp.speed;
+                sp.rotation += sp.rotSpeed;
+                const brightness = 0.5 + Math.sin(sp.phase) * 0.5;
+                if (brightness < 0.15) return; // 太暗就跳过
+
+                ctx.save();
+                ctx.translate(sp.x, sp.y);
+                ctx.rotate(sp.rotation);
+                ctx.globalAlpha = brightness * sp.maxOpacity;
+
+                const sz = sp.size * (0.72 + brightness * 0.52);
+
+                if (sp.shape === 0) {
+                    // 四角星
+                    drawStar(ctx, 0, 0, 4, sz, sz * 0.35, [220, 240, 255]);
+                } else if (sp.shape === 1) {
+                    // 菱形
+                    ctx.beginPath();
+                    ctx.moveTo(0, -sz); ctx.lineTo(sz * 0.5, 0);
+                    ctx.lineTo(0, sz); ctx.lineTo(-sz * 0.5, 0);
+                    ctx.closePath();
+                    ctx.fillStyle = 'rgba(200,215,255,' + (brightness * 0.82).toFixed(3) + ')';
+                    ctx.fill();
+                } else {
+                    // 十字
+                    ctx.strokeStyle = 'rgba(180,200,255,' + (brightness * 0.72).toFixed(3) + ')';
+                    ctx.lineWidth = 1.4;
+                    ctx.beginPath(); ctx.moveTo(-sz, 0); ctx.lineTo(sz, 0); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(0, -sz); ctx.lineTo(0, sz); ctx.stroke();
+                }
+
+                ctx.restore();
+            });
+
+            // ════════════ 第 7 层：角落装饰性光斑（增强版） ════════════
+            drawCornerOrb(ctx, w * 0.07, h * 0.10, time, [59,130,246], 1.4);
+            drawCornerOrb(ctx, w * 0.93, h * 0.07, time * 0.75, [139,92,246], 1.2);
+            drawCornerOrb(ctx, w * 0.04, h * 0.86, time * 1.15, [6,182,212], 1.1);
+            drawCornerOrb(ctx, w * 0.96, h * 0.90, time * 0.85, [99,102,241], 1.3);
+
+            // 额外的浮动光斑（页面中部两侧）
+            drawFloatingOrb(ctx, w * 0.14, h * 0.54, time * 0.95, [59,130,246], 0.85);
+            drawFloatingOrb(ctx, w * 0.88, h * 0.46, time * 1.05, [139,92,246], 0.78);
+
+            time += 0.0055;
+            animationId = requestAnimationFrame(drawEnhancedHero);
+        }
+
+        /**
+         * 绘制极光/光带效果
+         */
+        function drawAuroraBands(ctx, w, h, t) {
+            // 上方极光带
+            const bandY = h * 0.12 + Math.sin(t * 0.15) * h * 0.04;
+            const auroraGrad = ctx.createLinearGradient(0, bandY - 80, 0, bandY + 100);
+            auroraGrad.addColorStop(0, 'rgba(59,130,246,0)');
+            auroraGrad.addColorStop(0.3, 'rgba(99,102,241,0.025)');
+            auroraGrad.addColorStop(0.5, 'rgba(139,92,246,0.035)');
+            auroraGrad.addColorStop(0.7, 'rgba(6,182,212,0.02)');
+            auroraGrad.addColorStop(1, 'rgba(59,130,246,0)');
+            ctx.fillStyle = auroraGrad;
+            ctx.fillRect(0, bandY - 80, w, 180);
+
+            // 右侧微弱光带
+            const sideX = w * 0.82 + Math.cos(t * 0.12) * w * 0.03;
+            const sideGrad = ctx.createLinearGradient(sideX - 100, 0, sideX + 100, 0);
+            sideGrad.addColorStop(0, 'rgba(139,92,246,0)');
+            sideGrad.addColorStop(0.4, 'rgba(139,92,246,0.02)');
+            sideGrad.addColorStop(0.6, 'rgba(99,102,241,0.025)');
+            sideGrad.addColorStop(1, 'rgba(99,102,241,0)');
+            ctx.fillStyle = sideGrad;
+            ctx.fillRect(sideX - 100, 0, 200, h);
+        }
+
+        /**
+         * 绘制多角星
+         */
+        function drawStar(ctx, cx, cy, points, outerR, innerR, color) {
+            ctx.beginPath();
+            for (let i = 0; i < points * 2; i++) {
+                const r = i % 2 === 0 ? outerR : innerR;
+                const angle = (i * Math.PI) / points - Math.PI / 2;
+                const px = cx + Math.cos(angle) * r;
+                const py = cy + Math.sin(angle) * r;
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(' + color[0] + ',' + color[1] + ',' + color[2] + ',0.75)';
+            ctx.fill();
+        }
+
+        /**
+         * 绘制角落装饰性浮动光球（增强版）
+         */
+        function drawCornerOrb(ctx, x, y, t, color, scale) {
+            const floatX = x + Math.sin(t * 0.40) * 20 * scale;
+            const floatY = y + Math.cos(t * 0.28) * 14 * scale;
+            const radius = (32 + Math.sin(t * 0.70) * 12) * scale;
+
+            // 外圈大光晕
+            const orbGlow = ctx.createRadialGradient(floatX, floatY, 0, floatX, floatY, radius * 4.5);
+            orbGlow.addColorStop(0, 'rgba(' + color[0] + ',' + color[1] + ',' + color[2] + ',0.14)');
+            orbGlow.addColorStop(0.35, 'rgba(' + color[0] + ',' + color[1] + ',' + color[2] + ',0.045)');
+            orbGlow.addColorStop(1, 'rgba(' + color[0] + ',' + color[1] + ',' + color[2] + ',0)');
+            ctx.fillStyle = orbGlow;
+            ctx.fillRect(floatX - radius * 4.5, floatY - radius * 4.5, radius * 9, radius * 9);
+
+            // 中层光环
+            ctx.beginPath();
+            ctx.arc(floatX, floatY, radius * 1.7, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(' + color[0] + ',' + color[1] + ',' + color[2] + ',0.11)';
+            ctx.lineWidth = 1.1;
+            ctx.stroke();
+
+            // 实心核心
+            ctx.beginPath();
+            ctx.arc(floatX, floatY, radius * 0.34, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(' + color[0] + ',' + color[1] + ',' + color[2] + ',0.22)';
+            ctx.fill();
+
+            // 内轨道环
+            ctx.beginPath();
+            ctx.arc(floatX, floatY, radius * 0.72, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(' + color[0] + ',' + color[1] + ',' + color[2] + ',0.15)';
+            ctx.lineWidth = 0.7;
+            ctx.stroke();
+
+            // 轨道上的小卫星
+            const satAngle = t * 1.05;
+            const satX = floatX + Math.cos(satAngle) * radius * 0.72;
+            const satY = floatY + Math.sin(satAngle) * radius * 0.72;
+            ctx.beginPath();
+            ctx.arc(satX, satY, 2.4 * scale, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(' + color[0] + ',' + color[1] + ',' + color[2] + ',0.38)';
+            ctx.fill();
+        }
+
+        /**
+         * 绘制自由浮动光球（无轨道）
+         */
+        function drawFloatingOrb(ctx, x, y, t, color, scale) {
+            const floatX = x + Math.sin(t * 0.30) * 28;
+            const floatY = y + Math.cos(t * 0.23) * 20;
+            const radius = (22 + Math.sin(t * 0.85) * 8) * scale;
+
+            const glow = ctx.createRadialGradient(floatX, floatY, 0, floatX, floatY, radius * 4);
+            glow.addColorStop(0, 'rgba(' + color[0] + ',' + color[1] + ',' + color[2] + ',0.11)');
+            glow.addColorStop(0.5, 'rgba(' + color[0] + ',' + color[1] + ',' + color[2] + ',0.028)');
+            glow.addColorStop(1, 'rgba(' + color[0] + ',' + color[1] + ',' + color[2] + ',0)');
+            ctx.fillStyle = glow;
+            ctx.fillRect(floatX - radius * 4, floatY - radius * 4, radius * 8, radius * 8);
+
+            ctx.beginPath();
+            ctx.arc(floatX, floatY, radius * 0.28, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(' + color[0] + ',' + color[1] + ',' + color[2] + ',0.20)';
+            ctx.fill();
+        }
+
+        // 启动动画
+        drawEnhancedHero();
+
+        // 页面不可见时暂停动画以节省资源
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                if (animationId) cancelAnimationFrame(animationId);
+            } else {
+                drawEnhancedHero();
+            }
+        });
+
+        // ========== 卡片 Hover 动画增强 ==========
+        const cards = document.querySelectorAll('.glass-card, .feature-card');
+        cards.forEach(card => {
+            // 鼠标进入：光标跟随光晕
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', x + 'px');
+                card.style.setProperty('--mouse-y', y + 'px');
+                card.style.background = 'radial-gradient(300px circle at var(--mouse-x) var(--mouse-y), rgba(59,130,246,0.06), transparent 60%)';
+            });
+
+            card.addEventListener('mouseenter', () => {
+                card.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                card.style.transform = 'translateY(-6px) scale(1.015)';
+                card.style.boxShadow = '0 12px 32px rgba(59,130,246,0.12), 0 4px 12px rgba(0,0,0,0.04)';
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.background = '';
+                card.style.transform = '';
+                card.style.boxShadow = '';
+            });
+        });
+
+        // ========== IntersectionObserver 滚动渐入 ==========
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px 0px -60px 0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                    entry.target.classList.add('fade-in-done');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            el.style.animationPlayState = 'paused';
+            observer.observe(el);
+        });
+
+        // ========== 平滑滚动到各 Section ==========
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+
+    <!-- 首页专用补充样式 -->
+    <style>
+        /* ===== Hero 区域 ===== */
+        .hero-section {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #heroCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 2rem;
+            max-width: 800px;
+        }
+
+        .hero-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem, 4.5vw, 2.8rem);
+            font-weight: 800;
+            margin-bottom: 0.75rem;
+            letter-spacing: 0.03em;
+            /* 流光效果：渐变背景裁剪到文字 */
+            background: linear-gradient(
+                90deg,
+                #1E293B 0%,
+                #3B82F6 20%,
+                #60A5FA 35%,
+                #8B5CF6 50%,
+                #06B6D4 65%,
+                #3B82F6 80%,
+                #1E293B 100%
+            );
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation:
+                titleReveal 0.6s ease forwards,
+                titleShimmer 3s ease-in-out infinite;
+            text-shadow: none;
+        }
+
+        @keyframes titleReveal {
+            from { opacity: 0; transform: translateY(18px) scale(0.97); filter: blur(4px); }
+            to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+
+        @keyframes titleShimmer {
+            0%   { background-position: 200% center; }
+            100% { background-position: -200% center; }
+        }
+
+        .hero-subtitle {
+            font-size: clamp(0.95rem, 2vw, 1.15rem);
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            animation: subtitleReveal 0.6s ease 0.18s both;
+        }
+
+        @keyframes subtitleReveal {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-badges {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+            animation: badgesReveal 0.55s ease 0.35s both;
+        }
+
+        @keyframes badgesReveal {
+            from { opacity: 0; transform: translateY(12px) scale(0.92); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: ctaReveal 0.55s ease 0.45s both;
+            position: relative;
+        }
+
+        @keyframes ctaReveal {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== 主按钮：立即开始实验（增强版） ===== */
+        .hero-cta .btn-primary {
+            position: relative;
+            padding: 15px 36px;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 50%, #4F46E5 100%);
+            background-size: 200% 200%;
+            color: #fff;
+            border: none;
+            box-shadow:
+                0 4px 20px rgba(59,130,246,0.35),
+                0 2px 6px rgba(37,99,235,0.25),
+                inset 0 1px 0 rgba(255,255,255,0.18);
+            overflow: hidden;
+            transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        /* 主按钮流光扫过效果 */
+        .hero-cta .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -60%;
+            width: 40%; height: 200%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255,255,255,0.22),
+                transparent
+            );
+            transform: skewX(-20deg);
+            transition: left 0s 0.5s;
+        }
+
+        .hero-cta .btn-primary:hover::before {
+            left: 160%;
+            transition: left 0.7s ease-in-out;
+        }
+
+        .hero-cta .btn-primary:hover:not(:disabled) {
+            background-position: 100% 0;
+            transform: translateY(-3px) scale(1.03);
+            box-shadow:
+                0 8px 30px rgba(59,130,246,0.45),
+                0 4px 12px rgba(79,70,229,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.22);
+        }
+
+        .hero-cta .btn-primary:active:not(:disabled) {
+            transform: translateY(-1px) scale(1.01);
+            box-shadow: 0 3px 14px rgba(59,130,246,0.3);
+        }
+
+        /* 主按钮脉冲光环 */
+        .hero-cta .btn-primary::after {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #3B82F6, #8B5CF6, #06B6D4);
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.35s ease;
+        }
+
+        .hero-cta .btn-primary:hover::after {
+            opacity: 0.4;
+            animation: btnPulseRing 1.8s ease-in-out infinite;
+        }
+
+        @keyframes btnPulseRing {
+            0%, 100% { transform: scale(1); opacity: 0.4; }
+            50%      { transform: scale(1.06); opacity: 0.2; }
+        }
+
+        /* ===== 次按钮：了解实验原理（玻璃态增强版） ===== */
+        .hero-cta .btn-secondary {
+            position: relative;
+            padding: 15px 32px;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: var(--text-primary);
+            border: 1.5px solid rgba(148,163,184,0.28);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.6);
+            transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        .hero-cta .btn-secondary:hover:not(:disabled) {
+            background: rgba(255,255,255,0.88);
+            border-color: rgba(59,130,246,0.35);
+            color: #2563EB;
+            transform: translateY(-3px) scale(1.02);
+            box-shadow:
+                0 8px 26px rgba(59,130,246,0.12),
+                0 2px 8px rgba(0,0,0,0.05),
+                inset 0 1px 0 rgba(255,255,255,0.9);
+        }
+
+        .hero-cta .btn-secondary:active:not(:disabled) {
+            transform: translateY(-1px) scale(1.01);
+        }
+
+        .hero-scroll-hint {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+            color: var(--text-muted);
+            opacity: 0.5;
+            animation: scrollBounce 2s ease-in-out infinite;
+        }
+
+        @keyframes scrollBounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.5; }
+            50%      { transform: translateX(-50%) translateY(8px); opacity: 0.8; }
+        }
+
+        /* ===== Section 通用容器 ===== */
+        .section-container {
+            padding: 4rem 2rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-header h2 {
+            font-size: clamp(1.35rem, 3.2vw, 1.8rem);
+            margin-bottom: 0.6rem;
+            color: var(--text-primary);
+            font-weight: 800;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-header h2::after {
+            content: '';
+            position: absolute;
+            bottom: -6px; left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #3B82F6, #8B5CF6);
+            border-radius: 2px;
+            transition: width 0.5s ease 0.2s;
+        }
+
+        .section-header:hover h2::after,
+        .section-header.fade-in-done h2::after {
+            width: 60px;
+        }
+
+        .section-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* ===== 模块卡片网格 ===== */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+        }
+
+        .module-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .module-card-highlight {
+            border-color: var(--border-accent);
+        }
+        .module-card-highlight:hover {
+            border-color: var(--accent-gold-hover);
+        }
+
+        .module-icon {
+            width: 88px;
+            height: 88px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, rgba(59,130,246,0.06), rgba(139,92,246,0.04));
+            border-radius: var(--radius-md);
+            transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+            position: relative;
+        }
+
+        .module-icon::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: calc(var(--radius-md) + 2px);
+            background: linear-gradient(135deg, rgba(59,130,246,0), rgba(59,130,246,0), transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: -1;
+        }
+
+        .module-card:hover .module-icon {
+            background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(139,92,246,0.08));
+            transform: translateY(-4px) rotate(-2deg) scale(1.08);
+            box-shadow: 0 8px 24px rgba(59,130,246,0.15);
+        }
+
+        .module-card:hover .module-icon::after {
+            opacity: 1;
+        }
+
+        /* 模块图标 SVG 微动画 */
+        .module-card:hover .module-icon svg {
+            animation: iconFloat 1.5s ease-in-out infinite;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(-5px); }
+        }
+
+        .module-title {
+            font-family: var(--font-display);
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .module-desc {
+            color: var(--text-secondary);
+            font-size: 0.87rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            flex: 1;
+        }
+
+        .module-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            gap: 10px;
+            padding-top: 0.85rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* ===== 特色区域网格 ===== */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .feature-card {
+            padding: 1.6rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 3px; height: 100%;
+            background: linear-gradient(180deg, #3B82F6, #8B5CF6);
+            opacity: 0;
+            transition: opacity 0.35s ease;
+            border-radius: 2px;
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon-wrap {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(139,92,246,0.06));
+            border-radius: var(--radius-sm);
+            flex-shrink: 0;
+            transition: all 0.4s ease;
+        }
+
+        .feature-card:hover .feature-icon-wrap {
+            transform: scale(1.12) rotate(-5deg);
+            box-shadow: 0 4px 16px rgba(59,130,246,0.15);
+        }
+
+        .feature-title {
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .feature-desc {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        /* ===== AI 助手补充样式：工业风 ===== */
+        .ai-assistant {
+            display: flex !important;
+            flex-direction: column;
+        }
+
+        .ai-assistant.collapsed {
+            flex-direction: row;
+            align-self: flex-end;
+            width: auto;
+            max-height: none;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+
+        .ai-toggle-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: opacity var(--transition-fast);
+            z-index: 2;
+        }
+
+        .ai-toggle-btn:hover {
+            opacity: 0.85;
+        }
+
+        .ai-chat-panel {
+            display: none;
+            flex-direction: column;
+        }
+
+        /* ===== 页脚 ===== */
+        .footer {
+            background: rgba(255,255,255,0.72);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(148,163,184,0.2);
+            padding: 2rem 2rem;
+            margin-top: 2rem;
+        }
+
+        .footer-content {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .footer-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .footer-copyright {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+
+        .footer-icp {
+            color: var(--text-muted);
+            font-size: 0.78rem;
+        }
+
+        .footer-icp a {
+            color: var(--text-muted);
+            font-size: 0.78rem;
+        }
+        .footer-icp a:hover {
+            color: var(--text-secondary);
+        }
+
+        .footer-links {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            font-size: 0.82rem;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+        .footer-links a:hover {
+            color: var(--text-secondary);
+        }
+
+        .footer-divider {
+            color: var(--border-color);
+            font-size: 0.72rem;
+        }
+
+        /* ===== 响应式适配 ===== */
+        @media (max-width: 991px) {
+            .modules-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .modules-grid .module-card:last-child {
+                grid-column: span 2;
+                max-width: 420px;
+                justify-self: center;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .modules-grid {
+                grid-template-columns: 1fr;
+            }
+            .modules-grid .module-card:last-child {
+                grid-column: span 1;
+                max-width: none;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-container {
+                padding: 3rem 1.25rem;
+            }
+
+            .hero-cta {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .hero-cta .btn {
+                width: 100%;
+                max-width: 260px;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .footer-links {
+                justify-content: center;
+            }
+        }
+    </style>
+    <script src="js/platform-home-button.js"></script>
+</body>
+</html>

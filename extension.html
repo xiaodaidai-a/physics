@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <script src="./pages-demo.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>夫琅禾费衍射虚拟仿真实验平台 - 课外拓展</title>
+
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        #report-modal .modal-content {
+            width: 92%;
+            max-width: 980px;
+            max-height: 90vh;
+        }
+        #report-modal .modal-body {
+            overflow-y: auto;
+            max-height: calc(90vh - 140px);
+            padding: 0;
+            background: #eef2f7;
+        }
+        #report-modal .report-content {
+            padding: 0;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        window.addEventListener('error', function (event) {
+            if (event.filename && event.filename.includes('tfjs') && event.message && event.message.includes('源映射')) {
+                event.preventDefault();
+                return true;
+            }
+        }, true);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0/dist/tf.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: 'global'
+            },
+            options: {
+                renderActions: {
+                    addMenu: [0, '', ''],
+                    checkLoading: [0, '', '']
+                }
+            }
+        };
+    </script>
+</head>
+
+<body>
+    
+    
+    <header>
+        <a href="index.html" class="back-link" style="position: absolute; left: 20px; top: 20px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="white" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+            返回首页
+        </a>
+        <h1>夫琅禾费衍射虚拟仿真实验平台</h1>
+    </header>
+
+    <main>
+        <div class="tabs">
+            <a href="theory.html" class="tab-btn" style="text-decoration: none;">实验原理</a>
+            <a href="3d-demo.html" class="tab-btn" style="text-decoration: none;">3D实验演示</a>
+            <a href="simulation.html" class="tab-btn" style="text-decoration: none;">仿真实验</a>
+            <a href="ai-prediction.html" class="tab-btn" style="text-decoration: none;">实验数据分析</a>
+            <a href="ideological-education.html" class="tab-btn" style="text-decoration: none;">格物致知</a>
+            <a href="extension.html" class="tab-btn active" style="text-decoration: none;">课外拓展</a>
+        </div>
+
+        <div class="tab-content">
+            <!-- 课外拓展 -->
+            <div id="extension" class="tab-pane active">
+                <div class="theory-panel">
+                    <h3>科学前沿应用</h3>
+                    <div class="theory-content">
+                        <p>夫琅禾费衍射原理在现代科技中有广泛应用，不仅限于基础物理实验，也扩展到了许多前沿科技领域：</p>
+
+                        <div class="frontier-applications">
+                            <div class="application-card">
+                                <h4>光谱分析与光栅</h4>
+                                <p>光栅衍射是夫琅禾费多缝衍射的典型应用。光谱仪利用光栅将不同波长的光按衍射角分开，实现物质成分分析与波长标定，是天文观测、化学检测和激光光谱学的基础技术。</p>
+                            </div>
+
+                            <div class="application-card">
+                                <h4>光学成像分辨率</h4>
+                                <p>圆孔夫琅禾费衍射形成艾里斑，其尺度决定了望远镜、显微镜等成像系统的分辨率极限。瑞利判据将衍射图样与"能否分辨两个邻近物点"直接联系起来，是光学设计的重要准则。</p>
+                            </div>
+
+                            <div class="application-card">
+                                <h4>激光束整形与衍射光学</h4>
+                                <p>通过设计特定孔径或衍射光学元件（DOE），可控制激光束的远场分布，实现光束分束、整形与聚焦。该技术广泛应用于激光加工、光通信和全息显示等领域。</p>
+                            </div>
+
+                            <div class="application-card">
+                                <h4>精密测量与计量</h4>
+                                <p>利用单缝或圆孔衍射条纹的位置与间距，可反推缝宽、孔径或波长，实现亚毫米乃至光学波长的精密标定。衍射计量在标准光源定标、光学元件检测和教学演示中具有重要价值。</p>
+                            </div>
+
+                            <div class="application-video-container" id="application-video-container">
+                                <div class="slideshow-container" id="slideshow-container">
+                                    <div class="slideshow-wrapper" id="slideshow-wrapper">
+                                        <div class="slide">
+                                            <img src="images/s1.png" alt="单缝夫琅禾费衍射条纹图样">
+                                        </div>
+                                        <div class="slide">
+                                            <img src="images/s2.png" alt="圆孔衍射艾里斑示意">
+                                        </div>
+                                        <div class="slide">
+                                            <img src="images/s3.png" alt="光栅光谱分析应用">
+                                        </div>
+                                        <div class="slide">
+                                            <img src="images/s4.png" alt="望远镜衍射极限与分辨率">
+                                        </div>
+                                        <div class="slide">
+                                            <img src="images/s5.png" alt="衍射光学元件与激光应用">
+                                        </div>
+                                    </div>
+
+                                    <div class="slideshow-dots" id="slideshow-dots">
+                                        <span class="slide-dot active" data-index="0"></span>
+                                        <span class="slide-dot" data-index="1"></span>
+                                        <span class="slide-dot" data-index="2"></span>
+                                        <span class="slide-dot" data-index="3"></span>
+                                        <span class="slide-dot" data-index="4"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <style>
+                                .application-video-container {
+                                    margin: 40px auto;
+                                    max-width: 1100px;
+                                    width: 95%;
+                                }
+
+                                .slideshow-container {
+                                    position: relative;
+                                    width: 100%;
+                                    height: 550px;
+                                    border-radius: 24px;
+                                    overflow: hidden;
+                                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+                                    background: linear-gradient(145deg, #1a1a2e, #16213e);
+                                }
+
+                                .slideshow-wrapper {
+                                    display: flex;
+                                    width: 500%;
+                                    height: 100%;
+                                    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+                                }
+
+                                .slide {
+                                    width: 20%;
+                                    height: 100%;
+                                    position: relative;
+                                    flex-shrink: 0;
+                                }
+
+                                .slide img {
+                                    width: 100%;
+                                    height: 100%;
+                                    object-fit: cover;
+                                }
+
+                                .slide-caption {
+                                    position: absolute;
+                                    bottom: 0;
+                                    left: 0;
+                                    right: 0;
+                                    padding: 25px 30px;
+                                    background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+                                    color: white;
+                                    font-size: 1.2rem;
+                                    font-weight: 500;
+                                    text-align: center;
+                                }
+
+                                .slideshow-dots {
+                                    position: absolute;
+                                    bottom: 25px;
+                                    left: 50%;
+                                    transform: translateX(-50%);
+                                    display: flex !important;
+                                    gap: 14px;
+                                    z-index: 10;
+                                    padding: 12px 24px;
+                                    background: rgba(0, 0, 0, 0.4);
+                                    backdrop-filter: blur(10px);
+                                    border-radius: 30px;
+                                }
+
+                                .slide-dot {
+                                    width: 14px;
+                                    height: 14px;
+                                    border-radius: 50%;
+                                    background: rgba(255, 255, 255, 0.4);
+                                    cursor: pointer;
+                                    transition: all 0.3s ease;
+                                    display: block !important;
+                                }
+
+                                .slide-dot:hover {
+                                    background: rgba(255, 255, 255, 0.7);
+                                    transform: scale(1.2);
+                                }
+
+                                .slide-dot.active {
+                                    background: #2979ff;
+                                    box-shadow: 0 0 12px rgba(41, 121, 255, 0.7);
+                                    transform: scale(1.3);
+                                }
+
+                                @media (max-width: 1024px) {
+                                    .slideshow-container {
+                                        height: 450px;
+                                    }
+                                }
+
+                                @media (max-width: 768px) {
+                                    .slideshow-container {
+                                        height: 320px;
+                                    }
+                                }
+                            </style>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="theory-panel">
+                    <h3>格物致知</h3>
+                    <div class="theory-content">
+                        <p>通过夫琅禾费衍射实验，我们不仅学习物理知识，也培养多方面能力和素养：</p>
+
+                        <div class="ideological-content">
+                            <div class="ideological-item">
+                                <div class="ideological-icon">🔬</div>
+                                <div class="ideological-text">
+                                    <h4>严谨求实的科学态度</h4>
+                                    <p>实验中对暗纹位置、条纹间距的准确测量和数据分析，培养严谨的科学精神和实事求是的态度。</p>
+                                </div>
+                            </div>
+
+                            <div class="ideological-item">
+                                <div class="ideological-icon">💡</div>
+                                <div class="ideological-text">
+                                    <h4>创新思维能力</h4>
+                                    <p>拓展思考题引导学生从孔径尺寸、波长与衍射角的关系出发分析问题，培养创新思维和解决复杂问题的能力。</p>
+                                </div>
+                            </div>
+
+                            <div class="ideological-item">
+                                <div class="ideological-icon">⚙️</div>
+                                <div class="ideological-text">
+                                    <h4>精益求精的工匠精神</h4>
+                                    <p>通过提高条纹测量精度和减小不确定度的方法学习，培养追求卓越、精益求精的工匠精神。</p>
+                                </div>
+                            </div>
+
+                            <div class="ideological-item">
+                                <div class="ideological-icon">🤝</div>
+                                <div class="ideological-text">
+                                    <h4>团队协作能力</h4>
+                                    <p>实验光路搭建与数据记录过程中的分工合作，培养团队意识和协作能力。</p>
+                                </div>
+                            </div>
+
+                            <div class="ideological-item">
+                                <div class="ideological-icon">🌟</div>
+                                <div class="ideological-text">
+                                    <h4>民族自豪感</h4>
+                                    <p>了解中国在光学与光谱领域的重大成就，如大型天文望远镜、同步辐射光源和精密光学计量技术，增强民族自豪感和科技创新的使命感。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="theory-panel">
+                    <h3>拓展思考题</h3>
+                    <div class="theory-content">
+                        <div class="thinking-questions">
+                            <div class="question-card">
+                                <h4>思考题1</h4>
+                                <p>单缝夫琅禾费衍射中，缝宽 \(a\) 减小时，中央明纹宽度和暗纹间距如何变化？请从公式 \(y_k \approx k\lambda f/a\) 解释。</p>
+                                <div class="hint">
+                                    <p>提示：\(a\) 在分母上，缝越窄衍射角越大，屏上条纹越稀疏、中央明纹越宽</p>
+                                </div>
+                            </div>
+
+                            <div class="question-card">
+                                <h4>思考题2</h4>
+                                <p>为什么夫琅禾费衍射实验通常需要透镜？透镜的焦平面在实验中起什么作用？</p>
+                                <div class="hint">
+                                    <p>提示：透镜将不同方向的衍射光会聚到焦平面上，形成与远场等价的强度分布</p>
+                                </div>
+                            </div>
+
+                            <div class="question-card">
+                                <h4>思考题3</h4>
+                                <p>若用红光（λ ≈ 632 nm）换成蓝光（λ ≈ 450 nm），单缝衍射条纹间距如何变化？</p>
+                                <div class="hint">
+                                    <p>提示：暗纹间距 \(\Delta y \approx \lambda f/a\)，与波长成正比</p>
+                                </div>
+                            </div>
+
+                            <div class="question-card">
+                                <h4>思考题4</h4>
+                                <p>圆孔夫琅禾费衍射的艾里斑半径与孔径直径 \(D\) 有何关系？孔径越小，成像分辨率如何变化？</p>
+                                <div class="hint">
+                                    <p>提示：第一暗环满足 \(\sin\theta_1 \approx 1.22\lambda/D\)，孔径越小艾里斑越大、分辨率越低</p>
+                                </div>
+                            </div>
+
+                            <div class="question-card">
+                                <h4>思考题5</h4>
+                                <p>单缝衍射图样中，中央明纹为什么最宽最亮？次级明纹的强度为何逐渐减弱？</p>
+                                <div class="hint">
+                                    <p>提示：从单缝各点发出子波的相干叠加出发，考虑 \(\sin\beta/\beta\) 型强度分布</p>
+                                </div>
+                            </div>
+
+                            <div class="question-card">
+                                <h4>思考题6</h4>
+                                <p>已知相邻暗纹间距 \(\Delta y\) 和透镜焦距 \(f\)，如何反推单缝宽度 \(a\)？请写出公式并设计测量步骤。</p>
+                                <div class="hint">
+                                    <p>提示：由 \(\Delta y \approx \lambda f/a\) 得 \(a \approx \lambda f/\Delta y\)，需测量多组暗纹位置取平均</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="report-generation-container">
+                            <h2>实验报告生成</h2>
+                            <hr>
+
+                            <p class="description">完成夫琅禾费单缝衍射实验后，可以生成实验报告保存或打印。报告包含实验参数、暗纹测量数据、误差分析和拓展思考题。</p>
+
+                            <div class="report-options-grid">
+                                <div class="option-group">
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" id="include-data" checked>
+                                        <span class="checkmark"></span>
+                                        包含测量数据
+                                    </label>
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" id="include-error-analysis" checked>
+                                        <span class="checkmark"></span>
+                                        包含误差分析
+                                    </label>
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" id="include-thinking-questions" checked>
+                                        <span class="checkmark"></span>
+                                        包含拓展思考题
+                                    </label>
+                                </div>
+                                <div class="student-info">
+                                    <div class="info-row">
+                                        <label for="student-name">学生姓名:</label>
+                                        <input type="text" id="student-name" placeholder="输入姓名">
+                                    </div>
+                                    <div class="info-row">
+                                        <label for="student-id">学号:</label>
+                                        <input type="text" id="student-id" placeholder="输入学号">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="report-buttons">
+                                <button type="button" id="preview-report-btn" class="report-btn preview-btn">预览报告</button>
+                                <button type="button" id="print-report-btn" class="report-btn print-btn">打印报告</button>
+                                <button type="button" id="download-report-btn" class="report-btn download-btn">下载报告</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2026 夫琅禾费衍射虚拟仿真实验平台</p>
+    </footer>
+
+    <!-- 实验报告预览模态框 -->
+    <div id="report-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>实验报告预览</h2>
+                <span class="report-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="report-content" class="report-content"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-print-btn" class="report-btn print-btn">打印报告</button>
+                <button id="modal-download-btn" class="report-btn download-btn">下载报告</button>
+                <button id="modal-close-btn" class="report-btn close-btn">关闭预览</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 上划按钮 -->
+    <div class="scroll-to-top" id="scrollToTop">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="white" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+        </svg>
+    </div>
+
+    <script>
+        // 上划按钮功能
+        document.addEventListener('DOMContentLoaded', function () {
+            const scrollToTopBtn = document.getElementById('scrollToTop');
+
+            // 滚动事件监听
+            window.addEventListener('scroll', function () {
+                if (window.pageYOffset > 300) {
+                    scrollToTopBtn.classList.add('visible');
+                } else {
+                    scrollToTopBtn.classList.remove('visible');
+                }
+            });
+
+            // 点击事件
+            scrollToTopBtn.addEventListener('click', function () {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+
+            // 轮播图功能
+            let slideIndex = 0;
+            const slidesCount = 5;
+            const slideshow = document.getElementById('slideshow-wrapper');
+            const dots = document.querySelectorAll('.slide-dot');
+
+            // 初始化轮播图
+            updateActiveDot(0);
+            startSlideshow();
+
+            // 为导航点添加点击事件
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => {
+                    goToSlide(index);
+                });
+            });
+
+            // 自动切换轮播图
+            function startSlideshow() {
+                window.slideInterval = setInterval(nextSlide, 4000);
+            }
+
+            // 切换到下一张幻灯片
+            function nextSlide() {
+                slideIndex = (slideIndex + 1) % slidesCount;
+                slideshow.style.transform = `translateX(-${slideIndex * 20}%)`;
+                updateActiveDot(slideIndex);
+            }
+
+            // 跳转到指定幻灯片
+            function goToSlide(index) {
+                clearInterval(window.slideInterval);
+                slideIndex = index;
+                slideshow.style.transform = `translateX(-${slideIndex * 20}%)`;
+                updateActiveDot(slideIndex);
+                startSlideshow();
+            }
+
+            // 更新导航点激活状态
+            function updateActiveDot(index) {
+                dots.forEach((dot, i) => {
+                    dot.classList.toggle('active', i === index);
+                });
+            }
+        });
+    </script>
+
+    <!-- 课外拓展页仅加载报告脚本，避免其他页面脚本报错导致按钮失效 -->
+    <script src="extension.js"></script>
+    <!--
+    <script>
+    window.addEventListener('load', function() {
+      // 移除所有可能的指示器
+      const elements = document.querySelectorAll('body > div');
+      elements.forEach(el => {
+        if (el.style.position === 'fixed' && el.getBoundingClientRect().top < 50) {
+          el.remove();
+        }
+      });
+    });
+    </script>
+    -->
+
+</body>
+
+</html>

@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <script src="./pages-demo.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>夫琅禾费衍射虚拟仿真实验平台 - 格物致知</title>
+
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        window.addEventListener('error', function (event) {
+            if (event.filename && event.filename.includes('tfjs') && event.message && event.message.includes('源映射')) {
+                event.preventDefault();
+                return true;
+            }
+        }, true);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0/dist/tf.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: 'global'
+            },
+            options: {
+                renderActions: {
+                    addMenu: [0, '', ''],
+                    checkLoading: [0, '', '']
+                }
+            }
+        };
+    </script>
+    <style>
+        /* Video container styles */
+        .video-container {
+            text-align: center;
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        .video-container video {
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        /* 全屏时让容器充满整个屏幕，视频铺满全屏，说明文字隐藏 */
+        /* 注意：每个浏览器前缀必须写成独立规则，混写在一起会被整条丢弃 */
+        .video-container:fullscreen {
+            background: #000;
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .video-container:-webkit-full-screen {
+            background: #000;
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .video-container:-moz-full-screen {
+            background: #000;
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .video-container:-ms-fullscreen {
+            background: #000;
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        .video-container:fullscreen > video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+            max-width: none !important;
+            object-fit: contain;
+            background: #000;
+            border-radius: 0;
+            box-shadow: none;
+        }
+        .video-container:-webkit-full-screen > video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+            max-width: none !important;
+            object-fit: contain;
+            background: #000;
+            border-radius: 0;
+            box-shadow: none;
+        }
+        .video-container:-moz-full-screen > video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+            max-width: none !important;
+            object-fit: contain;
+            background: #000;
+            border-radius: 0;
+            box-shadow: none;
+        }
+        .video-container:-ms-fullscreen > video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+            max-width: none !important;
+            object-fit: contain;
+            background: #000;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .video-container:fullscreen .video-description { display: none !important; }
+        .video-container:-webkit-full-screen .video-description { display: none !important; }
+        .video-container:-moz-full-screen .video-description { display: none !important; }
+        .video-container:-ms-fullscreen .video-description { display: none !important; }
+
+        .video-container video:fullscreen,
+        .video-container video:-webkit-full-screen,
+        .video-container video:-moz-full-screen,
+        .video-container video:-ms-fullscreen {
+            max-width: 100% !important;
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 0;
+        }
+
+        .video-description {
+            margin-top: 1rem;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* Quiz styles */
+        .question-block {
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .question-text {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+        }
+
+        .question-type-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-left: 0.5rem;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .options label {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .options label:hover {
+            background: #e3f2fd;
+            transform: translateX(5px);
+        }
+
+        .options input {
+            margin-right: 0.8rem;
+            cursor: pointer;
+        }
+
+        /* Submit button */
+        #submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 2rem;
+            transition: all 0.3s;
+        }
+
+        #submit-btn:hover {
+            background: #1565c0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(41, 121, 255, 0.3);
+        }
+
+        #submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Result panel */
+        #result-panel {
+            margin-top: 2rem;
+            padding: 2rem;
+            background: #f0f7ff;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .score {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .percentage {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+
+        .answer-details {
+            margin-top: 1.5rem;
+        }
+
+        .answer-item {
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 6px;
+        }
+
+        .answer-item.correct {
+            background: #e8f5e9;
+            border-left: 3px solid #4caf50;
+        }
+
+        .answer-item.wrong {
+            background: #ffebee;
+            border-left: 3px solid #f44336;
+        }
+
+        .answer-item p {
+            margin: 0.5rem 0;
+        }
+
+        .explanation {
+            margin-top: 0.5rem;
+            color: #666;
+            font-style: italic;
+            font-size: 0.95rem;
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 1rem;
+            background: #ff5722;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.3s;
+        }
+
+        .reset-btn:hover {
+            background: #e64a19;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
+        }
+
+        /* ===== 视频卡点弹题样式（叠加在视频容器上，跟随全屏） ===== */
+        .vq-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            animation: vqFadeIn 0.25s ease;
+        }
+
+        .vq-overlay.show {
+            display: flex;
+        }
+
+        @keyframes vqFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes vqSlideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .vq-card {
+            width: 92%;
+            max-width: 640px;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
+            padding: 1.8rem 2rem;
+            animation: vqSlideUp 0.3s ease;
+            max-height: 88vh;
+            overflow-y: auto;
+        }
+
+        .vq-header {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+
+        .vq-tag {
+            padding: 0.25rem 0.7rem;
+            background: var(--primary-color);
+            color: #fff;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .vq-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .vq-question {
+            font-size: 1.08rem;
+            line-height: 1.6;
+            color: #222;
+            margin: 0.6rem 0 1.1rem;
+        }
+
+        .vq-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .vq-options label {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: #f5f7fa;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .vq-options label:hover {
+            background: #e3f2fd;
+            border-color: #bbdefb;
+        }
+
+        .vq-options input {
+            margin-right: 0.7rem;
+        }
+
+        .vq-options label.selected {
+            border-color: var(--primary-color);
+            background: #e3f2fd;
+        }
+
+        .vq-actions {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .vq-btn {
+            flex: 1;
+            min-width: 130px;
+            padding: 0.8rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        .vq-btn-primary {
+            background: var(--primary-color);
+            color: #fff;
+        }
+
+        .vq-btn-primary:hover {
+            background: #1565c0;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(41, 121, 255, 0.3);
+        }
+
+        .vq-btn-warn {
+            background: #ff9800;
+            color: #fff;
+        }
+
+        .vq-btn-warn:hover {
+            background: #fb8c00;
+            transform: translateY(-1px);
+        }
+
+        .vq-btn-ghost {
+            background: #eceff1;
+            color: #37474f;
+        }
+
+        .vq-btn-ghost:hover {
+            background: #cfd8dc;
+        }
+
+        .vq-feedback {
+            margin: 0.4rem 0 1rem;
+            padding: 1rem 1.2rem;
+            border-radius: 8px;
+            line-height: 1.6;
+            display: none;
+        }
+
+        .vq-feedback.correct {
+            display: block;
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            color: #2e7d32;
+        }
+
+        .vq-feedback.wrong {
+            display: block;
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            color: #c62828;
+        }
+
+        .vq-feedback strong {
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+    </style>
+</head>
+
+<body>
+    
+    
+    <header>
+        <a href="index.html" class="back-link" style="position: absolute; left: 20px; top: 20px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="white" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+            返回首页
+        </a>
+        <h1>夫琅禾费衍射虚拟仿真实验平台</h1>
+    </header>
+
+    <main>
+        <div class="tabs">
+            <a href="theory.html" class="tab-btn" style="text-decoration: none;">实验原理</a>
+            <a href="3d-demo.html" class="tab-btn" style="text-decoration: none;">3D实验演示</a>
+            <a href="simulation.html" class="tab-btn" style="text-decoration: none;">仿真实验</a>
+            <a href="ai-prediction.html" class="tab-btn" style="text-decoration: none;">实验数据分析</a>
+            <a href="ideological-education.html" class="tab-btn active" style="text-decoration: none;">格物致知</a>
+            <a href="extension.html" class="tab-btn" style="text-decoration: none;">课外拓展</a>
+        </div>
+
+        <div class="tab-content">
+            <!-- 格物致知视频 -->
+            <div class="theory-panel">
+                <h3>格物致知视频</h3>
+                <div class="theory-content">
+                    <div class="video-container" id="video-container">
+                        <p class="video-unavailable">此教学视频暂未收录到在线展示版，请使用实验原理与仿真操作页面。</p>
+                        <p class="video-description">通过格物致知，探索光的衍射背后的科学原理，感悟基础研究对大国重器的支撑作用。</p>
+
+                        <!-- ===== 视频卡点弹题卡（叠加在视频上，全屏时也在视频内） ===== -->
+                        <div id="vq-overlay" class="vq-overlay" role="dialog" aria-modal="true" aria-labelledby="vq-title">
+                            <div class="vq-card">
+                                <div class="vq-header">
+                                    <span class="vq-tag">视频随堂题</span>
+                                    <span class="vq-title" id="vq-title">请回答下面的问题以继续观看</span>
+                                </div>
+                                <p class="vq-question" id="vq-question">题目加载中...</p>
+                                <div class="vq-options" id="vq-options"></div>
+                                <div class="vq-feedback" id="vq-feedback"></div>
+                                <div class="vq-actions" id="vq-actions">
+                                    <button type="button" class="vq-btn vq-btn-primary" id="vq-submit">提交答案</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 思政习题 -->
+            <div class="theory-panel">
+                <h3>思政习题</h3>
+                <div class="theory-content">
+                    <form id="quiz-form">
+                        <!-- Questions will be dynamically generated here -->
+                    </form>
+                    <button id="submit-btn">提交答案</button>
+                    <div id="result-panel" style="display:none;">
+                        <!-- Results will be displayed here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2026 夫琅禾费衍射虚拟仿真实验平台</p>
+    </footer>
+
+    <!-- Scroll to top button -->
+    <div class="scroll-to-top" id="scrollToTop">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="white" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+        </svg>
+    </div>
+
+    <script>
+        // Quiz data
+        const quizData = {
+            singleChoice: [
+                {
+                    id: 'sc1',
+                    question: '夫琅禾费衍射原理，是郭守敬望远镜(LAMOST)哪项核心环节的关键技术基础？',
+                    options: ['A. 天体观测数据记录', 'B. 成像分辨率与光学检测', 'C. 望远镜位置调节', 'D. 巡天范围规划'],
+                    answer: 1,
+                    explanation: '圆孔夫琅禾费衍射形成艾里斑，其尺度直接决定望远镜的成像分辨率极限。LAMOST 等大口径望远镜的设计与检测，离不开对衍射极限和光学分辨率的深入理解，体现了基础物理原理在国家重大科技工程中的重要应用。'
+                },
+                {
+                    id: 'sc2',
+                    question: '"小小衍射图样守护LAMOST巡天精度"，这体现了基础学科的核心意义是？',
+                    options: ['A. 仅用于课堂实验，无实际用途', 'B. 是大国重器研发的重要根基', 'C. 只服务高端科研，与日常学习无关', 'D. 难度低，容易掌握'],
+                    answer: 1,
+                    explanation: '基础学科是大国重器研发的重要根基。夫琅禾费衍射这样的基础物理原理在 LAMOST 等国家重大科技工程中发挥着关键作用，体现了基础研究对科技创新的支撑作用。'
+                },
+                {
+                    id: 'sc3',
+                    question: '"学好基础就是科技报国的第一步"，作为学生，最贴合的做法是？',
+                    options: ['A. 认真做好每一次基础物理实验，夯实知识', 'B. 只关注高端科研动态，忽视课堂学习', 'C. 认为基础学科枯燥，敷衍对待', 'D. 不用实操，只背理论知识点'],
+                    answer: 0,
+                    explanation: '科技报国从学好基础开始。认真做好每一次基础物理实验，夯实知识基础，培养严谨的科学态度，是学生践行科技报国精神的最佳途径。'
+                }
+            ],
+            multipleChoice: [
+                {
+                    id: 'mc1',
+                    question: 'LAMOST 需考虑圆孔衍射对成像分辨率的影响，这份科研严谨性，对我们做物理实验的启发有哪些？（多选）',
+                    options: ['A. 实验操作精准规范，不随意敷衍', 'B. 认真观测数据，不篡改、不遗漏', 'C. 反复调试装置，追求准确结果', 'D. 差不多就行，不用过分较真'],
+                    answer: [0, 1, 2],
+                    explanation: 'LAMOST 的成像精度与衍射极限密切相关，体现了科研的严谨性。启发我们在物理实验中要精准规范操作、认真观测数据、反复调试装置，追求准确结果，培养一丝不苟的科学态度。'
+                }
+            ],
+            trueFalse: []
+        };
+
+        // Generate quiz HTML
+        function generateQuiz() {
+            const form = document.getElementById('quiz-form');
+            let html = '';
+            let questionNumber = 1;
+
+            // Single choice questions
+            html += '<h4 style="margin-top: 1.5rem; color: var(--primary-color);">一、单选题</h4>';
+            quizData.singleChoice.forEach((q, index) => {
+                html += `
+                    <div class="question-block">
+                        <p class="question-text">${questionNumber}. ${q.question}<span class="question-type-badge">单选</span></p>
+                        <div class="options">
+                `;
+                q.options.forEach((option, optIndex) => {
+                    html += `
+                        <label>
+                            <input type="radio" name="${q.id}" value="${optIndex}">
+                            ${option}
+                        </label>
+                    `;
+                });
+                html += `
+                        </div>
+                    </div>
+                `;
+                questionNumber++;
+            });
+
+            // Multiple choice questions
+            html += '<h4 style="margin-top: 1.5rem; color: var(--primary-color);">二、多选题</h4>';
+            quizData.multipleChoice.forEach((q, index) => {
+                html += `
+                    <div class="question-block">
+                        <p class="question-text">${questionNumber}. ${q.question}<span class="question-type-badge">多选</span></p>
+                        <div class="options">
+                `;
+                q.options.forEach((option, optIndex) => {
+                    html += `
+                        <label>
+                            <input type="checkbox" name="${q.id}" value="${optIndex}">
+                            ${option}
+                        </label>
+                    `;
+                });
+                html += `
+                        </div>
+                    </div>
+                `;
+                questionNumber++;
+            });
+
+            form.innerHTML = html;
+        }
+
+        // Submit quiz and calculate score
+        function submitQuiz() {
+            let score = 0;
+            let totalQuestions = 0;
+            let results = [];
+            let questionNumber = 1;
+
+            // Check single choice questions
+            quizData.singleChoice.forEach(q => {
+                const selected = document.querySelector(`input[name="${q.id}"]:checked`);
+                const userAnswer = selected ? parseInt(selected.value) : null;
+                const isCorrect = userAnswer !== null && userAnswer === q.answer;
+                if (isCorrect) score++;
+                totalQuestions++;
+
+                results.push({
+                    number: questionNumber++,
+                    type: '单选题',
+                    question: q.question,
+                    userAnswer: userAnswer !== null ? q.options[userAnswer] : '未作答',
+                    correctAnswer: q.options[q.answer],
+                    isCorrect: isCorrect,
+                    explanation: q.explanation
+                });
+            });
+
+            // Check multiple choice questions
+            quizData.multipleChoice.forEach(q => {
+                const selected = Array.from(document.querySelectorAll(`input[name="${q.id}"]:checked`))
+                    .map(input => parseInt(input.value))
+                    .sort();
+                const correctAnswer = [...q.answer].sort();
+                const isCorrect = JSON.stringify(selected) === JSON.stringify(correctAnswer);
+                if (isCorrect) score++;
+                totalQuestions++;
+
+                const userAnswerText = selected.length > 0
+                    ? selected.map(i => q.options[i]).join('、')
+                    : '未作答';
+                const correctAnswerText = q.answer.map(i => q.options[i]).join('、');
+
+                results.push({
+                    number: questionNumber++,
+                    type: '多选题',
+                    question: q.question,
+                    userAnswer: userAnswerText,
+                    correctAnswer: correctAnswerText,
+                    isCorrect: isCorrect,
+                    explanation: q.explanation
+                });
+            });
+
+            displayResults(score, totalQuestions, results);
+
+            // 保存答题结果到 sessionStorage
+            saveQuizResults(score, totalQuestions, results);
+        }
+
+        // Display results
+        function displayResults(score, total, results) {
+            const resultPanel = document.getElementById('result-panel');
+            const percentage = ((score / total) * 100).toFixed(1);
+
+            let html = `
+                <h3>答题结果</h3>
+                <p class="score">得分：<span id="score">${score}</span> / <span id="total">${total}</span></p>
+                <p class="percentage">正确率：<span id="percentage">${percentage}%</span></p>
+                <div class="answer-details">
+                    <h4>答题详情</h4>
+            `;
+
+            results.forEach(result => {
+                const statusIcon = result.isCorrect ? '✓' : '✗';
+                const statusText = result.isCorrect ? '正确' : '错误';
+                const itemClass = result.isCorrect ? 'correct' : 'wrong';
+
+                html += `
+                    <div class="answer-item ${itemClass}">
+                        <p><strong>${statusIcon} 第${result.number}题（${result.type}）：${statusText}</strong></p>
+                        <p><strong>题目：</strong>${result.question}</p>
+                        <p><strong>您的答案：</strong>${result.userAnswer}</p>
+                `;
+
+                if (!result.isCorrect) {
+                    html += `<p><strong>正确答案：</strong>${result.correctAnswer}</p>`;
+                }
+
+                html += `
+                        <p class="explanation"><strong>解析：</strong>${result.explanation}</p>
+                    </div>
+                `;
+            });
+
+            html += `
+                </div>
+                <button class="reset-btn" onclick="resetQuiz()">重新答题</button>
+            `;
+
+            resultPanel.innerHTML = html;
+            resultPanel.style.display = 'block';
+
+            // Scroll to results
+            resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            // Disable submit button
+            document.getElementById('submit-btn').disabled = true;
+        }
+
+        // Reset quiz
+        function resetQuiz() {
+            document.getElementById('quiz-form').reset();
+            document.getElementById('result-panel').style.display = 'none';
+            document.getElementById('submit-btn').disabled = false;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 保存答题结果到 sessionStorage
+        function saveQuizResults(score, total, results) {
+            const quizData = {
+                score: score,
+                total: total,
+                percentage: ((score / total) * 100).toFixed(1),
+                results: results,
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                sessionStorage.setItem('quizResults', JSON.stringify(quizData));
+                console.log('答题结果已保存用于报告生成');
+            } catch (error) {
+                console.error('保存答题结果失败:', error);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function () {
+            generateQuiz();
+
+            // Submit button event
+            document.getElementById('submit-btn').addEventListener('click', function (e) {
+                e.preventDefault();
+                submitQuiz();
+            });
+
+            // Scroll to top button
+            const scrollToTopBtn = document.getElementById('scrollToTop');
+
+            window.addEventListener('scroll', function () {
+                if (window.pageYOffset > 300) {
+                    scrollToTopBtn.classList.add('visible');
+                } else {
+                    scrollToTopBtn.classList.remove('visible');
+                }
+            });
+
+            scrollToTopBtn.addEventListener('click', function () {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+
+            // 视频播放时强制全屏，退出全屏自动暂停
+            const video = document.getElementById('ideological-video');
+            const videoContainer = document.getElementById('video-container');
+
+            if (video) {
+                // 确保一点击播放就全屏（对容器而不是 video 本身，保证弹题卡能叠加在视频上）
+                video.addEventListener('play', function () {
+                    const isFullscreen = document.fullscreenElement || document.webkitIsFullScreen || document.mozFullScreen || document.msFullscreenElement;
+
+                    if (!isFullscreen && videoContainer) {
+                        const target = videoContainer;
+                        const req = target.requestFullscreen
+                            || target.webkitRequestFullscreen
+                            || target.mozRequestFullScreen
+                            || target.msRequestFullscreen;
+                        if (req) {
+                            try {
+                                const p = req.call(target);
+                                if (p && typeof p.catch === 'function') {
+                                    p.catch(err => console.log('请求全屏失败:', err && err.message));
+                                }
+                            } catch (e) {
+                                console.log('请求全屏异常:', e && e.message);
+                            }
+                        }
+                    }
+                });
+
+                // 监听全屏变动，如果强制退出了全屏，则立即暂停视频
+                const exitHandler = function () {
+                    if (!document.fullscreenElement && !document.webkitIsFullScreen && !document.mozFullScreen && !document.msFullscreenElement) {
+                        // 检测到退出了全屏，直接强制暂停
+                        video.pause();
+                    }
+                };
+
+                document.addEventListener('fullscreenchange', exitHandler, false);
+                document.addEventListener('mozfullscreenchange', exitHandler, false);
+                document.addEventListener('MSFullscreenChange', exitHandler, false);
+                document.addEventListener('webkitfullscreenchange', exitHandler, false);
+
+                // ===== 视频卡点弹题：到点暂停 + 弹题卡 + 答题反馈 =====
+                initVideoCheckpoints(video);
+            }
+        });
+
+        /**
+         * 视频卡点习题数据：可按视频实际内容调整 time、question、options、answer、explanation 和 replayFrom。
+         *   - time:        触发卡点的时间（单位：秒）
+         *   - question:    题目文本
+         *   - options:     选项数组
+         *   - answer:      正确选项的下标（从 0 开始）
+         *   - explanation: 答错时显示的解析内容
+         *   - replayFrom:  答错时若选择"回看讲解"，从该时间点（秒）重新播放
+         */
+        const videoCheckpoints = [
+            {
+                id: 'cp1',
+                time: 45,
+                replayFrom: 10,
+                question: '在波长 λ 相同的情况下，单缝宽度 a 越小，衍射条纹会如何变化？',
+                options: [
+                    'A. 条纹越窄，衍射现象越弱',
+                    'B. 条纹越宽，衍射现象越明显',
+                    'C. 条纹完全消失',
+                    'D. 条纹宽度与缝宽无关'
+                ],
+                answer: 1,
+                explanation: 'λ 相同时，缝宽 a 越小，衍射越显著，中央亮纹及各级条纹都越宽。视频中红光在 a = 0.8 mm 与 a = 0.4 mm 下的对比直观体现了这一规律。'
+            },
+            {
+                id: 'cp2',
+                time: 110,
+                replayFrom: 70,
+                question: '当单缝宽度 a 相同时，光的波长 λ 越长，条纹宽度变化趋势是？',
+                options: [
+                    'A. 条纹越窄',
+                    'B. 条纹越宽',
+                    'C. 条纹宽度不变',
+                    'D. 条纹随机分布'
+                ],
+                answer: 1,
+                explanation: 'a 相同时，波长 λ 越长，衍射效应越强，条纹越宽。视频中红光（波长较长）与蓝光（波长较短）在 a = 0.4 mm 下的对比清楚地说明了这一点。'
+            }
+        ];
+
+        /**
+         * 初始化视频卡点逻辑
+         */
+        function initVideoCheckpoints(video) {
+            const overlay = document.getElementById('vq-overlay');
+            const titleEl = document.getElementById('vq-title');
+            const questionEl = document.getElementById('vq-question');
+            const optionsEl = document.getElementById('vq-options');
+            const feedbackEl = document.getElementById('vq-feedback');
+            const actionsEl = document.getElementById('vq-actions');
+
+            // 已经"通过"的卡点 id 集合（答对后不会再次弹出）
+            const passedCheckpoints = new Set();
+            // 当前是否正在显示弹题卡（用于阻止 timeupdate 重复触发）
+            let isQuizShowing = false;
+            // 当前激活的卡点
+            let activeCheckpoint = null;
+            // 标记由"卡点暂停"主动退出的全屏，避免与原有"退出全屏即暂停"逻辑冲突
+            window.__vqExitingForQuiz = false;
+
+            // 监听播放进度
+            video.addEventListener('timeupdate', function () {
+                if (isQuizShowing) return;
+                const ct = video.currentTime;
+                for (const cp of videoCheckpoints) {
+                    if (passedCheckpoints.has(cp.id)) continue;
+                    // 进入卡点时间窗口（容差 0.6s，避免 timeupdate 漏触发）
+                    if (ct >= cp.time && ct < cp.time + 0.6) {
+                        showCheckpointQuiz(cp);
+                        break;
+                    }
+                }
+            });
+
+            // 若用户手动 seek 回到卡点之前，重新允许该卡点触发
+            video.addEventListener('seeked', function () {
+                const ct = video.currentTime;
+                videoCheckpoints.forEach(cp => {
+                    if (ct < cp.time - 0.5) {
+                        passedCheckpoints.delete(cp.id);
+                    }
+                });
+            });
+
+            function isInFullscreen() {
+                return !!(document.fullscreenElement
+                    || document.webkitFullscreenElement
+                    || document.mozFullScreenElement
+                    || document.msFullscreenElement);
+            }
+
+            function exitFullscreenSafely() {
+                try {
+                    if (document.exitFullscreen) return document.exitFullscreen();
+                    if (document.webkitExitFullscreen) return document.webkitExitFullscreen();
+                    if (document.mozCancelFullScreen) return document.mozCancelFullScreen();
+                    if (document.msExitFullscreen) return document.msExitFullscreen();
+                } catch (e) { /* ignore */ }
+                return Promise.resolve();
+            }
+
+            function showCheckpointQuiz(cp) {
+                isQuizShowing = true;
+                activeCheckpoint = cp;
+
+                // 暂停视频（保持全屏不变，弹题卡作为容器子元素将叠加在视频上）
+                try { video.pause(); } catch (e) {}
+
+                titleEl.textContent = '请回答下面的问题以继续观看';
+                questionEl.textContent = cp.question;
+                feedbackEl.className = 'vq-feedback';
+                feedbackEl.innerHTML = '';
+                actionsEl.innerHTML = '<button type="button" class="vq-btn vq-btn-primary" id="vq-submit">提交答案</button>';
+
+                let html = '';
+                cp.options.forEach((opt, idx) => {
+                    html += `
+                        <label data-idx="${idx}">
+                            <input type="radio" name="vq-opt" value="${idx}">
+                            <span>${opt}</span>
+                        </label>
+                    `;
+                });
+                optionsEl.innerHTML = html;
+
+                optionsEl.querySelectorAll('label').forEach(lab => {
+                    lab.addEventListener('click', () => {
+                        optionsEl.querySelectorAll('label').forEach(l => l.classList.remove('selected'));
+                        lab.classList.add('selected');
+                    });
+                });
+
+                document.getElementById('vq-submit').addEventListener('click', handleSubmit);
+
+                overlay.classList.add('show');
+            }
+
+            function handleSubmit() {
+                const checked = optionsEl.querySelector('input[name="vq-opt"]:checked');
+                if (!checked) {
+                    feedbackEl.className = 'vq-feedback wrong';
+                    feedbackEl.innerHTML = '<strong>请先选择一个选项</strong>';
+                    return;
+                }
+                const userIdx = parseInt(checked.value, 10);
+                const cp = activeCheckpoint;
+                const isCorrect = userIdx === cp.answer;
+
+                if (isCorrect) {
+                    feedbackEl.className = 'vq-feedback correct';
+                    feedbackEl.innerHTML = '<strong>回答正确！</strong>已掌握该知识点，正在为你继续播放...';
+                    actionsEl.innerHTML = '<button type="button" class="vq-btn vq-btn-primary" id="vq-continue">继续观看</button>';
+                    document.getElementById('vq-continue').addEventListener('click', () => continueAfterCorrect(cp));
+                    // 自动 1.2 秒后继续
+                    setTimeout(() => {
+                        if (overlay.classList.contains('show') && passedCheckpoints.has(cp.id) === false) {
+                            continueAfterCorrect(cp);
+                        }
+                    }, 1200);
+                } else {
+                    feedbackEl.className = 'vq-feedback wrong';
+                    feedbackEl.innerHTML =
+                        '<strong>回答有误</strong>' +
+                        '<div style="margin-top:.3rem;"><strong style="display:inline;">正确答案：</strong>' +
+                        cp.options[cp.answer] + '</div>' +
+                        '<div style="margin-top:.4rem;"><strong style="display:inline;">解析：</strong>' +
+                        cp.explanation + '</div>';
+
+                    let actionHtml = '';
+                    if (typeof cp.replayFrom === 'number') {
+                        actionHtml += '<button type="button" class="vq-btn vq-btn-warn" id="vq-replay">回看讲解</button>';
+                    }
+                    actionHtml += '<button type="button" class="vq-btn vq-btn-ghost" id="vq-retry">再试一次</button>';
+                    actionHtml += '<button type="button" class="vq-btn vq-btn-primary" id="vq-skip">已理解，继续</button>';
+                    actionsEl.innerHTML = actionHtml;
+
+                    const replayBtn = document.getElementById('vq-replay');
+                    if (replayBtn) replayBtn.addEventListener('click', () => replaySegment(cp));
+                    document.getElementById('vq-retry').addEventListener('click', () => retryQuestion(cp));
+                    document.getElementById('vq-skip').addEventListener('click', () => continueAfterCorrect(cp));
+                }
+            }
+
+            function continueAfterCorrect(cp) {
+                passedCheckpoints.add(cp.id);
+                closeOverlay();
+                // 继续播放
+                video.play().catch(() => {});
+            }
+
+            function replaySegment(cp) {
+                // 选择回看：跳到 replayFrom 处重新播放，并允许此卡点再次触发
+                passedCheckpoints.delete(cp.id);
+                closeOverlay();
+                try {
+                    video.currentTime = Math.max(0, cp.replayFrom);
+                } catch (e) {}
+                video.play().catch(() => {});
+            }
+
+            function retryQuestion(cp) {
+                // 重新作答：清空选择和反馈，但保持弹窗打开
+                feedbackEl.className = 'vq-feedback';
+                feedbackEl.innerHTML = '';
+                optionsEl.querySelectorAll('input').forEach(i => { i.checked = false; });
+                optionsEl.querySelectorAll('label').forEach(l => l.classList.remove('selected'));
+                actionsEl.innerHTML = '<button type="button" class="vq-btn vq-btn-primary" id="vq-submit">提交答案</button>';
+                document.getElementById('vq-submit').addEventListener('click', handleSubmit);
+            }
+
+            function closeOverlay() {
+                overlay.classList.remove('show');
+                isQuizShowing = false;
+                activeCheckpoint = null;
+            }
+        }
+    </script>
+</body>
+
+</html>

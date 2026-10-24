@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <script src="../../pages-demo.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>课程思政 - 基于多智能体教学辅助的偏振光与蔗糖旋光现象仿真实验平台</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <!-- ==================== 导航栏 ==================== -->
+    <nav id="navbar" style="
+        position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+        height: 56px;
+        background: rgba(255,255,255,0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(148,163,184,0.25);
+        display: flex; align-items: center;
+        padding: 0 28px;
+    ">
+        <!-- 左侧：品牌名 -->
+        <a href="../index.html" style="display:flex; align-items:center; gap:10px; text-decoration:none;">
+            <span style="font-size:18px;">🎛️</span>
+            <span style="font-size:13px; font-weight:700; color:#1E293B; letter-spacing:0.03em; white-space:nowrap;">
+                液相旋光（蔗糖溶液）虚拟仿真实验
+            </span>
+        </a>
+
+        <!-- 中间：导航链接 -->
+        <div style="display:flex; align-items:center; gap:2px; margin-left:auto;" class="main-nav">
+            <a href="../index.html" class="nav-tab-item ">首页</a>
+            <a href="theory.html" class="nav-tab-item ">理论原理</a>
+            <a href="module-malus.html" class="nav-tab-item ">马吕斯验证</a>
+            <a href="module-polarization-3d.html" class="nav-tab-item ">3D偏振模拟</a>
+            <a href="experiment.html" class="nav-tab-item ">主实验</a>
+            <a href="data-analysis.html" class="nav-tab-item ">数据分析</a>
+            <a href="ideological-education.html" class="nav-tab-item nav-active">课程思政</a>
+            <a href="contact.html" class="nav-tab-item ">关于我们</a>
+        </div>
+    </nav>
+
+    <!-- 主内容区域 -->
+    <main class="main-content" style="background: #F8FAFC; min-height: 100vh;">
+
+        <!-- ==================== Hero 区域 ==================== -->
+        <section class="hero-section" style="
+            background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 40%, #E0F2FE 70%, #F0FDF4 100%);
+            color: #1E293B;
+            text-align: center;
+            padding: 70px 30px;
+            margin-bottom: 0;
+        ">
+            <h1 style="font-size: 42px; margin-bottom: 16px; letter-spacing: 4px;">
+                格物致知 · 匠心强国
+            </h1>
+            <p style="font-size: 20px; opacity: 0.92; max-width: 700px; margin: 0 auto; line-height: 1.7;">
+                从旋光仪到国计民生——测量精度背后的科学精神
+            </p>
+            <div style="margin-top: 24px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                <span class="tag-pill" style="background: rgba(59,130,246,0.12); color: #1E293B; padding: 6px 18px; border-radius: 20px; font-size: 14px;">🔬 科学精神</span>
+                <span class="tag-pill" style="background: rgba(6,182,212,0.12); color: #1E293B; padding: 6px 18px; border-radius: 20px; font-size: 14px;">⚙️ 工匠精神</span>
+                <span class="tag-pill" style="background: rgba(245,158,11,0.12); color: #1E293B; padding: 6px 18px; border-radius: 20px; font-size: 14px;">🇨🇳 家国情怀</span>
+                <span class="tag-pill" style="background: rgba(139,92,246,0.12); color: #1E293B; padding: 6px 18px; border-radius: 20px; font-size: 14px;">🌱 责任担当</span>
+            </div>
+        </section>
+
+        <!-- ==================== Section 1：思政视频播放器 ==================== -->
+        <section class="card" style="margin-top: 35px; max-width: 1000px; margin-left: auto; margin-right: auto; background: rgba(255,255,255,0.78); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+            <h2 style="margin-bottom: 18px; border-bottom: 3px solid var(--primary-color); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                🎬 思政教育视频
+            </h2>
+
+            <!-- 视频容器 -->
+            <div id="video-wrapper" class="video-container" style="
+                position: relative;
+                width: 100%;
+                background: #000;
+                border-radius: 12px;
+                overflow: hidden;
+                aspect-ratio: 16 / 9;
+            ">
+                <p class="video-unavailable">此教学视频暂未收录到在线展示版，请使用实验原理与仿真操作页面。</p>
+
+                <!-- ===== 自定义控制栏 ===== -->
+                <div id="custom-controls" class="v-controls" style="
+                    position:absolute; bottom:0; left:0; right:0;
+                    background:linear-gradient(transparent, rgba(0,0,0,0.75));
+                    padding:28px 14px 10px;
+                    opacity:0; transition:opacity 0.3s ease;
+                    pointer-events:none; z-index:5;
+                " onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0'">
+                    <!-- 进度条 -->
+                    <div id="v-progress-wrap" class="v-progress-wrap" style="
+                        width:100%; height:6px; border-radius:3px;
+                        background:rgba(255,255,255,0.22); cursor:pointer;
+                        margin-bottom:8px; position:relative; pointer-events:auto;
+                    " onclick="seekVideo(event)">
+                        <div id="v-progress-buffer" class="v-buffer" style="
+                            height:100%; border-radius:3px;
+                            background:rgba(255,255,255,0.35); width:0%;
+                            position:absolute; left:0; top:0; pointer-events:none;
+                        "></div>
+                        <div id="v-progress-bar" class="v-bar" style="
+                            height:100%; border-radius:3px;
+                            background:linear-gradient(90deg,#3B82F6,#60A5FA); width:0%;
+                            position:absolute; left:0; top:0; pointer-events:none;
+                        "></div>
+                        <div id="v-progress-thumb" class="v-thumb" style="
+                            position:absolute; top:50%; transform:translate(-50%,-50%);
+                            width:14px; height:14px; border-radius:50%;
+                            background:#FFFFFF; box-shadow:0 0 6px rgba(59,130,246,0.5);
+                            left:0%; opacity:0; transition:opacity 0.15s;
+                            pointer-events:none;
+                        "></div>
+                    </div>
+
+                    <!-- 控制按钮行 -->
+                    <div class="v-btn-row" style="
+                        display:flex; align-items:center; justify-content:space-between;
+                        pointer-events:auto;
+                    ">
+                        <!-- 左侧：播放/暂停 + 时间 + 倍速 -->
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <!-- 播放/暂停 -->
+                            <button id="v-btn-play" class="v-btn v-btn-icon" onclick="togglePlay()" title="播放/暂停" style="
+                                width:34px; height:34px; border-radius:50%; border:none;
+                                background:transparent; color:#fff; font-size:15px;
+                                cursor:pointer; display:flex; align-items:center;justify-content:center;
+                                flex-shrink:0; transition:transform 0.12s;
+                            ">▶</button>
+
+                            <!-- 时间显示 -->
+                            <span id="v-time" class="v-time" style="
+                                color:rgba(255,255,255,0.88); font-size:12px;
+                                font-weight:500; font-variant-numeric:tabular-nums;
+                                min-width:85px; text-align:center; user-select:none;
+                            ">00:00 / 00:00</span>
+
+                            <!-- 倍速选择器 -->
+                            <div id="v-speed-box" class="v-speed-box" style="position:relative;">
+                                <button id="v-btn-speed" class="v-btn v-btn-speed" onclick="toggleSpeedMenu()" title="倍速播放" style="
+                                    padding:3px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.3);
+                                    background:transparent; color:#fff; font-size:11px; font-weight:700;
+                                    cursor:pointer; white-space:nowrap; letter-spacing:0.3px;
+                                    transition:all 0.18s ease;
+                                ">1.0x</button>
+                                <!-- 倍速下拉菜单 -->
+                                <div id="v-speed-menu" class="v-speed-menu" style="
+                                    display:none; position:absolute; bottom:100%;
+                                    left:50%; transform:translateX(-50%); margin-bottom:6px;
+                                    background:rgba(20,20,25,0.92); backdrop-filter:blur(12px);
+                                    border-radius:8px; padding:4px 0; min-width:80px;
+                                    box-shadow:0 4px 16px rgba(0,0,0,0.4); z-index:10;
+                                ">
+                                    <div class="v-speed-opt" data-rate="0.5" onclick="setSpeed(0.5)" style="
+                                        padding:7px 16px; color:rgba(255,255,255,0.75); font-size:12px;
+                                        cursor:pointer; text-align:center; transition:background 0.12s;
+                                    " onmouseover="this.style.background='rgba(59,130,246,0.2)';this.style.color='#fff'"
+                                       onmouseout="this.style.background='';this.style.color='rgba(255,255,255,0.75)'">0.5x</div>
+                                    <div class="v-speed-opt" data-rate="0.75" onclick="setSpeed(0.75)" style="
+                                        padding:7px 16px; color:rgba(255,255,255,0.75); font-size:12px;
+                                        cursor:pointer; text-align:center; transition:background 0.12s;
+                                    " onmouseover="this.style.background='rgba(59,130,246,0.2)';this.style.color='#fff'"
+                                       onmouseout="this.style.background='';this.style.color='rgba(255,255,255,0.75)'">0.75x</div>
+                                    <div class="v-speed-opt" data-rate="1" onclick="setSpeed(1)" style="
+                                        padding:7px 16px; color:#3B82F6; font-size:12px; font-weight:700;
+                                        cursor:pointer; text-align:center; transition:background 0.12s;
+                                    " onmouseover="this.style.background='rgba(59,130,246,0.2)'"
+                                       onmouseout="this.style.background=''">1.0x ✓</div>
+                                    <div class="v-speed-opt" data-rate="1.25" onclick="setSpeed(1.25)" style="
+                                        padding:7px 16px; color:rgba(255,255,255,0.75); font-size:12px;
+                                        cursor:pointer; text-align:center; transition:background 0.12s;
+                                    " onmouseover="this.style.background='rgba(59,130,246,0.2)';this.style.color='#fff'"
+                                       onmouseout="this.style.background='';this.style.color='rgba(255,255,255,0.75)'">1.25x</div>
+                                    <div class="v-speed-opt" data-rate="1.5" onclick="setSpeed(1.5)" style="
+                                        padding:7px 16px; color:rgba(255,255,255,0.75); font-size:12px;
+                                        cursor:pointer; text-align:center; transition:background 0.12s;
+                                    " onmouseover="this.style.background='rgba(59,130,246,0.2)';this.style.color='#fff'"
+                                       onmouseout="this.style.background='';this.style.color='rgba(255,255,255,0.75)'">1.5x</div>
+                                    <div class="v-speed-opt" data-rate="2" onclick="setSpeed(2)" style="
+                                        padding:7px 16px; color:rgba(255,255,255,0.75); font-size:12px;
+                                        cursor:pointer; text-align:center; transition:background 0.12s;
+                                    " onmouseover="this.style.background='rgba(59,130,246,0.2)';this.style.color='#fff'"
+                                       onmouseout="this.style.background='';this.style.color='rgba(255,255,255,0.75)'">2.0x</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 右侧：音量 + 全屏 -->
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <!-- 音量 -->
+                            <div id="v-volume-box" style="display:flex; align-items:center; gap:4px;" onmouseover="showVolumeBar()" onmouseout="hideVolumeBar()">
+                                <button id="v-btn-vol" class="v-btn v-btn-icon" onclick="toggleMute()" title="静音" style="
+                                    width:30px; height:30px; border:none; background:transparent;
+                                    color:#fff; font-size:13px; cursor:pointer; display:flex;
+                                    align-items:center; justify-content:center; flex-shrink:0;
+                                ">🔊</button>
+                                <div id="v-volume-bar-wrap" class="v-vol-wrap" style="
+                                    width:0; overflow:hidden; transition:width 0.2s ease;
+                                    height:4px; border-radius:2px;
+                                    background:rgba(255,255,255,0.22); cursor:pointer;
+                                    position:relative; pointer-events:auto;
+                                " onclick="setVolume(event)">
+                                    <div id="v-volume-bar" style="
+                                        height:100%; border-radius:2px; width:80%;
+                                        background:#fff; position:absolute;left:0;top:0;
+                                    "></div>
+                                </div>
+                            </div>
+
+                            <!-- 全屏 -->
+                            <button id="v-btn-full" class="v-btn v-btn-icon" onclick="toggleFullscreen()" title="全屏" style="
+                                width:30px; height:30px; border:none; background:transparent;
+                                color:#fff; font-size:14px; cursor:pointer; display:flex;
+                                align-items:center; justify-content:center; flex-shrink:0;
+                            ">⛶</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 视频不存在时的占位区域（由 JS 控制显示） -->
+                <div id="video-placeholder" style="
+                    display: none;
+                    position: absolute;
+                    top: 0; left: 0; right: 0; bottom: 0;
+                    background: linear-gradient(135deg, #E2E8F0, #CBD5E1);
+                    color: #475569;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 16px;
+                ">
+                    <div style="font-size: 72px;">🎥</div>
+                    <p style="font-size: 18px; opacity: 0.85;">视频资源暂未就绪</p>
+                    <p style="font-size: 14px; opacity: 0.6; max-width: 400px; text-align: center;">
+                        请将思政教育视频文件放置于项目根目录（ideo-video.mp4）
+                    </p>
+                </div>
+            </div>
+
+            <p style="color: #666; font-size: 14px; margin-top: 14px; line-height: 1.6;">
+                💡 通过观看本节思政教育视频，了解旋光测量技术在国计民生中的重要作用，
+                感受科学家精益求精的工匠精神，思考作为新时代大学生的责任与使命。
+            </p>
+        </section>
+
+        <!-- ==================== Section 1.5：随堂练习（自动批改）==================== -->
+        <section class="card" style="margin-top: 35px; max-width: 1000px; margin-left: auto; margin-right: auto; background: rgba(255,255,255,0.78); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+            <h2 style="margin-bottom: 18px; border-bottom: 3px solid var(--primary-color); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                📝 旋光效应与光纤陀螺思政融合随堂练习
+            </h2>
+            <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
+                请认真作答以下题目，完成后点击"提交答案"进行自动批改。
+            </p>
+
+            <!-- 题目1：单选题 -->
+            <div class="exercise-question" data-type="single" data-id="q1" style="margin-bottom: 25px; padding: 20px; background: rgba(239,246,255,0.5); border-radius: 12px; border: 1px solid rgba(59,130,246,0.2);">
+                <div style="display: flex; align-items: start; gap: 12px; margin-bottom: 14px;">
+                    <span style="background: #3B82F6; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; flex-shrink: 0;">1</span>
+                    <div style="font-size: 15px; line-height: 1.7; color: #333;">
+                        <strong>单选题</strong>：下列关于蔗糖和果糖旋光性的说法正确的是？
+                    </div>
+                </div>
+                <div class="options" style="margin-left: 40px;">
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; background: rgba(255,255,255,0.6);" onmouseover="this.style.background='rgba(59,130,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">
+                        <input type="radio" name="q1" value="A" style="width: 18px; height: 18px; accent-color: #3B82F6;">
+                        <span>A. 蔗糖左旋、果糖右旋</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; background: rgba(255,255,255,0.6);" onmouseover="this.style.background='rgba(59,130,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">
+                        <input type="radio" name="q1" value="B" style="width: 18px; height: 18px; accent-color: #3B82F6;">
+                        <span>B. 蔗糖右旋、果糖左旋</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; background: rgba(255,255,255,0.6);" onmouseover="this.style.background='rgba(59,130,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">
+                        <input type="radio" name="q1" value="C" style="width: 18px; height: 18px; accent-color: #3B82F6;">
+                        <span>C. 二者均为右旋</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; background: rgba(255,255,255,0.6);" onmouseover="this.style.background='rgba(59,130,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">
+                        <input type="radio" name="q1" value="D" style="width: 18px; height: 18px; accent-color: #3B82F6;">
+                        <span>D. 二者均无旋光性</span>
+                    </label>
+                </div>
+                <div class="answer-feedback" style="display: none; margin-top: 15px; padding: 14px; border-radius: 8px;"></div>
+            </div>
+
+            <!-- 题目2：单选题 -->
+            <div class="exercise-question" data-type="single" data-id="q2" style="margin-bottom: 25px; padding: 20px; background: rgba(239,246,255,0.5); border-radius: 12px; border: 1px solid rgba(59,130,246,0.2);">
+                <div style="display: flex; align-items: start; gap: 12px; margin-bottom: 14px;">
+                    <span style="background: #3B82F6; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; flex-shrink: 0;">2</span>
+                    <div style="font-size: 15px; line-height: 1.7; color: #333;">
+                        <strong>单选题</strong>：旋光实验与光纤陀螺的核心共通光学原理是？
+                    </div>
+                </div>
+                <div class="options" style="margin-left: 40px;">
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; background: rgba(255,255,255,0.6);" onmouseover="this.style.background='rgba(59,130,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">
+                        <input type="radio" name="q2" value="A" style="width: 18px; height: 18px; accent-color: #3B82F6;">
+                        <span>A. 干涉衍射原理</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; background: rgba(255,255,255,0.6);" onmouseover="this.style.background='rgba(59,130,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">
+                        <input type="radio" name="q2" value="B" style="width: 18px; height: 18px; accent-color: #3B82F6;">
+                        <span>B. 偏振光的调控与检测</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; background: rgba(255,255,255,0.6);" onmouseover="this.style.background='rgba(59,130,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">
+                        <input type="radio" name="q2" value="C" style="width: 18px; height: 18px; accent-color: #3B82F6;">
+                        <span>C. 光的色散效应</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; background: rgba(255,255,255,0.6);" onmouseover="this.style.background='rgba(59,130,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">
+                        <input type="radio" name="q2" value="D" style="width: 18px; height: 18px; accent-color: #3B82F6;">
+                        <span>D. 光的直线传播</span>
+                    </label>
+                </div>
+                <div class="answer-feedback" style="display: none; margin-top: 15px; padding: 14px; border-radius: 8px;"></div>
+            </div>
+
+            <!-- 题目3：多选题 -->
+            <div class="exercise-question" data-type="multiple" data-id="q3" style="margin-bottom: 25px; padding: 20px; background: rgba(239,246,255,0.5); border-radius: 12px; border: 1px solid rgba(59,130,246,0.2);">
+                <div style="display: flex; align-items: start; gap: 12px; margin-bottom: 14px;">
+                    <span style="background: #8B5CF6; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; flex-shrink: 0;">3</span>
+                    <div style="font-size: 15px; line-height: 1.7; color: #333;">
+                        <strong>多选题</strong>：光纤陀螺激光惯导会用到哪些核心光学器件？
+                    </div>
+                </div>
+                <div class="options" style="margin-left: 40px;">
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; background: rgba(255,255,255,0.6);" onmouseover="this.style.background='rgba(139,92,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">
+                        <input type="checkbox" name="q3" value="A" style="width: 18px; height: 18px; accent-color: #8B5CF6;">
+                        <span>A. 起偏器</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; background: rgba(255,255,255,0.6);" onmouseover="this.style.background='rgba(139,92,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">
+                        <input type="checkbox" name="q3" value="B" style="width: 18px; height: 18px; accent-color: #8B5CF6;">
+                        <span>B. 检偏器</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; background: rgba(255,255,255,0.6);" onmouseover="this.style.background='rgba(139,92,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">
+                        <input type="checkbox" name="q3" value="C" style="width: 18px; height: 18px; accent-color: #8B5CF6;">
+                        <span>C. 保偏光纤</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; background: rgba(255,255,255,0.6);" onmouseover="this.style.background='rgba(139,92,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">
+                        <input type="checkbox" name="q3" value="D" style="width: 18px; height: 18px; accent-color: #8B5CF6;">
+                        <span>D. 三棱镜</span>
+                    </label>
+                </div>
+                <div class="answer-feedback" style="display: none; margin-top: 15px; padding: 14px; border-radius: 8px;"></div>
+            </div>
+
+            <!-- 题目4：单选题 -->
+            <div class="exercise-question" data-type="single" data-id="q4" style="margin-bottom: 25px; padding: 20px; background: rgba(239,246,255,0.5); border-radius: 12px; border: 1px solid rgba(59,130,246,0.2);">
+                <div style="display: flex; align-items: start; gap: 12px; margin-bottom: 14px;">
+                    <span style="background: #3B82F6; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; flex-shrink: 0;">4</span>
+                    <div style="font-size: 15px; line-height: 1.7; color: #333;">
+                        <strong>单选题</strong>：PL-15搭载的光纤陀螺属于哪类大国重器应用领域？
+                    </div>
+                </div>
+                <div class="options" style="margin-left: 40px;">
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; background: rgba(255,255,255,0.6);" onmouseover="this.style.background='rgba(59,130,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">
+                        <input type="radio" name="q4" value="A" style="width: 18px; height: 18px; accent-color: #3B82F6;">
+                        <span>A. 民用气象观测</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; background: rgba(255,255,255,0.6);" onmouseover="this.style.background='rgba(59,130,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">
+                        <input type="radio" name="q4" value="B" style="width: 18px; height: 18px; accent-color: #3B82F6;">
+                        <span>B. 国防精密导航</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; background: rgba(255,255,255,0.6);" onmouseover="this.style.background='rgba(59,130,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">
+                        <input type="radio" name="q4" value="C" style="width: 18px; height: 18px; accent-color: #3B82F6;">
+                        <span>C. 民用光刻制造</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; background: rgba(255,255,255,0.6);" onmouseover="this.style.background='rgba(59,130,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">
+                        <input type="radio" name="q4" value="D" style="width: 18px; height: 18px; accent-color: #3B82F6;">
+                        <span>D. 深空天文摄影</span>
+                    </label>
+                </div>
+                <div class="answer-feedback" style="display: none; margin-top: 15px; padding: 14px; border-radius: 8px;"></div>
+            </div>
+
+            <!-- 题目5：多选题 -->
+            <div class="exercise-question" data-type="multiple" data-id="q5" style="margin-bottom: 25px; padding: 20px; background: rgba(239,246,255,0.5); border-radius: 12px; border: 1px solid rgba(59,130,246,0.2);">
+                <div style="display: flex; align-items: start; gap: 12px; margin-bottom: 14px;">
+                    <span style="background: #8B5CF6; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; flex-shrink: 0;">5</span>
+                    <div style="font-size: 15px; line-height: 1.7; color: #333;">
+                        <strong>多选题</strong>：下列关于旋光实验课程思政内涵表述正确的有？
+                    </div>
+                </div>
+                <div class="options" style="margin-left: 40px;">
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; background: rgba(255,255,255,0.6);" onmouseover="this.style.background='rgba(139,92,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">
+                        <input type="checkbox" name="q5" value="A" style="width: 18px; height: 18px; accent-color: #8B5CF6;">
+                        <span>A. 基础光学实验是国防科技研发的底层原理支撑</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; background: rgba(255,255,255,0.6);" onmouseover="this.style.background='rgba(139,92,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">
+                        <input type="checkbox" name="q5" value="B" style="width: 18px; height: 18px; accent-color: #8B5CF6;">
+                        <span>B. 课堂所学偏振原理可赋能国产高端导航装备发展</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; background: rgba(255,255,255,0.6);" onmouseover="this.style.background='rgba(139,92,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">
+                        <input type="checkbox" name="q5" value="C" style="width: 18px; height: 18px; accent-color: #8B5CF6;">
+                        <span>C. 基础物理知识和大国重器研发毫无关联</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; background: rgba(255,255,255,0.6);" onmouseover="this.style.background='rgba(139,92,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">
+                        <input type="checkbox" name="q5" value="D" style="width: 18px; height: 18px; accent-color: #8B5CF6;">
+                        <span>D. 深耕基础实验学习，可为国防科技发展筑牢学识根基</span>
+                    </label>
+                </div>
+                <div class="answer-feedback" style="display: none; margin-top: 15px; padding: 14px; border-radius: 8px;"></div>
+            </div>
+
+            <!-- 提交按钮 -->
+            <div style="text-align: center; margin-top: 25px;">
+                <button id="submit-quiz-btn" onclick="submitQuiz()" style="
+                    padding: 14px 40px; font-size: 16px; font-weight: bold;
+                    background: linear-gradient(135deg, #3B82F6, #2563EB);
+                    color: white; border: none; border-radius: 10px;
+                    cursor: pointer; transition: all 0.3s ease;
+                    box-shadow: 0 4px 15px rgba(59,130,246,0.3);
+                " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(59,130,246,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 15px rgba(59,130,246,0.3)'">
+                    📤 提交答案
+                </button>
+                <button id="reset-quiz-btn" onclick="resetQuiz()" style="
+                    padding: 14px 30px; font-size: 16px; font-weight: bold;
+                    background: rgba(255,255,255,0.8); color: #666;
+                    border: 2px solid #ddd; border-radius: 10px;
+                    cursor: pointer; transition: all 0.3s ease; margin-left: 15px;
+                " onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='rgba(255,255,255,0.8)'">
+                    🔄 重置
+                </button>
+            </div>
+
+            <!-- 总分显示 -->
+            <div id="quiz-result" style="display: none; text-align: center; margin-top: 25px; padding: 20px; background: linear-gradient(135deg, rgba(52,152,219,0.1), rgba(41,128,185,0.1)); border-radius: 12px; border: 2px solid rgba(52,152,219,0.3);">
+                <div style="font-size: 28px; font-weight: bold; color: #2980b9; margin-bottom: 10px;">
+                    您的得分：<span id="quiz-score">0</span> / 100
+                </div>
+                <div id="quiz-summary" style="font-size: 15px; color: #555;"></div>
+            </div>
+        </section>
+
+        <!-- ==================== Section 2：应用案例（3 个 card）==================== -->
+        <section style="max-width: 1100px; margin: 40px auto 0; padding: 0 20px;">
+            <h2 style="text-align: center; font-size: 28px; margin-bottom: 8px; color: var(--primary-color);">
+                📌 实际应用案例
+            </h2>
+            <p style="text-align: center; color: #888; margin-bottom: 30px; font-size: 15px;">
+                旋光测量技术广泛应用于食品、医药、进出口检验等关乎民生的重要领域
+            </p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 22px;">
+
+                <!-- 案例一：食品安全 -->
+                <div class="card case-card" style="
+                    border-left: 5px solid #e74c3c;
+                    background: rgba(255,255,255,0.78);
+                    backdrop-filter: blur(8px);
+                    -webkit-backdrop-filter: blur(8px);
+                    transition: transform 0.25s ease, box-shadow 0.25s ease;
+                ">
+                    <div style="font-size: 48px; margin-bottom: 12px;">🍬</div>
+                    <h3 style="color: #e74c3c; margin-bottom: 12px; font-size: 20px;">
+                        食品安全——糖量计守护餐桌
+                    </h3>
+                    <div style="color: #444; line-height: 1.8; font-size: 14.5px;">
+                        <p style="margin-bottom: 12px;">
+                            旋光法测糖是食品工业中测定糖类含量的经典方法。从制糖厂的原糖检测，
+                            到饮料企业的配料控制，再到市场监管部门的抽检执法，
+                            糖量计（基于旋光原理的专用仪器）发挥着不可替代的作用。
+                        </p>
+                        <p style="margin-bottom: 12px;">
+                            中国是全球最大的食糖生产与消费国之一。据统计，<strong>中国每年糖产量超过 900 万吨</strong>，
+                            消费量超过 1500 万吨。每一克进入百姓餐桌的糖，都经过严格的旋光度检测。
+                        </p>
+                        <div style="background: #fef5f5; padding: 14px; border-radius: 8px; margin-top: 12px;">
+                            <strong style="color: #c0392b;">📊 关键数据：</strong>
+                            <ul style="margin: 8px 0 0 20px; color: #555; font-size: 13.5px;">
+                                <li>GB/T 20883-2007 国家标准规定蔗糖旋光度检测精度要求</li>
+                                <li>食品中糖含量检测允许误差通常 ≤ ±0.2%</li>
+                                <li>国际糖品统一分析方法委员会（ICUMSA）标准方法</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 案例二：制药工业 -->
+                <div class="card case-card" style="
+                    border-left: 5px solid #3498db;
+                    background: rgba(255,255,255,0.78);
+                    backdrop-filter: blur(8px);
+                    -webkit-backdrop-filter: blur(8px);
+                    transition: transform 0.25s ease, box-shadow 0.25s ease;
+                ">
+                    <div style="font-size: 48px; margin-bottom: 12px;">💊</div>
+                    <h3 style="color: #3498db; margin-bottom: 12px; font-size: 20px;">
+                        制药工业——药典标准的严谨性
+                    </h3>
+                    <div style="color: #444; line-height: 1.8; font-size: 14.5px;">
+                        <p style="margin-bottom: 12px;">
+                            《中华人民共和国药典》对多种手性药物的比旋光度测定有严格规定。
+                            许多药物分子具有手性（如葡萄糖、抗生素、氨基酸等），其旋光特性
+                            是鉴别药品真伪和纯度的重要指标。
+                        </p>
+                        <p style="margin-bottom: 12px;">
+                            在制药行业，测量精度的意义远超学术研究——<strong>它直接关系到人民群众的生命健康</strong>。
+                            一批药品的合格与否，可能仅仅取决于 0.01° 的旋光度差异。
+                        </p>
+                        <div style="background: #f0f7ff; padding: 14px; border-radius: 8px; margin-top: 12px;">
+                            <strong style="color: #2980b9;">⚕️ 质控要点：</strong>
+                            <ul style="margin: 8px 0 0 20px; color: #555; font-size: 13.5px;">
+                                <li>《中国药典》2020 年版规定旋光度测定温度为 20°C±0.5°C</li>
+                                <li>手性药物的对映体过量率 (ee) 测定依赖高精度旋光仪</li>
+                                <li>0.01° 的精度差异可能决定药品合格与否</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 案例三：进出口检验 -->
+                <div class="card case-card" style="
+                    border-left: 5px solid #27ae60;
+                    background: rgba(255,255,255,0.78);
+                    backdrop-filter: blur(8px);
+                    -webkit-backdrop-filter: blur(8px);
+                    transition: transform 0.25s ease, box-shadow 0.25s ease;
+                ">
+                    <div style="font-size: 48px; margin-bottom: 12px;">🌐</div>
+                    <h3 style="color: #27ae60; margin-bottom: 12px; font-size: 20px;">
+                        进出口检验——国家贸易的技术屏障
+                    </h3>
+                    <div style="color: #444; line-height: 1.8; font-size: 14.5px;">
+                        <p style="margin-bottom: 12px;">
+                            在国际贸易中，旋光测定是检验农产品、化工产品、食品药品质量的重要手段之一。
+                            海关和出入境检验检疫机构利用旋光法快速筛查进出口货物的成分含量，
+                            维护国家经济利益和消费者权益。
+                        </p>
+                        <p style="margin-bottom: 12px;">
+                            以进口蔗糖为例，检验人员通过测定旋光度来判断糖的纯度和品质等级，
+                            这直接影响到关税税率和市场准入。<strong>精准的测量数据是公平贸易的技术基石。</strong>
+                        </p>
+                        <div style="background: #f0fff4; padding: 14px; border-radius: 8px; margin-top: 12px;">
+                            <strong style="color: #1e8449;">🛃 贸易应用：</strong>
+                            <ul style="margin: 8px 0 0 20px; color: #555; font-size: 13.5px;">
+                                <li>海关总署采用旋光法进行进口糖类品质检验</li>
+                                <li>CODex 国际食品法典委员会相关检测标准</li>
+                                <li>贸易争端仲裁中的关键技术证据来源</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ==================== Section 3：思考题答题模块 ==================== -->
+        <section style="max-width: 900px; margin: 45px auto 0; padding: 0 20px;">
+            <h2 style="text-align: center; font-size: 28px; margin-bottom: 8px; color: var(--primary-color);">
+                💭 思考与讨论
+            </h2>
+            <p style="text-align: center; color: #888; margin-bottom: 30px; font-size: 15px;">
+                请认真阅读以下思考题，结合实验体验撰写你的答案（建议每题不少于 200 字）
+            </p>
+
+            <!-- 思考题 1 -->
+            <div class="card question-card" style="margin-bottom: 20px; border-left: 5px solid #9b59b6; background: rgba(255,255,255,0.78); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+                <div style="display: flex; align-items: start; gap: 12px; margin-bottom: 14px;">
+                    <span class="question-number" style="
+                        background: #9b59b6; color: white;
+                        width: 32px; height: 32px; border-radius: 50%;
+                        display: flex; align-items: center; justify-content: center;
+                        font-weight: bold; font-size: 16px; flex-shrink: 0;
+                    ">1</span>
+                    <h4 style="margin: 0; font-size: 17px; line-height: 1.6; color: #333;">
+                        为什么测量精度直接关系到人民群众的食品安全？结合本实验谈谈你的理解。
+                    </h4>
+                </div>
+                <textarea
+                    class="answer-textarea"
+                    data-question="q1"
+                    rows="5"
+                    placeholder="请在此输入你的回答（建议不少于 200 字）..."
+                    style="
+                        width: 100%; padding: 14px; border: 1.5px solid rgba(148,163,184,0.25); border-radius: 8px;
+                        font-size: 15px; resize: vertical; line-height: 1.7; font-family: inherit;
+                        background: rgba(255,255,255,0.7);
+                    "
+                ></textarea>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                    <span class="word-count" style="color: #94A3B8; font-size: 13px;">已输入 0 字</span>
+                    <span style="color: #F59E0B; font-size: 12px;">💡 建议不少于 200 字</span>
+                </div>
+            </div>
+
+            <!-- 思考题 2 -->
+            <div class="card question-card" style="margin-bottom: 20px; border-left: 5px solid #e67e22; background: rgba(255,255,255,0.78); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+                <div style="display: flex; align-items: start; gap: 12px; margin-bottom: 14px;">
+                    <span class="question-number" style="
+                        background: #e67e22; color: white;
+                        width: 32px; height: 32px; border-radius: 50%;
+                        display: flex; align-items: center; justify-content: center;
+                        font-weight: bold; font-size: 16px; flex-shrink: 0;
+                    ">2</span>
+                    <h4 style="margin: 0; font-size: 17px; line-height: 1.6; color: #333;">
+                        从旋光仪近两百年的发展史来看，科学仪器是如何体现"精益求精"的工匠精神的？
+                    </h4>
+                </div>
+                <textarea
+                    class="answer-textarea"
+                    data-question="q2"
+                    rows="5"
+                    placeholder="请在此输入你的回答（建议不少于 200 字）..."
+                    style="
+                        width: 100%; padding: 14px; border: 1.5px solid rgba(148,163,184,0.25); border-radius: 8px;
+                        font-size: 15px; resize: vertical; line-height: 1.7; font-family: inherit;
+                        background: rgba(255,255,255,0.7);
+                    "
+                ></textarea>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                    <span class="word-count" style="color: #94A3B8; font-size: 13px;">已输入 0 字</span>
+                    <span style="color: #F59E0B; font-size: 12px;">💡 建议不少于 200 字</span>
+                </div>
+            </div>
+
+            <!-- 思考题 3 -->
+            <div class="card question-card" style="margin-bottom: 20px; border-left: 5px solid #16a085; background: rgba(255,255,255,0.78); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+                <div style="display: flex; align-items: start; gap: 12px; margin-bottom: 14px;">
+                    <span class="question-number" style="
+                        background: #16a085; color: white;
+                        width: 32px; height: 32px; border-radius: 50%;
+                        display: flex; align-items: center; justify-content: center;
+                        font-weight: bold; font-size: 16px; flex-shrink: 0;
+                    ">3</span>
+                    <h4 style="margin: 0; font-size: 17px; line-height: 1.6; color: #333;">
+                        作为新时代大学生，你如何在专业学习中践行工匠精神？
+                    </h4>
+                </div>
+                <textarea
+                    class="answer-textarea"
+                    data-question="q3"
+                    rows="5"
+                    placeholder="请在此输入你的回答（建议不少于 200 字）..."
+                    style="
+                        width: 100%; padding: 14px; border: 1.5px solid rgba(148,163,184,0.25); border-radius: 8px;
+                        font-size: 15px; resize: vertical; line-height: 1.7; font-family: inherit;
+                        background: rgba(255,255,255,0.7);
+                    "
+                ></textarea>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                    <span class="word-count" style="color: #94A3B8; font-size: 13px;">已输入 0 字</span>
+                    <span style="color: #F59E0B; font-size: 12px;">💡 建议不少于 200 字</span>
+                </div>
+            </div>
+
+            <!-- 保存按钮 -->
+            <div style="text-align: center; margin-bottom: 20px;">
+                <button id="save-answers-btn" class="btn btn-primary btn-lg" onclick="saveIdeologicalAnswers()">
+                    💾 保存思考题答案
+                </button>
+            </div>
+        </section>
+
+        <!-- ==================== Section 4：小论文框架（可选）==================== -->
+        <section class="card" style="max-width: 900px; margin: 0 auto 40px; padding: 30px; background: rgba(255,255,255,0.78); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+            <h2 style="margin-bottom: 6px; color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
+                📝 课程思政小论文（选做）
+            </h2>
+            <p style="color: #888; font-size: 14px; margin-bottom: 20px;">
+                如果需要提交课程思政小论文，可使用以下模板框架进行写作
+            </p>
+
+            <!-- 标题输入框 -->
+            <div style="margin-bottom: 18px;">
+                <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">
+                    论文标题
+                </label>
+                <input
+                    type="text"
+                    id="essay-title"
+                    placeholder="例如：从液相旋光实验看科学精神与工匠精神的融合"
+                    style="
+                        width: 100%; padding: 12px 16px; border: 1.5px solid rgba(148,163,184,0.25); border-radius: 8px;
+                        font-size: 16px; outline: none; transition: border-color 0.2s;
+                        background: rgba(255,255,255,0.7);
+                    "
+                >
+            </div>
+
+            <!-- 正文编辑区 -->
+            <div style="margin-bottom: 18px;">
+                <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">
+                    正文内容
+                </label>
+                <textarea
+                    id="essay-content"
+                    rows="12"
+                    placeholder="请在此撰写你的课程思政小论文...&#10;&#10;【参考结构】&#10;一、引言（说明选题背景与意义）&#10;二、实验原理与技术背景&#10;三、实际应用案例分析&#10;四、个人感悟与思考&#10;五、结论"
+                    style="
+                        width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px;
+                        font-size: 15px; resize: vertical; line-height: 1.8; font-family: inherit;
+                    "
+                ></textarea>
+            </div>
+
+            <!-- 写作提示 -->
+            <div style="background: rgba(59,130,246,0.05); padding: 16px; border-radius: 8px; border-left: 4px solid #3B82F6;">
+                <strong style="color: #3B82F6;">✏️ 写作提示：</strong>
+                <ul style="margin: 8px 0 0 20px; color: #666; font-size: 13.5px; line-height: 1.7;">
+                    <li>结合本次旋光实验的操作体验，谈对"格物致知"的理解</li>
+                    <li>引用上述应用案例中的一个或多个进行分析</li>
+                    <li>联系自身专业，阐述如何在未来的学习工作中践行工匠精神</li>
+                    <li>论文字数建议在 800～1500 字之间</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ==================== 操作按钮区 ==================== -->
+        <section class="card" style="text-align: center; padding: 30px; max-width: 700px; margin: 0 auto 40px; background: rgba(255,255,255,0.78); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+            <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+                <button class="btn btn-primary btn-lg" onclick="generateIdeologicalReport()">
+                    📄 生成思政报告
+                </button>
+                <a href="experiment.html" class="btn btn-secondary btn-lg">
+                    🔬 返回实验台
+                </a>
+                <a href="data-analysis.html" class="btn btn-outline btn-lg">
+                    📊 数据分析
+                </a>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer" style="background: rgba(255,255,255,0.78); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #475569; text-align: center; padding: 20px;">
+        <p>&copy; 2025 基于多智能体教学辅助的偏振光与蔗糖旋光现象仿真实验平台 | 课程思政引领 + AI赋能 | 格物致知 · 匠心强国</p>
+    </footer>
+
+    <!-- ==================== 思政报告预览模态框 ==================== -->
+    <div id="report-modal" style="
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.6);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    ">
+        <div style="
+            background: white;
+            border-radius: 16px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+        ">
+            <!-- 模态框头部 -->
+            <div style="
+                background: linear-gradient(135deg, #3B82F6, #2563EB);
+                color: white;
+                padding: 20px 24px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            ">
+                <div>
+                    <h3 style="margin: 0; font-size: 20px;">📄 思政报告预览</h3>
+                    <p style="margin: 5px 0 0; opacity: 0.85; font-size: 14px;">基于多智能体教学辅助的偏振光与蔗糖旋光现象仿真实验平台</p>
+                </div>
+                <button onclick="closeReportModal()" style="
+                    background: rgba(255,255,255,0.2);
+                    border: none;
+                    color: white;
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 50%;
+                    font-size: 20px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: background 0.2s;
+                " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">×</button>
+            </div>
+
+            <!-- 报告内容区 -->
+            <div id="report-content" style="
+                flex: 1;
+                overflow-y: auto;
+                padding: 30px;
+                background: #f8fafc;
+            ">
+                <!-- 报告内容由JS动态生成 -->
+            </div>
+
+            <!-- 模态框底部操作栏 -->
+            <div style="
+                background: white;
+                border-top: 1px solid #e2e8f0;
+                padding: 16px 24px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 12px;
+            ">
+                <div id="report-score-display" style="font-size: 18px; font-weight: bold; color: #1E293B;">
+                    <!-- 总分由JS填充 -->
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <button onclick="closeReportModal()" style="
+                        padding: 10px 24px;
+                        background: white;
+                        border: 2px solid #cbd5e1;
+                        border-radius: 8px;
+                        color: #64748b;
+                        font-size: 15px;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    " onmouseover="this.style.borderColor='#94a3b8';this.style.background='#f1f5f9'" onmouseout="this.style.borderColor='#cbd5e1';this.style.background='white'">
+                        返回修改
+                    </button>
+                    <button onclick="printReport()" style="
+                        padding: 10px 24px;
+                        background: #3B82F6;
+                        border: none;
+                        border-radius: 8px;
+                        color: white;
+                        font-size: 15px;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    " onmouseover="this.style.background='#2563EB'" onmouseout="this.style.background='#3B82F6'">
+                        🖨️ 打印报告
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入脚本 -->
+    <script src="../js/app.js"></script>
+    
+    
+
+    <!-- 页面专属脚本 -->
+    <script>
+    // ================================================================
+    //  课程思政页面 JavaScript 逻辑
+    // ================================================================
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // 检测视频文件是否存在
+        checkVideoAvailability();
+
+        // 初始化自定义视频控制栏
+        initVideoControls();
+
+        // 初始化思考题字数统计
+        initWordCounters();
+
+        // 尝试恢复已保存的答案
+        restoreSavedAnswers();
+
+        // 初始化案例卡片悬停效果
+        initCaseCardEffects();
+    });
+
+    // ================================================================
+    //  随堂练习自动批改系统
+    // ================================================================
+
+    // 正确答案数据
+    const quizAnswers = {
+        q1: { answer: 'B', type: 'single', explanation: '蔗糖属于右旋旋光介质，果糖是典型左旋旋光介质。' },
+        q2: { answer: 'B', type: 'single', explanation: '二者都遵循偏振光产生—偏振态调控—偏振信号检测的核心光路逻辑。' },
+        q3: { answer: ['A', 'B', 'C'], type: 'multiple', explanation: '起偏器、检偏器是偏振调控核心器件，保偏光纤保障偏振光稳定传输，三棱镜不属于其核心配套器件。' },
+        q4: { answer: 'B', type: 'single', explanation: '光纤陀螺激光惯导是导弹、战机等国防装备的核心导航部件。' },
+        q5: { answer: ['A', 'B', 'D'], type: 'multiple', explanation: '基础光学原理是诸多国产大国重器的研发根基，C选项表述错误。' }
+    };
+
+    /**
+     * 提交答案并自动批改
+     */
+    function submitQuiz() {
+        let totalScore = 0;
+        let correctCount = 0;
+        let answeredCount = 0;
+
+        Object.keys(quizAnswers).forEach(qId => {
+            const questionData = quizAnswers[qId];
+            const questionEl = document.querySelector(`.exercise-question[data-id="${qId}"]`);
+            const feedbackEl = questionEl.querySelector('.answer-feedback');
+
+            let userAnswer;
+            if (questionData.type === 'single') {
+                const selected = document.querySelector(`input[name="${qId}"]:checked`);
+                userAnswer = selected ? selected.value : null;
+            } else {
+                const checked = document.querySelectorAll(`input[name="${qId}"]:checked`);
+                userAnswer = Array.from(checked).map(el => el.value).sort();
+            }
+
+            if (userAnswer === null || (Array.isArray(userAnswer) && userAnswer.length === 0)) {
+                // 未作答
+                feedbackEl.style.display = 'block';
+                feedbackEl.style.background = 'rgba(245, 158, 11, 0.15)';
+                feedbackEl.style.border = '1px solid rgba(245, 158, 11, 0.4)';
+                feedbackEl.innerHTML = `<strong style="color: #D97706;">⚠️ 请先作答此题</strong>`;
+                feedbackEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                return;
+            }
+
+            answeredCount++;
+
+            let isCorrect = false;
+            if (questionData.type === 'single') {
+                isCorrect = userAnswer === questionData.answer;
+            } else {
+                // 多选题：比较排序后的数组
+                const correctSorted = [...questionData.answer].sort();
+                isCorrect = JSON.stringify(userAnswer.sort()) === JSON.stringify(correctSorted);
+            }
+
+            // 计算分值：单选20分，多选20分（答对得20分，答错0分）
+            const score = isCorrect ? 20 : 0;
+            totalScore += score;
+            if (isCorrect) correctCount++;
+
+            // 显示反馈
+            feedbackEl.style.display = 'block';
+            if (isCorrect) {
+                feedbackEl.style.background = 'rgba(34, 197, 94, 0.12)';
+                feedbackEl.style.border = '1px solid rgba(34, 197, 94, 0.4)';
+                feedbackEl.innerHTML = `
+                    <div style="display: flex; align-items: start; gap: 10px;">
+                        <span style="color: #16a34a; font-size: 20px;">✅</span>
+                        <div>
+                            <strong style="color: #16a34a;">回答正确！</strong> +${score}分
+                            <div style="margin-top: 8px; color: #374151; font-size: 14px; line-height: 1.6;">
+                                <strong>解析：</strong>${questionData.explanation}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                feedbackEl.style.background = 'rgba(239, 68, 68, 0.1)';
+                feedbackEl.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+                const correctAnswerText = Array.isArray(questionData.answer)
+                    ? questionData.answer.join('、')
+                    : questionData.answer;
+                feedbackEl.innerHTML = `
+                    <div style="display: flex; align-items: start; gap: 10px;">
+                        <span style="color: #dc2626; font-size: 20px;">❌</span>
+                        <div>
+                            <strong style="color: #dc2626;">回答错误</strong>（0分）
+                            <div style="margin-top: 8px; color: #374151; font-size: 14px; line-height: 1.6;">
+                                <strong>正确答案：</strong>${correctAnswerText}
+                            </div>
+                            <div style="margin-top: 6px; color: #374151; font-size: 14px; line-height: 1.6;">
+                                <strong>解析：</strong>${questionData.explanation}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 高亮正确/错误选项
+            highlightOptions(qId, userAnswer, questionData.answer, questionData.type, isCorrect);
+        });
+
+        // 显示总分
+        const resultEl = document.getElementById('quiz-result');
+        const scoreEl = document.getElementById('quiz-score');
+        const summaryEl = document.getElementById('quiz-summary');
+
+        resultEl.style.display = 'block';
+        scoreEl.textContent = totalScore;
+
+        if (answeredCount < 5) {
+            summaryEl.textContent = `您还有 ${5 - answeredCount} 道题未作答`;
+        } else if (totalScore === 100) {
+            summaryEl.innerHTML = `<span style="color: #16a34a; font-weight: bold;">🎉 恭喜！全部答对！</span>`;
+        } else {
+            summaryEl.textContent = `答对 ${correctCount}/5 题，继续加油！`;
+        }
+
+        resultEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    /**
+     * 高亮选项（正确绿色，错误红色，正确答案显示）
+     */
+    function highlightOptions(qId, userAnswer, correctAnswer, type, isCorrect) {
+        const labels = document.querySelectorAll(`input[name="${qId}"]`);
+        const userSet = Array.isArray(userAnswer) ? userAnswer : [userAnswer];
+        const correctSet = Array.isArray(correctAnswer) ? correctAnswer : [correctAnswer];
+
+        labels.forEach(input => {
+            const label = input.closest('label');
+            const value = input.value;
+            const isUserSelected = userSet.includes(value);
+            const isCorrectAnswer = correctSet.includes(value);
+
+            if (isUserSelected) {
+                if (isCorrect) {
+                    label.style.background = 'rgba(34, 197, 94, 0.2)';
+                    label.style.border = '2px solid #22c55e';
+                } else if (!isCorrectAnswer) {
+                    label.style.background = 'rgba(239, 68, 68, 0.15)';
+                    label.style.border = '2px solid #ef4444';
+                } else {
+                    label.style.background = 'rgba(34, 197, 94, 0.2)';
+                    label.style.border = '2px solid #22c55e';
+                }
+            } else if (isCorrectAnswer && !isCorrect) {
+                label.style.background = 'rgba(34, 197, 94, 0.1)';
+                label.style.border = '2px dashed #22c55e';
+            }
+        });
+    }
+
+    /**
+     * 重置答题
+     */
+    function resetQuiz() {
+        // 清除所有选中
+        document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(input => {
+            input.checked = false;
+        });
+
+        // 隐藏所有反馈
+        document.querySelectorAll('.answer-feedback').forEach(el => {
+            el.style.display = 'none';
+        });
+
+        // 清除选项高亮
+        document.querySelectorAll('.exercise-question label').forEach(label => {
+            label.style.background = 'rgba(255,255,255,0.6)';
+            label.style.border = '';
+        });
+
+        // 隐藏总分
+        document.getElementById('quiz-result').style.display = 'none';
+    }
+
+    /**
+     * 视频加载错误处理（仅依赖 video 元素原生事件，不额外发 HTTP 请求）
+     */
+    function checkVideoAvailability() {
+        const video = document.getElementById('ideo-video');
+        const placeholder = document.getElementById('video-placeholder');
+
+        if (!video) return;
+
+        // 仅监听视频元素自身的错误事件
+        video.addEventListener('error', () => {
+            console.warn('[课程思政] 视频加载失败，显示占位符');
+            video.style.display = 'none';
+            if (placeholder) placeholder.style.display = 'flex';
+        }, { once: true });
+
+        // 视频可播放时确保占位符隐藏
+        video.addEventListener('canplay', () => {
+            if (placeholder) placeholder.style.display = 'none';
+            video.style.display = 'block';
+            console.log('[课程思政] 视频就绪，可以播放');
+        }, { once: true });
+    }
+
+    // ================================================================
+    //  自定义视频控制栏（进度条拖动 + 倍速 + 音量 + 全屏）
+    // ================================================================
+
+    var _v = null;           // video 元素引用
+    var _vDragging = false;  // 进度条拖拽状态
+    var _vSpeedMenuOpen = false;
+
+    function initVideoControls() {
+        _v = document.getElementById('ideo-video');
+        if (!_v) return;
+
+        // ---- 进度条拖拽绑定 ----
+        var pWrap = document.getElementById('v-progress-wrap');
+        if (pWrap) {
+            pWrap.addEventListener('mousedown', onProgressDown);
+            document.addEventListener('mousemove', onProgressMove);
+            document.addEventListener('mouseup', onProgressUp);
+
+            // 触摸支持
+            pWrap.addEventListener('touchstart', onProgressTouchStart, { passive: false });
+            document.addEventListener('touchmove', onProgressTouchMove, { passive: false });
+            document.addEventListener('touchend', onProgressUp);
+        }
+
+        // ---- 视频时间更新 → 刷新进度条 + 时间显示 ----
+        _v.addEventListener('timeupdate', updateProgress);
+        _v.addEventListener('loadedmetadata', function() { updateTimeDisplay(); });
+        _v.addEventListener('ended', onVideoEnded);
+
+        // ---- 控制栏 hover 时始终可见（视频区域） ----
+        var wrapper = document.getElementById('video-wrapper');
+        if (wrapper) {
+            wrapper.addEventListener('mouseenter', function() {
+                var ctrl = document.getElementById('custom-controls');
+                if (ctrl) ctrl.style.opacity = '1';
+            });
+            wrapper.addEventListener('mouseleave', function() {
+                if (!_vDragging && !_vSpeedMenuOpen) {
+                    var ctrl = document.getElementById('custom-controls');
+                    if (ctrl) ctrl.style.opacity = '0';
+                }
+            });
+        }
+
+        // ---- 键盘快捷键 ----
+        document.addEventListener('keydown', function(e) {
+            if (!_v || document.activeElement.tagName === 'TEXTAREA' ||
+                document.activeElement.tagName === 'INPUT' || document.activeElement.isContentEditable) return;
+            switch(e.key.toLowerCase()) {
+                case ' ': e.preventDefault(); togglePlay(); break;
+                case 'arrowleft': e.preventDefault(); seekRelative(-5); break;
+                case 'arrowright': e.preventDefault(); seekRelative(5); break;
+                case 'm': toggleMute(); break;
+                case 'f': toggleFullscreen(); break;
+            }
+        });
+
+        console.log('[课程思政] 视频控制栏已初始化');
+    }
+
+    /* ===== 播放/暂停 ===== */
+    function togglePlay() {
+        if (!_v) return;
+        if (_v.paused) { _v.play(); }
+        else { _v.pause(); }
+    }
+
+    function onVideoEnded() {
+        var btn = document.getElementById('v-btn-play');
+        if (btn) btn.textContent = '▶';
+    }
+
+    /* ===== 进度条：点击跳转 + 拖拽 ===== */
+    function seekVideo(event) {
+        if (!_v) return;
+        var wrap = document.getElementById('v-progress-wrap');
+        if (!wrap) return;
+        var rect = wrap.getBoundingClientRect();
+        var pct = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+        _v.currentTime = pct * _v.duration;
+        updateProgressUI(pct);
+    }
+
+    function seekRelative(seconds) {
+        if (!_v) return;
+        _v.currentTime = Math.max(0, Math.min(_v.duration, _v.currentTime + seconds));
+    }
+
+    function onProgressDown(event) {
+        if (!_v || event.button !== 0) return;
+        _vDragging = true;
+        seekVideo(event);  // 点击即跳转
+
+        var thumb = document.getElementById('v-progress-thumb');
+        if (thumb) thumb.style.opacity = '1';
+
+        event.preventDefault();
+    }
+
+    function onProgressMove(event) {
+        if (!_vDragging || !_v) return;
+        var wrap = document.getElementById('v-progress-wrap');
+        if (!wrap) return;
+        var rect = wrap.getBoundingClientRect();
+        var pct = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+        _v.currentTime = pct * _v.duration;  // 拖拽中实时跳转
+        updateProgressUI(pct);
+    }
+
+    function onProgressUp(event) {
+        if (!_vDragging) return;
+        _vDragging = false;
+        var thumb = document.getElementById('v-progress-thumb');
+        if (thumb) thumb.style.opacity = '0';
+    }
+
+    /* 触摸支持 */
+    function onProgressTouchStart(event) {
+        if (!_v) return;
+        event.preventDefault();
+        _vDragging = true;
+        var touch = event.touches[0];
+        var wrap = document.getElementById('v-progress-wrap');
+        var rect = wrap.getBoundingClientRect();
+        var pct = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
+        _v.currentTime = pct * _v.duration;
+        updateProgressUI(pct);
+        var thumb = document.getElementById('v-progress-thumb');
+        if (thumb) thumb.style.opacity = '1';
+    }
+
+    function onProgressTouchMove(event) {
+        if (!_vDragging || !_v) return;
+        event.preventDefault();
+        var touch = event.touches[0];
+        var wrap = document.getElementById('v-progress-wrap');
+        var rect = wrap.getBoundingClientRect();
+        var pct = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
+        _v.currentTime = pct * _v.duration;
+        updateProgressUI(pct);
+    }
+
+    /* ===== 进度条 UI 更新 ===== */
+    function updateProgress() {
+        if (!_v || !_v.duration) return;
+        var pct = _v.currentTime / _v.duration;
+        updateProgressUI(pct);
+        updateTimeDisplay();
+
+        // 播放/暂停按钮图标同步
+        var btn = document.getElementById('v-btn-play');
+        if (btn) btn.textContent = _v.paused ? '▶' : '⏸';
+    }
+
+    function updateProgressUI(pct) {
+        var bar = document.getElementById('v-progress-bar');
+        var thumb = document.getElementById('v-progress-thumb');
+        var buffer = document.getElementById('v-progress-buffer');
+
+        var displayPct = (pct * 100).toFixed(2) + '%';
+
+        if (bar) bar.style.width = displayPct;
+        if (thumb) thumb.style.left = displayPct;
+
+        // 缓冲进度
+        if (buffer && _v.buffered.length > 0) {
+            try {
+                var bufEnd = _v.buffered.end(_v.buffered.length - 1);
+                buffer.style.width = ((bufEnd / _v.duration) * 100).toFixed(2) + '%';
+            } catch(e) {}
+        }
+    }
+
+    /* ===== 时间格式化 ===== */
+    function formatTime(sec) {
+        if (!isFinite(sec)) return '00:00';
+        sec = Math.floor(sec);
+        var m = Math.floor(sec / 60).toString().padStart(2, '0');
+        var s = (sec % 60).toString().padStart(2, '0');
+        return m + ':' + s;
+    }
+
+    function updateTimeDisplay() {
+        if (!_v) return;
+        var el = document.getElementById('v-time');
+        if (el) el.textContent = formatTime(_v.currentTime) + ' / ' + formatTime(_v.duration);
+    }
+
+    /* ===== 倍速播放 ===== */
+    function toggleSpeedMenu() {
+        var menu = document.getElementById('v-speed-menu');
+        var btn = document.getElementById('v-btn-speed');
+        if (!menu) return;
+
+        _vSpeedMenuOpen = !_vSpeedMenuOpen;
+        menu.style.display = _vSpeedMenuOpen ? 'block' : 'none';
+
+        if (btn) {
+            btn.style.borderColor = _vSpeedMenuOpen ? '#3B82F6' : 'rgba(255,255,255,0.3)';
+            btn.style.background = _vSpeedMenuOpen ? 'rgba(59,130,246,0.2)' : 'transparent';
+        }
+    }
+
+    function setSpeed(rate) {
+        if (!_v) return;
+        _v.playbackRate = rate;
+
+        var btn = document.getElementById('v-btn-speed');
+        if (btn) btn.textContent = rate + 'x';
+
+        // 更新菜单选中状态
+        var opts = document.querySelectorAll('.v-speed-opt');
+        opts.forEach(function(opt) {
+            var r = parseFloat(opt.getAttribute('data-rate'));
+            if (Math.abs(r - rate) < 0.01) {
+                opt.style.color = '#3B82F6';
+                opt.style.fontWeight = '700';
+                opt.textContent = rate + 'x ✓';
+            } else {
+                opt.style.color = 'rgba(255,255,255,0.75)';
+                opt.style.fontWeight = '';
+                opt.textContent = r + 'x';
+            }
+        });
+
+        // 关闭菜单
+        _vSpeedMenuOpen = false;
+        var menu = document.getElementById('v-speed-menu');
+        if (menu) menu.style.display = 'none';
+        var speedBtn = document.getElementById('v-btn-speed');
+        if (speedBtn) {
+            speedBtn.style.borderColor = 'rgba(255,255,255,0.3)';
+            speedBtn.style.background = 'transparent';
+        }
+    }
+
+    // 点击页面其他区域关闭倍速菜单
+    document.addEventListener('click', function(e) {
+        if (_vSpeedMenuOpen) {
+            var box = document.getElementById('v-speed-box');
+            if (box && !box.contains(e.target)) {
+                _vSpeedMenuOpen = false;
+                var menu = document.getElementById('v-speed-menu');
+                if (menu) menu.style.display = 'none';
+                var btn = document.getElementById('v-btn-speed');
+                if (btn) {
+                    btn.style.borderColor = 'rgba(255,255,255,0.3)';
+                    btn.style.background = 'transparent';
+                }
+            }
+        }
+    });
+
+    /* ===== 音量控制 ===== */
+    function showVolumeBar() {
+        var bar = document.getElementById('v-volume-bar-wrap');
+        if (bar) bar.style.width = '60px';
+    }
+
+    function hideVolumeBar() {
+        var bar = document.getElementById('v-volume-bar-wrap');
+        if (bar) bar.style.width = '0';
+    }
+
+    function setVolume(event) {
+        if (!_v) return;
+        var wrap = document.getElementById('v-volume-bar-wrap');
+        if (!wrap) return;
+        var rect = wrap.getBoundingClientRect();
+        var vol = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+        _v.volume = vol;
+        _v.muted = false;
+        updateVolumeUI(vol);
+    }
+
+    function toggleMute() {
+        if (!_v) return;
+        _v.muted = !_v.muted;
+        updateVolumeUI(_v.muted ? 0 : _v.volume);
+    }
+
+    function updateVolumeUI(vol) {
+        var bar = document.getElementById('v-volume-bar');
+        var btn = document.getElementById('v-btn-vol');
+        if (bar) bar.style.width = (vol * 100) + '%';
+        if (btn) {
+            if (vol === 0) btn.textContent = '🔇';
+            else if (vol < 0.4) btn.textContent = '🔉';
+            else btn.textContent = '🔊';
+        }
+    }
+
+    /* ===== 全屏 ===== */
+    function toggleFullscreen() {
+        var wrapper = document.getElementById('video-wrapper');
+        if (!wrapper) return;
+
+        if (document.fullscreenElement || document.webkitFullscreenElement ||
+            document.mozFullScreenElement || document.msFullscreenElement) {
+            // 退出全屏
+            if (document.exitFullscreen) document.exitFullscreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+            else if (document.msExitFullscreen) document.msExitFullscreen();
+        } else {
+            // 进入全屏
+            if (wrapper.requestFullscreen) wrapper.requestFullscreen();
+            else if (wrapper.webkitRequestFullscreen) wrapper.webkitRequestFullscreen();
+            else if (wrapper.mozRequestFullScreen) wrapper.mozRequestFullScreen();
+            else if (wrapper.msRequestFullscreen) wrapper.msRequestFullscreen();
+        }
+    }
+
+    /**
+     * 初始化所有思考题的字数统计功能
+     */
+    function initWordCounters() {
+        const textareas = document.querySelectorAll('.answer-textarea');
+
+        textareas.forEach(textarea => {
+            textarea.addEventListener('input', function() {
+                // 找到对应的字数统计元素
+                const counter = this.parentElement.querySelector('.word-count');
+                if (counter) {
+                    counter.textContent = `已输入 ${this.value.length} 字`;
+                }
+
+                // 根据字数改变边框颜色（视觉反馈）
+                if (this.value.length >= 200) {
+                    this.style.borderColor = '#27ae60';
+                } else if (this.value.length >= 100) {
+                    this.style.borderColor = '#f39c12';
+                } else {
+                    this.style.borderColor = 'rgba(148,163,184,0.25)';
+                }
+            });
+        });
+    }
+
+    /**
+     * 从 sessionStorage 恢复之前保存的思考题答案和小论文内容
+     */
+    function restoreSavedAnswers() {
+        try {
+            const savedData = sessionStorage.getItem('ideological_education_answers');
+
+            if (!savedData) return;
+
+            const parsed = JSON.parse(savedData);
+
+            // 恢复思考题答案
+            if (parsed.answers && typeof parsed.answers === 'object') {
+                Object.keys(parsed.answers).forEach(key => {
+                    const textarea = document.querySelector(`.answer-textarea[data-question="${key}"]`);
+                    if (textarea && parsed.answers[key]) {
+                        textarea.value = parsed.answers[key];
+                        // 触发 input 事件更新字数统计
+                        textarea.dispatchEvent(new Event('input'));
+                    }
+                });
+            }
+
+            // 恢复小论文
+            if (parsed.essayTitle) {
+                document.getElementById('essay-title').value = parsed.essayTitle;
+            }
+            if (parsed.essayContent) {
+                document.getElementById('essay-content').value = parsed.essayContent;
+            }
+
+            console.log('[课程思政] 已恢复之前保存的内容');
+
+        } catch (error) {
+            console.error('[课程思政] 恢复保存数据失败:', error);
+        }
+    }
+
+    /**
+     * 保存思考题答案和小论文到 sessionStorage
+     */
+    function saveIdeologicalAnswers() {
+        const answers = {};
+
+        // 收集所有思考题答案
+        document.querySelectorAll('.answer-textarea').forEach(textarea => {
+            const questionKey = textarea.getAttribute('data-question');
+            answers[questionKey] = textarea.value.trim();
+        });
+
+        // 收集小论文内容
+        const essayTitle = document.getElementById('essay-title').value.trim();
+        const essayContent = document.getElementById('essay-content').value.trim();
+
+        // 检查是否至少填写了一道题
+        const hasAnswer = Object.values(answers).some(val => val.length > 0);
+
+        if (!hasAnswer && !essayContent) {
+            alert('请至少填写一道思考题或小论文内容后再保存！');
+            return;
+        }
+
+        // 构建保存对象
+        const saveData = {
+            answers,
+            essayTitle,
+            essayContent,
+            savedAt: new Date().toISOString()
+        };
+
+        // 保存到 sessionStorage
+        try {
+            sessionStorage.setItem('ideological_education_answers', JSON.stringify(saveData));
+
+            // 视觉反馈
+            const btn = document.getElementById('save-answers-btn');
+            btn.textContent = '✅ 保存成功！';
+            btn.style.background = '#27ae60';
+
+            setTimeout(() => {
+                btn.textContent = '💾 保存思考题答案';
+                btn.style.background = '';
+            }, 2500);
+
+            console.log('[课程思政] 思考题答案保存成功');
+
+        } catch (error) {
+            console.error('[课程思政] 保存失败:', error);
+            alert('保存失败，请重试！');
+        }
+    }
+
+    /**
+     * 生成思政报告预览
+     */
+    function generateIdeologicalReport() {
+        // 先触发一次保存
+        saveIdeologicalAnswers();
+
+        // 获取答题数据
+        const quizScore = calculateQuizScore();
+        const essayData = getEssayData();
+        const totalScore = quizScore.score + essayData.score;
+
+        // 生成报告HTML
+        const reportHTML = generateReportHTML(quizScore, essayData);
+
+        // 填充报告内容
+        document.getElementById('report-content').innerHTML = reportHTML;
+
+        // 填充总分显示
+        const scoreDisplay = document.getElementById('report-score-display');
+        scoreDisplay.innerHTML = `
+            <span style="margin-right: 20px;">📊 随堂练习：<span style="color: #3B82F6;">${quizScore.score}</span>/100分</span>
+            <span style="margin-right: 20px;">📝 思考题：<span style="color: #8B5CF6;">${essayData.score}</span>/${essayData.maxScore}分</span>
+            <span>🏆 总分：<span style="color: #16a34a;">${totalScore}</span>/${quizScore.maxScore + essayData.maxScore}分</span>
+        `;
+
+        // 显示模态框
+        document.getElementById('report-modal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    /**
+     * 计算随堂练习得分
+     */
+    function calculateQuizScore() {
+        let score = 0;
+        let totalQuestions = 5;
+        let correctAnswers = 0;
+
+        Object.keys(quizAnswers).forEach(qId => {
+            const questionData = quizAnswers[qId];
+            let userAnswer;
+
+            if (questionData.type === 'single') {
+                const selected = document.querySelector(`input[name="${qId}"]:checked`);
+                userAnswer = selected ? selected.value : null;
+            } else {
+                const checked = document.querySelectorAll(`input[name="${qId}"]:checked`);
+                userAnswer = Array.from(checked).map(el => el.value).sort();
+            }
+
+            if (userAnswer === null || (Array.isArray(userAnswer) && userAnswer.length === 0)) {
+                return; // 未作答不扣分也不加分
+            }
+
+            let isCorrect = false;
+            if (questionData.type === 'single') {
+                isCorrect = userAnswer === questionData.answer;
+            } else {
+                const correctSorted = [...questionData.answer].sort();
+                isCorrect = JSON.stringify(userAnswer.sort()) === JSON.stringify(correctSorted);
+            }
+
+            if (isCorrect) {
+                score += 20;
+                correctAnswers++;
+            }
+        });
+
+        return {
+            score,
+            maxScore: 100,
+            correctAnswers,
+            totalQuestions
+        };
+    }
+
+    /**
+     * 获取思考题/小论文数据
+     */
+    function getEssayData() {
+        const answers = {};
+        let totalWords = 0;
+        let answeredCount = 0;
+
+        // 获取三道思考题的答案
+        for (let i = 1; i <= 3; i++) {
+            const textarea = document.querySelector(`.answer-textarea[data-question="q${i}"]`);
+            if (textarea) {
+                const text = textarea.value.trim();
+                answers[`q${i}`] = text;
+                if (text.length > 0) {
+                    totalWords += text.length;
+                    answeredCount++;
+                }
+            }
+        }
+
+        // 获取小论文
+        const essayTitle = document.getElementById('essay-title')?.value.trim() || '';
+        const essayContent = document.getElementById('essay-content')?.value.trim() || '';
+        const essayWords = essayContent.length;
+
+        // 计算论文得分（满分100）
+        let essayScore = 0;
+        let essayMaxScore = 100;
+
+        if (essayWords > 0) {
+            // 基础分：完成写作得40分
+            essayScore += 40;
+
+            // 字数分：达到800字以上满分，800字以下按比例
+            if (essayWords >= 800) {
+                essayScore += 30;
+            } else {
+                essayScore += Math.floor((essayWords / 800) * 30);
+            }
+
+            // 深度分：达到1200字以上额外加分
+            if (essayWords >= 1200) {
+                essayScore += 15;
+            } else if (essayWords >= 1000) {
+                essayScore += 10;
+            } else if (essayWords >= 800) {
+                essayScore += 5;
+            }
+
+            // 标题分：有标题得15分
+            if (essayTitle.length > 0) {
+                essayScore += 15;
+            }
+        }
+
+        // 计算思考题得分（满分40）
+        let questionScore = 0;
+        for (let i = 1; i <= 3; i++) {
+            const text = answers[`q${i}`] || '';
+            if (text.length > 0) {
+                if (text.length >= 200) {
+                    questionScore += 13; // 每题13分左右
+                } else if (text.length >= 100) {
+                    questionScore += 8;
+                } else {
+                    questionScore += 4;
+                }
+            }
+        }
+
+        const totalScore = Math.min(essayScore + questionScore, essayMaxScore);
+
+        return {
+            score: totalScore,
+            maxScore: essayMaxScore + 40, // 论文100 + 思考题40
+            essayTitle,
+            essayContent,
+            essayWords,
+            answers,
+            totalWords,
+            answeredCount
+        };
+    }
+
+    /**
+     * 生成报告HTML内容
+     */
+    function generateReportHTML(quizScore, essayData) {
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`;
+
+        let quizDetails = '';
+        Object.keys(quizAnswers).forEach((qId, index) => {
+            const questionData = quizAnswers[qId];
+            let userAnswer = '';
+
+            if (questionData.type === 'single') {
+                const selected = document.querySelector(`input[name="${qId}"]:checked`);
+                userAnswer = selected ? selected.value : '（未作答）';
+            } else {
+                const checked = document.querySelectorAll(`input[name="${qId}"]:checked`);
+                userAnswer = checked.length > 0 ? Array.from(checked).map(el => el.value).sort().join('、') : '（未作答）';
+            }
+
+            const correctAnswer = Array.isArray(questionData.answer) ? questionData.answer.join('、') : questionData.answer;
+            const isCorrect = userAnswer === correctAnswer || (Array.isArray(questionData.answer) && JSON.stringify(userAnswer.split('、').sort()) === JSON.stringify(questionData.answer));
+
+            quizDetails += `
+                <div style="margin-bottom: 16px; padding: 14px; background: ${isCorrect ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)'}; border-radius: 8px; border-left: 4px solid ${isCorrect ? '#22c55e' : '#ef4444'};">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <span style="font-weight: bold; color: ${isCorrect ? '#16a34a' : '#dc2626'};">${isCorrect ? '✅' : '❌'}</span>
+                        <span style="font-weight: 600; color: #333;">第${index + 1}题</span>
+                        <span style="color: #64748b; font-size: 14px;">（${questionData.type === 'single' ? '单选' : '多选'}）</span>
+                        <span style="margin-left: auto; color: ${isCorrect ? '#16a34a' : '#dc2626'}; font-weight: bold;">${isCorrect ? '+20分' : '0分'}</span>
+                    </div>
+                    <div style="color: #555; font-size: 14px; line-height: 1.6;">
+                        <div><strong>你的答案：</strong>${userAnswer}</div>
+                        <div><strong>正确答案：</strong>${correctAnswer}</div>
+                    </div>
+                </div>
+            `;
+        });
+
+        let essayDetails = '';
+        for (let i = 1; i <= 3; i++) {
+            const text = essayData.answers[`q${i}`] || '';
+            const statusColor = text.length >= 200 ? '#22c55e' : (text.length >= 100 ? '#f59e0b' : '#94a3b8');
+            const statusText = text.length >= 200 ? '完整' : (text.length >= 100 ? '较完整' : (text.length > 0 ? '较简短' : '未作答'));
+
+            essayDetails += `
+                <div style="margin-bottom: 16px; padding: 14px; background: rgba(139,92,246,0.08); border-radius: 8px; border-left: 4px solid #8B5CF6;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-weight: 600; color: #333;">思考题 ${i}</span>
+                        <span style="color: ${statusColor}; font-size: 14px;">${text.length}字 · ${statusText}</span>
+                    </div>
+                    ${text ? `<div style="color: #555; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${escapeHtml(text)}</div>` : '<div style="color: #94a3b8; font-size: 14px; font-style: italic;">（未作答）</div>'}
+                </div>
+            `;
+        }
+
+        return `
+            <div style="font-family: 'Microsoft YaHei', Arial, sans-serif; color: #1E293B;">
+                <!-- 报告头部 -->
+                <div style="text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e2e8f0;">
+                    <h1 style="font-size: 28px; color: #1E293B; margin-bottom: 10px;">课程思政学习报告</h1>
+                    <p style="color: #64748b; font-size: 14px;">基于多智能体教学辅助的偏振光与蔗糖旋光现象仿真实验平台</p>
+                    <p style="color: #94a3b8; font-size: 13px; margin-top: 8px;">生成日期：${dateStr}</p>
+                </div>
+
+                <!-- 评分概览 -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 30px;">
+                    <div style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); padding: 20px; border-radius: 12px; text-align: center;">
+                        <div style="font-size: 32px; font-weight: bold; color: #1d4ed8;">${quizScore.score}</div>
+                        <div style="color: #3b82f6; font-size: 14px;">随堂练习得分</div>
+                        <div style="color: #64748b; font-size: 12px; margin-top: 4px;">答对 ${quizScore.correctAnswers}/${quizScore.totalQuestions} 题</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #f3e8ff, #e9d5ff); padding: 20px; border-radius: 12px; text-align: center;">
+                        <div style="font-size: 32px; font-weight: bold; color: #7c3aed;">${essayData.score}</div>
+                        <div style="color: #8b5cf6; font-size: 14px;">思考题/论文得分</div>
+                        <div style="color: #64748b; font-size: 12px; margin-top: 4px;">${essayData.essayWords}字</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #dcfce7, #bbf7d0); padding: 20px; border-radius: 12px; text-align: center;">
+                        <div style="font-size: 32px; font-weight: bold; color: #16a34a;">${quizScore.score + essayData.score}</div>
+                        <div style="color: #22c55e; font-size: 14px;">总分</div>
+                        <div style="color: #64748b; font-size: 12px; margin-top: 4px;">满分 ${quizScore.maxScore + essayData.maxScore}</div>
+                    </div>
+                </div>
+
+                <!-- 随堂练习详情 -->
+                <div style="margin-bottom: 30px;">
+                    <h2 style="font-size: 20px; color: #1E293B; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid #3B82F6;">
+                        📝 随堂练习答题情况
+                    </h2>
+                    ${quizDetails}
+                </div>
+
+                <!-- 思考题详情 -->
+                <div style="margin-bottom: 30px;">
+                    <h2 style="font-size: 20px; color: #1E293B; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid #8B5CF6;">
+                        💭 思考题作答情况
+                    </h2>
+                    ${essayDetails}
+                </div>
+
+                <!-- 小论文 -->
+                ${essayData.essayContent ? `
+                <div style="margin-bottom: 30px;">
+                    <h2 style="font-size: 20px; color: #1E293B; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid #f59e0b;">
+                        📄 课程思政小论文
+                    </h2>
+                    <div style="background: #fffbeb; padding: 20px; border-radius: 12px; border-left: 4px solid #f59e0b;">
+                        ${essayData.essayTitle ? `<h3 style="margin: 0 0 12px; color: #92400e; font-size: 18px;">${escapeHtml(essayData.essayTitle)}</h3>` : ''}
+                        <div style="color: #555; font-size: 14px; line-height: 1.8; white-space: pre-wrap;">${escapeHtml(essayData.essayContent)}</div>
+                        <div style="margin-top: 12px; text-align: right; color: #92400e; font-size: 13px;">
+                            字数：${essayData.essayWords}字
+                        </div>
+                    </div>
+                </div>
+                ` : `
+                <div style="margin-bottom: 30px; padding: 30px; background: #f8fafc; border-radius: 12px; text-align: center; color: #94a3b8;">
+                    <p style="margin: 0;">📝 小论文选做，未提交</p>
+                </div>
+                `}
+
+                <!-- 评语 -->
+                <div style="background: linear-gradient(135deg, #eff6ff, #dbeafe); padding: 24px; border-radius: 12px;">
+                    <h3 style="margin: 0 0 12px; color: #1d4ed8; font-size: 16px;">📋 教师评语</h3>
+                    <div style="color: #475569; font-size: 14px; line-height: 1.7;">
+                        ${getTeacherComment(quizScore.score + essayData.score, quizScore.correctAnswers, essayData.essayWords)}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * 根据得分生成评语
+     */
+    function getTeacherComment(totalScore, correctQuiz, essayWords) {
+        if (totalScore >= 120) {
+            return '优秀！对旋光效应和光纤陀螺的原理理解深入，能够将基础光学知识与国防科技应用相结合，体现了良好的科学素养和家国情怀。希望继续深耕基础研究，为科技强国贡献力量。';
+        } else if (totalScore >= 100) {
+            return '良好！答题正确率较高，思考题和论文内容完整，对课程思政内涵有较好理解。建议进一步加强理论与实践的结合，提升对精密测量技术重要性的认识。';
+        } else if (totalScore >= 80) {
+            return '合格。对基本概念有掌握，能完成思考题作答。建议课后复习偏振光与旋光效应的原理，认真完成课程论文，进一步理解基础光学在国防科技中的应用价值。';
+        } else {
+            return '需要继续努力。建议重新学习思政视频内容，深入理解旋光实验与光纤陀螺的关联，按要求完成思考题和小论文，体现新时代大学生的责任担当和学习态度。';
+        }
+    }
+
+    /**
+     * HTML转义防止XSS
+     */
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    /**
+     * 关闭报告模态框
+     */
+    function closeReportModal() {
+        document.getElementById('report-modal').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    /**
+     * 打印报告
+     */
+    function printReport() {
+        window.print();
+    }
+
+    /**
+     * 初始化案例卡片的交互效果
+     */
+    function initCaseCardEffects() {
+        const cards = document.querySelectorAll('.case-card');
+
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-5px)';
+                card.style.boxShadow = '0 8px 25px rgba(0,0,0,0.08)';
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = '';
+                card.style.boxShadow = '';
+            });
+        });
+    }
+
+    // 小论文标题输入框焦点效果
+    const essayTitleInput = document.getElementById('essay-title');
+    if (essayTitleInput) {
+        essayTitleInput.addEventListener('focus', function() {
+            this.style.borderColor = 'var(--primary-color)';
+            this.style.boxShadow = '0 0 0 3px rgba(52,152,219,0.15)';
+        });
+        essayTitleInput.addEventListener('blur', function() {
+            this.style.borderColor = '#ddd';
+            this.style.boxShadow = '';
+        });
+    }
+    </script>
+    <script src="../js/platform-home-button.js"></script>
+</body>
+</html>

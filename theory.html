@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <script src="./pages-demo.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>夫琅禾费衍射虚拟仿真实验平台 - 实验原理</title>
+
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        window.addEventListener('error', function (event) {
+            if (event.filename && event.filename.includes('tfjs') && event.message && event.message.includes('源映射')) {
+                event.preventDefault();
+                return true;
+            }
+        }, true);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0/dist/tf.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: 'global'
+            },
+            options: {
+                renderActions: {
+                    addMenu: [0, '', ''],
+                    checkLoading: [0, '', '']
+                }
+            }
+        };
+    </script>
+</head>
+
+<body>
+    
+    
+    <header>
+        <a href="index.html" class="back-link" style="position: absolute; left: 20px; top: 20px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="white" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+            返回首页
+        </a>
+        <h1>夫琅禾费衍射虚拟仿真实验平台</h1>
+    </header>
+
+    <main>
+        <div class="tabs">
+            <a href="theory.html" class="tab-btn active" style="text-decoration: none;">实验原理</a>
+            <a href="3d-demo.html" class="tab-btn" style="text-decoration: none;">3D实验演示</a>
+            <a href="simulation.html" class="tab-btn" style="text-decoration: none;">仿真实验</a>
+            <a href="ai-prediction.html" class="tab-btn" style="text-decoration: none;">实验数据分析</a>
+            <a href="ideological-education.html" class="tab-btn" style="text-decoration: none;">格物致知</a>
+            <a href="extension.html" class="tab-btn" style="text-decoration: none;">课外拓展</a>
+        </div>
+
+        <div class="tab-content">
+            <!-- 实验原理 -->
+            <div id="theory" class="tab-pane active">
+                <div class="theory-panel">
+                    <h3>实验目的</h3>
+                    <div class="theory-content">
+                        <p>1. 理解光的波动性，掌握夫琅禾费远场条件及单缝、圆孔衍射现象与观测要点。</p>
+                        <p>2. 建立单缝缝宽、波长与衍射角、条纹间距的定量关系，能由条纹位置求缝宽或波长。</p>
+                        <p>3. 认识圆孔艾里斑与暗环，掌握第一暗环 \(\sin\theta_1 \approx 1.22\lambda/D\) 及与角分辨率的关系。</p>
+                        <p>4. 会搭建、调整夫琅禾费衍射光路，熟悉准直、缝取向、圆孔同轴与接收屏定位。</p>
+                        <p>5. 会对条纹间距、衍射角、艾里斑等相关数据做误差与不确定度评定，规范表达结果。</p>
+                        <p>6. 熟悉单缝明/暗纹与次极大、圆孔旁瓣等图样特征，理解孔径越小衍射越显著。</p>
+                        <p>7. 理解瑞利判据与圆孔衍射的联系，了解在光谱、光学计量与激光等领域的应用。</p>
+                    </div>
+                </div>
+
+                <div class="theory-panel">
+                    <h3>光的衍射概述</h3>
+                    <div class="theory-content">
+                        <p style="color: var(--text-dark);">光的衍射是光在传播过程中遇到障碍物或有限大小的孔径、狭缝时，波前受到限制而发生“绕射”，不再服从几何光学的直线传播，从而在空间中形成可观测的明暗条纹或光斑结构的现象，体现了光的波动性。当障碍物或开口的特征尺度与光波长可比拟时，衍射尤为明显。根据光源—孔径—观察面之间的距离关系，可分别用菲涅尔衍射、夫琅禾费衍射等模型描述；图样形态与波长及孔径几何有关，是理解光谱仪器、成像极限与多种精密光学现象的共同基础。</p>
+
+                        <h4>光的衍射的典型应用</h4>
+                        <div class="application-cards" style="display: grid; grid-template-columns: repeat(4, minmax(12rem, 1fr)); gap: 18px; margin: 20px 0;">
+                            <div class="app-card" style="background: linear-gradient(145deg, #ffffff, #f8f9fc); padding: 22px 18px; border-radius: 16px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); border: 1px solid rgba(41, 121, 255, 0.1); text-align: center; transition: all 0.4s ease;">
+                                <div style="font-size: 2.2rem; margin-bottom: 12px;">🌈</div>
+                                <h5 style="color: #1565c0; margin-bottom: 10px; font-size: 1.05rem; font-weight: 600;">光谱与色散</h5>
+                                <p class="app-card-desc"><span class="app-card-line">光栅、棱镜等元件中的衍射与色散</span><span class="app-card-line">波长标定与物质成分分析</span></p>
+                            </div>
+                            <div class="app-card" style="background: linear-gradient(145deg, #ffffff, #f8f9fc); padding: 22px 18px; border-radius: 16px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); border: 1px solid rgba(41, 121, 255, 0.1); text-align: center; transition: all 0.4s ease;">
+                                <div style="font-size: 2.2rem; margin-bottom: 12px;">📷</div>
+                                <h5 style="color: #1565c0; margin-bottom: 10px; font-size: 1.05rem; font-weight: 600;">成像分辨率</h5>
+                                <p class="app-card-desc"><span class="app-card-line">光经圆孔的衍射形成艾里斑瑞利判据</span><span class="app-card-line">与望远镜、显微镜的衍射极限</span></p>
+                            </div>
+                            <div class="app-card" style="background: linear-gradient(145deg, #ffffff, #f8f9fc); padding: 22px 18px; border-radius: 16px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); border: 1px solid rgba(41, 121, 255, 0.1); text-align: center; transition: all 0.4s ease;">
+                                <div style="font-size: 2.2rem; margin-bottom: 12px;">📏</div>
+                                <h5 style="color: #1565c0; margin-bottom: 10px; font-size: 1.05rem; font-weight: 600;">光学计量</h5>
+                                <p class="app-card-desc"><span class="app-card-line">由衍射条纹或艾里斑尺度反推波长或</span><span class="app-card-line">精密标定与教学演示</span></p>
+                            </div>
+                            <div class="app-card" style="background: linear-gradient(145deg, #ffffff, #f8f9fc); padding: 22px 18px; border-radius: 16px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); border: 1px solid rgba(41, 121, 255, 0.1); text-align: center; transition: all 0.4s ease;">
+                                <div style="font-size: 2.2rem; margin-bottom: 12px;">🔦</div>
+                                <h5 style="color: #1565c0; margin-bottom: 10px; font-size: 1.05rem; font-weight: 600;">激光与光学系统</h5>
+                                <p class="app-card-desc"><span class="app-card-line">束宽、孔径与衍射限制下的远场发散</span><span class="app-card-line">光学设计与光束整形</span></p>
+                            </div>
+                        </div>
+                        <style>
+                            .application-cards .app-card-desc {
+                                font-size: 0.85rem;
+                                color: #546e7a;
+                                line-height: 1.5;
+                                margin: 0;
+                                text-align: center;
+                            }
+                            .application-cards .app-card-line {
+                                display: block;
+                                white-space: nowrap;
+                            }
+                            @media (max-width: 380px) {
+                                .application-cards .app-card-line {
+                                    white-space: normal;
+                                    word-break: keep-all;
+                                    line-break: strict;
+                                }
+                            }
+                            .app-card:hover {
+                                transform: translateY(-6px);
+                                box-shadow: 0 12px 35px rgba(41, 121, 255, 0.15);
+                            }
+                            @media (max-width: 900px) {
+                                .application-cards {
+                                    grid-template-columns: repeat(2, 1fr) !important;
+                                }
+                            }
+                            @media (max-width: 500px) {
+                                .application-cards {
+                                    grid-template-columns: 1fr !important;
+                                }
+                            }
+                        </style>
+                    </div>
+                </div>
+
+                <div class="theory-panel">
+                    <h3>历史背景与理论基础</h3>
+                    <div class="theory-content">
+                        <h4>1. 夫琅禾费衍射历史背景</h4>
+                        <div class="history-with-illustration">
+                            <div class="history-text">
+                                <p class="theory-strong-plain">19世纪初，<strong>约瑟夫·夫琅禾费（Joseph von Fraunhofer）</strong>研究平行光经狭缝或孔径后的<strong>远场</strong>图样：当光源与观察屏足够远，或用透镜把入射平面波与远场分别成像在物方、像方焦面时，可得到<strong>夫琅禾费衍射</strong>强度分布。本实验平台以<strong>单缝</strong>与<strong>圆孔</strong>两类夫琅禾费衍射为重点，展示这一经典波动光学图像。</p>
+                                <blockquote>夫琅禾费衍射把“波前在孔径处受限、能量在角向重新分配”具体化：单缝中缝越窄条纹越展宽，圆孔中孔径越小艾里斑越大；这与几何光学“锐利阴影”的直觉形成对照，是理解光谱仪、成像分辨率等现象的基础。</blockquote>
+                            </div>
+                            <div class="newton-rings-illustration">
+                                <div class="illustration-container">
+                                    <img src="images/0.gif" width="280" height="280" alt="平面波入射经单缝后的远场强度展宽示意" loading="lazy" decoding="async">
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4>2. 惠更斯—菲涅尔原理</h4>
+                        <div class="huygens-fresnel-module">
+                            <p class="theory-strong-plain huygens-fresnel-module__text"><strong>惠更斯原理</strong>指出：波前上每一点都是次级球面子波的新波源，下一时刻波前是这些子波的包络。<strong>菲涅尔</strong>在惠更斯基础上引入干涉思想：各子波相干叠加，定量给出衍射场强度分布，从而能解释单缝、圆孔等孔径后的夫琅禾费图样。</p>
+                            <div class="huygens-fresnel-module__figure">
+                                <img src="images/huygens-fresnel-principle.png" width="440" height="220" alt="惠更斯作图法：左为平面波，右为点源球面波，虚线为原波前，子波包络形成新波前" loading="lazy" decoding="async">
+                                <p class="diagram-caption">平面波与球面波：波前上子波及其包络（惠更斯作图法示意）</p>
+                            </div>
+                        </div>
+                        <style>
+                            .huygens-fresnel-module {
+                                margin: 1.25rem 0 1.75rem;
+                                padding: 1.25rem 1.35rem 1.4rem;
+                                background: linear-gradient(145deg, #fffdf8, #f7f2e8);
+                                border-radius: 16px;
+                                border: 1px solid rgba(183, 149, 106, 0.25);
+                                box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
+                            }
+                            .huygens-fresnel-module__text {
+                                margin: 0 0 1rem;
+                                line-height: 1.75;
+                            }
+                            .huygens-fresnel-module__figure {
+                                max-width: min(440px, 88%);
+                                margin-left: auto;
+                                margin-right: auto;
+                                text-align: center;
+                            }
+                            .huygens-fresnel-module__figure img {
+                                display: block;
+                                width: 100%;
+                                max-width: 440px;
+                                height: auto;
+                                margin-left: auto;
+                                margin-right: auto;
+                                border-radius: 12px;
+                                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+                            }
+                            .huygens-fresnel-module__figure .diagram-caption {
+                                margin-top: 0.75rem;
+                                margin-bottom: 0;
+                                font-size: 0.9rem;
+                                color: #6d4c41;
+                            }
+                        </style>
+
+                        <h4>3. 夫琅禾费衍射的物理图像</h4>
+                        <p class="theory-strong-plain">在前述惠更斯—菲涅尔图像下，将狭缝处的波前视为大量<strong>相干子波源</strong>，每一子波向各方向传播；在远场或透镜后焦面上，各子波因<strong>光程差</strong>不同而发生相干叠加。沿缝法线方向各子波同相，形成<strong>主极大</strong>；在满足相消条件的方向上出现<strong>暗纹</strong>，其间还有较弱的<strong>次极大</strong>。下图给出若干典型孔径形状下夫琅禾费衍射的模拟图样与光强分布（示意）。</p>
+
+                        <div class="interference-illustration interference-illustration--fraunhofer-grid">
+                            <div class="interference-diagram">
+                                <div class="interference-diagram-frame">
+                                    <img src="images/fraunhofer-aperture-shapes-diffraction-grid.png" width="2048" height="960" alt="不同孔径形状下夫琅禾费衍射：单缝、三角孔、方孔、五边形孔与圆孔的孔径形状、模拟图样与立体光强分布" loading="lazy" decoding="async" fetchpriority="low">
+                                </div>
+                                <p class="diagram-caption">不同孔径下夫琅禾费衍射图样与光强分布（示意图）</p>
+                            </div>
+                        </div>
+                        <style>
+                            .interference-illustration--fraunhofer-grid {
+                                align-items: stretch;
+                                overflow: visible;
+                                max-width: min(960px, 100%);
+                                margin: 1rem auto 0;
+                            }
+                            .interference-illustration--fraunhofer-grid .interference-diagram {
+                                flex: 1 1 100%;
+                                min-width: 0;
+                                max-width: none;
+                            }
+                            .interference-illustration--fraunhofer-grid .interference-diagram .diagram-caption {
+                                margin-top: 1rem;
+                                font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+                                color: var(--primary-color);
+                            }
+                            .interference-illustration--fraunhofer-grid .interference-diagram-frame {
+                                width: 100%;
+                                margin-left: auto;
+                                margin-right: auto;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                /* 与用户给定浅蓝 #D2E6FA 一致 */
+                                background: #d2e6fa;
+                                border-radius: 12px;
+                                box-shadow: 0 8px 25px rgba(41, 121, 255, 0.1);
+                                border: 1px solid rgba(100, 150, 200, 0.28);
+                                overflow: hidden;
+                                padding: 10px 12px;
+                            }
+                            .interference-illustration--fraunhofer-grid .interference-diagram-frame img {
+                                width: 100%;
+                                max-width: 1024px;
+                                height: auto;
+                                display: block;
+                                object-fit: contain;
+                                margin-left: auto;
+                                margin-right: auto;
+                                background: transparent;
+                                border: none;
+                                box-shadow: none;
+                                border-radius: 0;
+                                image-rendering: auto;
+                                -ms-interpolation-mode: bicubic;
+                            }
+                            .interference-illustration--fraunhofer-grid .interference-diagram:hover .interference-diagram-frame {
+                                box-shadow: 0 12px 30px rgba(41, 121, 255, 0.16);
+                            }
+                            .interference-illustration--fraunhofer-grid .interference-diagram:hover .interference-diagram-frame img {
+                                filter: none;
+                            }
+                        </style>
+
+                        <ul>
+                            <li><strong>夫琅禾费条件</strong>：入射与衍射波前均可近似为平面波，或用透镜等效无穷远像距，在焦面上观察角谱分布。</li>
+                        </ul>
+
+                        <h4>4. 衍射现象</h4>
+                        <div class="thin-film-section" style="background: linear-gradient(145deg, #ffffff, #f8f9fc); border-radius: 18px; padding: 25px; margin: 20px 0; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06); border: 1px solid rgba(41, 121, 255, 0.08);">
+                            <p style="margin-bottom: 18px; line-height: 1.8;">夫琅禾费衍射是衍射现象中的一类重要情形，自然界与实验中还有许多其它表现,下面三幅配图是三种典型实例：</p>
+                            <div class="thin-film-examples" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px;">
+                                <div class="thin-film-example" style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-radius: 14px; padding: 18px; text-align: center; transition: all 0.4s ease;">
+                                    <div style="font-size: 2rem; margin-bottom: 10px;">💿</div>
+                                    <h5 style="color: #1565c0; font-size: 1rem; margin-bottom: 6px; font-weight: 600;">光栅衍射</h5>
+                                    <p style="font-size: 0.85rem; color: #455a64; margin: 0;">致密周期性条纹将光按波长展开</p>
+                                </div>
+                                <div class="thin-film-example" style="background: linear-gradient(135deg, #fff3e0, #ffe0b2); border-radius: 14px; padding: 18px; text-align: center; transition: all 0.4s ease;">
+                                    <div style="font-size: 2rem; margin-bottom: 10px;">✨</div>
+                                    <h5 style="color: #e65100; font-size: 1rem; margin-bottom: 6px; font-weight: 600;">星芒现象</h5>
+                                    <p style="font-size: 0.85rem; color: #5d4037; margin: 0;">光通过细密网格时的十字状衍射辐射</p>
+                                </div>
+                                <div class="thin-film-example" style="background: linear-gradient(135deg, #e8f5e9, #c8e6c9); border-radius: 14px; padding: 18px; text-align: center; transition: all 0.4s ease;">
+                                    <div style="font-size: 2rem; margin-bottom: 10px;">🔴</div>
+                                    <h5 style="color: #2e7d32; font-size: 1rem; margin-bottom: 6px; font-weight: 600;">泊松亮斑</h5>
+                                    <p style="font-size: 0.85rem; color: #455a64; margin: 0;">圆屏阴影中心的亮斑（菲涅尔衍射）</p>
+                                </div>
+                            </div>
+                        </div>
+                        <style>
+                            .thin-film-example:hover {
+                                transform: translateY(-5px) scale(1.02);
+                                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+                            }
+                            @media (max-width: 700px) {
+                                .thin-film-examples {
+                                    grid-template-columns: 1fr !important;
+                                }
+                            }
+                        </style>
+
+                        <div class="thin-film-gallery">
+                            <div class="thin-film-item">
+                                <img src="images/diffraction-grating-cd.png" alt="光栅衍射：光盘表面形成的彩色衍射条纹" class="thin-film-image">
+                                <p>光栅衍射：光盘表面近似光栅结构对白光色散</p>
+                            </div>
+                            <div class="thin-film-item">
+                                <img src="images/diffraction-starburst-mesh.png" alt="星芒现象：透过细密网格观察灯光时的衍射星芒" class="thin-film-image">
+                                <p>星芒现象：光经纱窗等周期性网格后的十字状衍射</p>
+                            </div>
+                            <div class="thin-film-item">
+                                <img src="images/diffraction-poisson-spot.png" alt="泊松亮斑：圆屏阴影中心的亮斑" class="thin-film-image">
+                                <p>泊松亮斑：几何阴影中心的菲涅尔衍射亮斑</p>
+                            </div>
+                        </div>
+
+                        <h4>5. 近场衍射与远场衍射</h4>
+                        <p>按观察距离与孔径线度，常将衍射分为两类：</p>
+                        <ul>
+                            <li><strong>近场衍射（菲涅尔衍射）</strong>:光源或观察屏与孔径的距离为有限远，波前曲率不可忽略，需用菲涅尔积分描述;阴影边界附近、泊松亮斑等属此类。</li>
+                            <li><strong>远场衍射（夫琅禾费衍射）</strong>:入射与衍射光均可近似为平面波，强度分布常表为孔径函数的傅里叶变换;单缝、圆孔夫琅禾费图样即其典型结果。</li>
+                        </ul>
+
+                        <div class="near-far-diffraction-single">
+                            <div class="interference-diagram near-far-diffraction-single__figure">
+                                <img src="images/fresnel-fraunhofer-regions.png" width="967" height="438" alt="入射光经孔径宽度 D 后，近场菲涅尔区与远场夫琅禾费区上的强度分布演化" loading="lazy" decoding="async">
+                                <p class="diagram-caption">菲涅尔衍射区与夫琅禾费衍射区强度演化示意</p>
+                            </div>
+                            
+                        </div>
+                        <style>
+                            .near-far-diffraction-single {
+                                margin: 1.5rem 0;
+                            }
+                            .near-far-diffraction-single__figure {
+                                max-width: min(700px, 88%);
+                                margin-left: auto;
+                                margin-right: auto;
+                            }
+                            .near-far-diffraction-single__figure img {
+                                width: 100%;
+                                height: auto;
+                                display: block;
+                                border-radius: 12px;
+                                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+                                border: 1px solid rgba(230, 230, 250, 0.6);
+                                background: linear-gradient(to bottom, #f5f9ff, #ffffff);
+                            }
+                            .near-far-diffraction-single__text {
+                                max-width: 56rem;
+                                margin: 1rem auto 0;
+                            }
+                        </style>
+
+                        <div class="key-concept">
+                            <p><strong>近场与远场的划分依赖于几何距离与波长、孔径尺寸的相对关系，夫琅禾费衍射可视为菲涅尔衍射在远场极限下的近似。</strong></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="theory-panel">
+                    <h3>实验仪器</h3>
+                    <div class="theory-content">
+                        <div class="instrument-gallery">
+                            <div class="instrument-item">
+                                <img src="images/instrument-laser.png" alt="激光仪" class="instrument-image">
+                                <p>激光仪</p>
+                            </div>
+                            <div class="instrument-item">
+                                <img src="images/图片2.png" alt="平凸透镜" class="instrument-image">
+                                <p>凸透镜（R=1000~10000 mm ）</p>
+                            </div>
+                            <div class="instrument-item">
+                                <img src="images/instrument-single-slit.png" alt="单缝光阑" class="instrument-image">
+                                <p>单缝光阑</p>
+                            </div>
+                            <div class="instrument-item">
+                                <img src="images/instrument-receiving-screen.png" alt="接收屏" class="instrument-image">
+                                <p>接收屏</p>
+                            </div>
+                        </div>
+                        <p>主要仪器设备：</p>
+                        <ul>
+                            <li><strong>激光仪</strong>：提供方向性好、单色性较高的光束，经准直后作为夫琅禾费衍射实验的照明光源</li>
+                            <li><strong>平凸透镜</strong>：曲率半径通常在1000~10000 mm 量级，可用于光束准直或会聚，配合孔径与接收面搭建光路</li>
+                            <li><strong>单缝光阑</strong>：限制光束截面并形成单缝夫琅禾费衍射；图示为可调单缝组件，缝宽按实验要求选定并与波长、焦距等匹配</li>
+                            <li><strong>接收屏</strong>：在远场或透镜焦面附近接收图样，便于观察单缝衍射条纹及强度分布</li>
+                            
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="theory-panel">
+                    <h3>夫琅禾费单缝衍射原理详解</h3>
+                    <div class="theory-content">
+                        <div class="newton-rings-principle-container">
+                            <div class="principle-content">
+                                <h4>1. 夫琅禾费单缝衍射物理原理</h4>
+                                <p>单色平行光照射单缝等有限孔径时，波前被限制，根据惠更斯–菲涅尔原理，孔径上各子波源相干叠加，在远场或经透镜在其焦面上形成稳定的角分布图样，即夫琅禾费衍射。图样特征由孔径形状与尺寸、波长及观察几何共同决定。</p>
+
+                                <div class="interactive-formula">
+                                    <h4>2. 单缝衍射强度分布</h4>
+                                    <p>设单缝宽度为 \(a\)，衍射角为 \(\theta\)（相对入射光法向），定义无量纲参量 \(\beta = \dfrac{\pi a\sin\theta}{\lambda}\)。夫琅禾费单缝衍射在焦面上沿垂直于缝方向的相对强度为</p>
+                                    <div class="formula with-tooltip">
+                                        \[ I(\theta) = I_0 \left( \frac{\sin\beta}{\beta} \right)^2 \]
+                                        <div class="formula-tooltip">\(\beta\to 0\) 时 \(\lim\limits_{\beta\to 0}\dfrac{\sin\beta}{\beta}=1\)，即 \(\theta=0\) 处为主极大；\(\left(\dfrac{\sin\beta}{\beta}\right)^2\) 常称为<strong>sinc²</strong> 型分布</div>
+                                    </div>
+                                    <p style="margin-top: 12px; font-size: 0.95rem; color: #555;">第一暗纹（强度极小）对应 \(\sin\beta=0\) 且 \(\beta\neq 0\) 的最小正值，即 \(\beta_1=\pi\)，故</p>
+                                    <div class="formula" style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                                        \[ \frac{\pi a\sin\theta_1}{\lambda} = \pi \quad\Rightarrow\quad a\sin\theta_1 = \lambda \quad\Rightarrow\quad \sin\theta_1 = \frac{\lambda}{a} \]
+                                        <p style="font-size: 0.85rem; color: #666; margin-top: 5px;">第 \(k\) 级暗纹满足 \(\beta_k=k\pi\)，即 \(a\sin\theta_k=k\lambda\)（\(k=\pm1,\pm2,\ldots\)）；小角、透镜焦距 \(f\) 时，第一暗纹到中心的线距离 \(y_1 \approx f\sin\theta_1 \approx \lambda f/a\)</p>
+                                    </div>
+                                    <p style="margin-top: 15px; font-size: 0.95rem; color: #555;"><strong>说明：</strong>单缝图样在缝的法平面内沿<strong>垂直于缝</strong>的方向展宽，中央为主极大，两侧为对称暗纹与次级亮纹；缝宽 \(a\) 越小，\(\sin\theta_1\) 越大，衍射展宽越明显。与圆孔轴对称艾里斑不同，单缝焦面图样呈<strong>条纹状</strong>（一维 sinc² 调制）。</p>
+                                </div>
+
+                                <div class="interference-conditions">
+                                    <h4>3. 远场条件与小角近似</h4>
+                                    <p>实验中常在透镜焦面观察，此时焦面上一点对应确定的平面波方向，等价于夫琅禾费近似。测量屏上位置时常用到小角关系：</p>
+
+                                    <div class="half-wave-explanation" style="background: #fff3e0; padding: 20px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #ff9800;">
+                                        <h5 style="color: #e65100; margin-bottom: 10px;">何时可用小角近似？</h5>
+                                        <p style="font-size: 0.95rem;">当 \(\theta\) 很小且系统像差可忽略时，可取 \(\sin\theta \approx \tan\theta\)。若用焦距为 \(f\) 的透镜将平行光会聚到焦面，屏上距中心高度 \(y\) 处近似对应 \(\theta \approx y/f\)。</p>
+                                        <ul style="margin: 10px 0 0 20px; font-size: 0.9rem;">
+                                            <li>远场判据：孔径线度 \(a\) 满足观察距离 \(L \gg a^2/\lambda\) 时衍射项占主导，教材常用菲涅耳数 \(N_F = a^2/(L\lambda) \ll 1\)。</li>
+                                            <li>焦面观测：<strong style="color: #1565c0;">透镜焦面即夫琅禾费图样面</strong>，便于测量条纹或艾里斑线度。</li>
+                                        </ul>
+                                    </div>
+
+                                    <p>小角下单缝暗纹位置与屏上坐标的关系常写为：</p>
+                                    <div class="formula" style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                                        \[ y_k \approx f\sin\theta_k \approx \frac{k\lambda f}{a}, \quad k = \pm 1, \pm 2, \ldots \]
+                                        <p style="font-size: 0.85rem; color: #666; margin-top: 5px;">相邻同级暗纹间距 \(\Delta y \approx \lambda f / a\)；\(k=0\) 为主极大中心，不在此式中</p>
+                                    </div>
+
+                                    <h4>4. 明暗纹条件</h4>
+                                    <p>单缝夫琅禾费：缝宽 \(a\)，记 \(\beta = \pi a\sin\theta/\lambda\)。</p>
+                                    <div class="condition-cards">
+                                        <div class="condition-card dark-ring">
+                                            <div class="card-header">暗纹</div>
+                                            <div class="card-formula">\(\beta = k\pi\)，即 \(a\sin\theta = k\lambda\)</div>
+                                            <div class="card-note">\(k = \pm 1, \pm 2, \ldots\)（\(k=0\) 对应主极大中心，不是暗纹）</div>
+                                        </div>
+                                        <div class="condition-card bright-ring">
+                                            <div class="card-header">主极大</div>
+                                            <div class="card-formula">\(\theta = 0\)（\(\beta = 0\)）</div>
+                                            <div class="card-note">缝上各点沿法线方向同相叠加，相对强度取最大值</div>
+                                        </div>
+                                        <div class="condition-card bright-ring">
+                                            <div class="card-header">次级极大</div>
+                                            <div class="card-formula">\(\dfrac{\mathrm{d}}{\mathrm{d}\beta}\!\left(\dfrac{\sin\beta}{\beta}\right)=0\)</div>
+                                            <div class="card-note">次级亮纹位于相邻暗纹之间，由上述条件定位；强度逐级减弱，无简单整数倍公式</div>
+                                        </div>
+                                    </div>
+                                    <p class="important-note">注意：第一暗纹满足 \(a\sin\theta_1=\lambda\)（\(a\) 为缝宽），相邻暗纹角间隔 \(\Delta(\sin\theta)=\lambda/a\)；小角、焦距 \(f\) 时焦面上相邻暗纹间距 \(\Delta y\approx \lambda f/a\)。条纹展宽与 \(\lambda/a\) 成正比——缝越窄，衍射展宽越明显。</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="experiment-steps-container">
+                            <div class="experiment-step-section ring-radius-calculation">
+                                <h4>5. 单缝条纹位置与尺度</h4>
+                                <div class="radius-calculation-wrapper" style="background: linear-gradient(145deg, #ffffff, #f8f9fc); border-radius: 20px; padding: 30px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); border: 1px solid rgba(41, 121, 255, 0.1); margin-top: 20px;">
+                                    <div class="calculation-flow" style="display: flex; flex-direction: column; gap: 25px;">
+                                        <div class="calculation-row" style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap;">
+                                            <div class="calc-box" style="background: linear-gradient(145deg, #ffffff, #f5f7ff); border-radius: 16px; padding: 25px 30px; min-width: 200px; text-align: center; box-shadow: 0 5px 20px rgba(41, 121, 255, 0.1); border: 1px solid rgba(41, 121, 255, 0.15); transition: all 0.4s ease;">
+                                                <div class="calc-label" style="font-size: 0.95rem; color: #546e7a; margin-bottom: 12px; font-weight: 500;">单缝暗纹条件</div>
+                                                <div class="formula" style="font-size: 1.2rem; color: #1a237e;">\[ a\sin\theta_k = k\lambda \]</div>
+                                            </div>
+                                            <div class="calc-box" style="background: linear-gradient(145deg, #ffffff, #f5f7ff); border-radius: 16px; padding: 25px 30px; min-width: 200px; text-align: center; box-shadow: 0 5px 20px rgba(41, 121, 255, 0.1); border: 1px solid rgba(41, 121, 255, 0.15); transition: all 0.4s ease;">
+                                                <div class="calc-label" style="font-size: 0.95rem; color: #546e7a; margin-bottom: 12px; font-weight: 500;">焦面小角位置</div>
+                                                <div class="formula" style="font-size: 1.2rem; color: #1a237e;">\[ y_k \approx \frac{k\lambda f}{a} \]</div>
+                                            </div>
+                                            <div class="calc-box highlight-box" style="background: linear-gradient(145deg, #e3f2fd, #bbdefb); border-radius: 16px; padding: 25px 30px; min-width: 220px; text-align: center; box-shadow: 0 8px 30px rgba(41, 121, 255, 0.2); border: 2px solid rgba(41, 121, 255, 0.3); transition: all 0.4s ease;">
+                                                <div class="calc-label" style="font-size: 0.95rem; color: #1565c0; margin-bottom: 12px; font-weight: 600;">相邻暗纹间距</div>
+                                                <div class="formula" style="font-size: 1.15rem; color: #0d47a1; font-weight: 600;">\[ \Delta y \approx \frac{\lambda f}{a} \]</div>
+                                            </div>
+                                        </div>
+                                        <div class="key-insight" style="background: linear-gradient(135deg, #fff8e1, #ffecb3); border-radius: 14px; padding: 20px 25px; border-left: 4px solid #ff9800; display: flex; align-items: center; gap: 15px;">
+                                            <div class="insight-icon" style="width: 45px; height: 45px; background: linear-gradient(135deg, #ff9800, #f57c00); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                            </div>
+                                            <div class="insight-content">
+                                                <h5 style="color: #e65100; font-size: 1.05rem; margin-bottom: 6px; font-weight: 600;">核心结论</h5>
+                                                <p style="color: #5d4037; font-size: 0.95rem; line-height: 1.6; margin: 0;">夫琅禾费单缝：暗纹满足 \(a\sin\theta_k=k\lambda\)（\(k=\pm1,\pm2,\ldots\)），焦面小角下 \(y_k\approx k\lambda f/a\)。相邻暗纹线间距 \(\Delta y\approx\lambda f/a\)，与缝宽 \(a\) 成反比；中央主极大位于两级 \(\pm1\) 暗纹之间，宽度约 \(2\lambda f/a\)。缝越窄，角展宽越大，实验中常由 \(\Delta y\) 反推 \(a\) 或 \(\lambda\)。</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <style>
+                                    .calc-box:hover {
+                                        transform: translateY(-5px);
+                                        box-shadow: 0 12px 35px rgba(41, 121, 255, 0.15);
+                                    }
+                                    .highlight-box:hover {
+                                        transform: translateY(-5px) scale(1.02);
+                                        box-shadow: 0 15px 40px rgba(41, 121, 255, 0.25);
+                                    }
+                                </style>
+                            </div>
+
+                            <div class="experiment-step-section experiment-workflow">
+                                <h4>6. 实验操作步骤</h4>
+                                <div class="workflow-steps">
+                                    <div class="workflow-step">
+                                        <div class="step-icon">1</div>
+                                        <div class="step-content">
+                                            <p>搭建准直光路：激光经扩束准直或直接使用准直光束，保证照射到单缝近似为平面波</p>
+                                        </div>
+                                    </div>
+                                    <div class="workflow-step">
+                                        <div class="step-icon">2</div>
+                                        <div class="step-content">
+                                            <p>在光路中置入单缝，缝宽或孔径与波长同量级或更大若干倍，便于观察清晰衍射图样</p>
+                                        </div>
+                                    </div>
+                                    <div class="workflow-step">
+                                        <div class="step-icon">3</div>
+                                        <div class="step-content">
+                                            <p>用透镜将远场图样成像于焦面，或用接收屏置于远场距离处，调节共轴使图样对称</p>
+                                        </div>
+                                    </div>
+                                    <div class="workflow-step">
+                                        <div class="step-icon">4</div>
+                                        <div class="step-content">
+                                            <p>记录中央主极大及各级暗纹位置或线度</p>
+                                        </div>
+                                    </div>
+                                    <div class="workflow-step">
+                                        <div class="step-icon">5</div>
+                                        <div class="step-content">
+                                            <p>由 \(y_k\) 或条纹间距 \(\Delta y\) 结合透镜焦距 \(f\)，按小角公式反算 \(\lambda\) 或孔径几何尺寸</p>
+                                        </div>
+                                    </div>
+                                    <div class="workflow-step">
+                                        <div class="step-icon">6</div>
+                                        <div class="step-content">
+                                            <p>更换缝宽重复测量，比较图样展宽规律并与理论预期对比</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="experiment-step-section radius-measurement">
+                                <h4>7. 缝宽求解</h4>
+                                <div class="measurement-explanation measurement-explanation--slit-diagram">
+                                    <div class="explanation-text">
+                                        <p>夫琅禾费单缝：在透镜焦面（或约定像方焦面）上测相邻暗纹线间距 \(\Delta x'\)，小角近似下 \(\Delta x' \approx \lambda f_{2}'/a\)，其中 \(a\) 为缝宽，\(f_{2}'\) 为成像透镜像方焦距。</p>
+                                        <p>已知 \(\lambda\) 与 \(f_{2}'\) 时，由 \(\Delta x'\) 可求缝宽 \(a\)；若 \(a\) 已知，也可由同一关系检验或反推等效波长。</p>
+                                        <div class="formula highlighted-formula">
+                                            \[ a \approx \frac{\lambda f_{2}'}{\Delta x'} \]
+                                        </div>
+                                    </div>
+                                    <div class="graph-container theory-pattern-dual">
+                                        <div class="theory-pattern-dual__item">
+                                            <img src="images/theory-single-slit-l2-f2-diagram.png" alt="单缝夫琅禾费衍射：λ、缝、透镜 L2、像方焦距 f2′、屏上强度分布与 θ、Δx′ 等几何量" loading="lazy" decoding="async">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="theory-panel">
+                    <h3>实验数据处理方法</h3>
+                    <div class="theory-content">
+                        <h4>一、单缝条纹间距法</h4>
+                        <p>在透镜焦面上测相邻暗纹间距 \(\Delta y\)，小角近似下：</p>
+                        <div class="formula-box" style="background: #f5f5f5; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                            <div class="formula">\[ \Delta y \approx \frac{\lambda f}{a} \]</div>
+                            <p>已知激光波长 \(\lambda\) 与透镜焦距 \(f\)，可得缝宽：</p>
+                            <div class="formula">\[ a \approx \frac{\lambda f}{\Delta y} \]</div>
+                        </div>
+
+                        <h4>二、逐差法</h4>
+                        <p>测第 \(k\) 级与第 \(k+\Delta k\) 级暗纹位置 \(y_k\)、\(y_{k+\Delta k}\)，可减弱单次对准误差：</p>
+                        <div class="formula-box" style="background: #e8f5e9; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                            <div class="formula">\[ y_{k+\Delta k} - y_k \approx \frac{\Delta k \cdot \lambda f}{a} \]</div>
+                            <p style="margin-top: 10px;">与最小二乘拟合 \(y_k\)–\(k\) 直线求斜率 \(\lambda f/a\) 等价，可任选其一。</p>
+                        </div>
+
+                        <h4>三、圆孔艾里斑法</h4>
+                        <p>测第一暗环直径 \(d_1\)，则：</p>
+                        <div class="formula-box" style="background: #e3f2fd; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                            <div class="formula">\[ d_1 \approx 2 \times 1.22\,\frac{\lambda f}{D} = \frac{2.44\,\lambda f}{D} \]</div>
+                            <p style="margin-top: 10px;">已知 \(\lambda\)、\(f\) 可求孔径直径 \(D\)；已知 \(D\) 可检验波长或系统常数。</p>
+                        </div>
+
+                        <h4>四、实验步骤</h4>
+                        <div class="experiment-steps" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin: 20px 0;">
+                            <div class="step-card" style="background: linear-gradient(145deg, #ffffff, #f8f9fc); border-radius: 16px; padding: 25px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); border: 1px solid rgba(41, 121, 255, 0.1); transition: all 0.4s ease; position: relative; overflow: hidden;">
+                                <div class="step-number" style="position: absolute; top: -10px; right: -10px; width: 60px; height: 60px; background: linear-gradient(135deg, #2979ff, #6a11cb); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: bold; opacity: 0.15;">1</div>
+                                <div class="step-icon-wrapper" style="width: 50px; height: 50px; background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(41, 121, 255, 0.2);">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="#2979ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M9 12h6M9 16h6" stroke="#2979ff" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                                <h5 style="color: #1a237e; font-size: 1.1rem; margin-bottom: 10px; font-weight: 600;">记录几何量</h5>
+                                <p style="color: #546e7a; font-size: 0.95rem; line-height: 1.6;">记录透镜焦距 \(f\)、缝宽或孔径名义值、暗纹或艾里斑位置/直径的多次测量值</p>
+                            </div>
+                            <div class="step-card" style="background: linear-gradient(145deg, #ffffff, #f8f9fc); border-radius: 16px; padding: 25px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); border: 1px solid rgba(41, 121, 255, 0.1); transition: all 0.4s ease; position: relative; overflow: hidden;">
+                                <div class="step-number" style="position: absolute; top: -10px; right: -10px; width: 60px; height: 60px; background: linear-gradient(135deg, #2979ff, #6a11cb); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: bold; opacity: 0.15;">2</div>
+                                <div class="step-icon-wrapper" style="width: 50px; height: 50px; background: linear-gradient(135deg, #e8f5e9, #c8e6c9); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(76, 175, 80, 0.2);">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M9 7h6M9 11h6M9 15h6" stroke="#4caf50" stroke-width="2" stroke-linecap="round"/>
+                                        <rect x="3" y="3" width="18" height="18" rx="2" stroke="#4caf50" stroke-width="2"/>
+                                    </svg>
+                                </div>
+                                <h5 style="color: #1a237e; font-size: 1.1rem; margin-bottom: 10px; font-weight: 600;">算条纹间距</h5>
+                                <p style="color: #546e7a; font-size: 0.95rem; line-height: 1.6;">由相邻暗纹坐标求 \(\Delta y\)，或对多级暗纹用逐差/拟合求 \(\lambda f/a\)</p>
+                            </div>
+                            <div class="step-card" style="background: linear-gradient(145deg, #ffffff, #f8f9fc); border-radius: 16px; padding: 25px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); border: 1px solid rgba(41, 121, 255, 0.1); transition: all 0.4s ease; position: relative; overflow: hidden;">
+                                <div class="step-number" style="position: absolute; top: -10px; right: -10px; width: 60px; height: 60px; background: linear-gradient(135deg, #2979ff, #6a11cb); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: bold; opacity: 0.15;">3</div>
+                                <div class="step-icon-wrapper" style="width: 50px; height: 50px; background: linear-gradient(135deg, #fff3e0, #ffe0b2); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(255, 152, 0, 0.2);">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M3 3v18h18" stroke="#ff9800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M7 16l4-8 4 4 5-9" stroke="#ff9800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                                <h5 style="color: #1a237e; font-size: 1.1rem; margin-bottom: 10px; font-weight: 600;">绘制校验图</h5>
+                                <p style="color: #546e7a; font-size: 0.95rem; line-height: 1.6;">作 \(y_k\)–\(k\) 或 \(d_1\) 多次测量散点图，检验线性/统计离散</p>
+                            </div>
+                            <div class="step-card" style="background: linear-gradient(145deg, #ffffff, #f8f9fc); border-radius: 16px; padding: 25px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); border: 1px solid rgba(41, 121, 255, 0.1); transition: all 0.4s ease; position: relative; overflow: hidden;">
+                                <div class="step-number" style="position: absolute; top: -10px; right: -10px; width: 60px; height: 60px; background: linear-gradient(135deg, #2979ff, #6a11cb); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: bold; opacity: 0.15;">4</div>
+                                <div class="step-icon-wrapper" style="width: 50px; height: 50px; background: linear-gradient(135deg, #fce4ec, #f8bbd9); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(233, 30, 99, 0.2);">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M4 19h16M4 15l4-6 4 4 4-8 4 6" stroke="#e91e63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                                <h5 style="color: #1a237e; font-size: 1.1rem; margin-bottom: 10px; font-weight: 600;">线性拟合</h5>
+                                <p style="color: #546e7a; font-size: 0.95rem; line-height: 1.6;">对 \(y_k\) 关于 \(k\) 最小二乘拟合得斜率，等价于求 \(\lambda f/a\)</p>
+                            </div>
+                            <div class="step-card" style="background: linear-gradient(145deg, #ffffff, #f8f9fc); border-radius: 16px; padding: 25px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); border: 1px solid rgba(41, 121, 255, 0.1); transition: all 0.4s ease; position: relative; overflow: hidden;">
+                                <div class="step-number" style="position: absolute; top: -10px; right: -10px; width: 60px; height: 60px; background: linear-gradient(135deg, #2979ff, #6a11cb); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: bold; opacity: 0.15;">5</div>
+                                <div class="step-icon-wrapper" style="width: 50px; height: 50px; background: linear-gradient(135deg, #e8eaf6, #c5cae9); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(63, 81, 181, 0.2);">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="12" cy="12" r="9" stroke="#3f51b5" stroke-width="2"/>
+                                        <path d="M12 7v5l3 3" stroke="#3f51b5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                                <h5 style="color: #1a237e; font-size: 1.1rem; margin-bottom: 10px; font-weight: 600;">求待测量</h5>
+                                <p style="color: #546e7a; font-size: 0.95rem; line-height: 1.6;">由 \(\Delta y\) 或斜率计算 \(a\)；由 \(d_1\) 计算 \(D\) 或验证 \(\lambda\)</p>
+                            </div>
+                            <div class="step-card" style="background: linear-gradient(145deg, #ffffff, #f8f9fc); border-radius: 16px; padding: 25px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); border: 1px solid rgba(41, 121, 255, 0.1); transition: all 0.4s ease; position: relative; overflow: hidden;">
+                                <div class="step-number" style="position: absolute; top: -10px; right: -10px; width: 60px; height: 60px; background: linear-gradient(135deg, #2979ff, #6a11cb); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: bold; opacity: 0.15;">6</div>
+                                <div class="step-icon-wrapper" style="width: 50px; height: 50px; background: linear-gradient(135deg, #e0f7fa, #b2ebf2); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0, 150, 136, 0.2);">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="#009688" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                                <h5 style="color: #1a237e; font-size: 1.1rem; margin-bottom: 10px; font-weight: 600;">不确定度分析</h5>
+                                <p style="color: #546e7a; font-size: 0.95rem; line-height: 1.6;">综合标尺、对准、\(f\) 与 \(\lambda\) 的不确定度，评定结果</p>
+                            </div>
+                        </div>
+                        <style>
+                            .step-card:hover {
+                                transform: translateY(-8px) scale(1.02);
+                                box-shadow: 0 20px 50px rgba(41, 121, 255, 0.15);
+                            }
+                            .step-card:hover .step-number {
+                                opacity: 0.25;
+                                transform: scale(1.1);
+                            }
+                            .step-card .step-number {
+                                transition: all 0.4s ease;
+                            }
+                            .step-card:hover .step-icon-wrapper {
+                                transform: scale(1.1) rotate(5deg);
+                            }
+                            .step-card .step-icon-wrapper {
+                                transition: all 0.4s ease;
+                            }
+                        </style>
+
+                        <h4>五、误差分析</h4>
+                        <div class="error-analysis" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin: 15px 0;">
+                            <div class="error-item" style="background: #ffebee; padding: 15px; border-radius: 8px; border-left: 3px solid #f44336;">
+                                <h5 style="color: #c62828; margin-bottom: 8px;">系统误差</h5>
+                                <ul style="font-size: 0.9rem; margin-left: 15px;">
+                                    <li>光束未充分准直（非平面波入射）</li>
+                                    <li>透镜焦距标称值与实际值偏差</li>
+                                    <li>波长与标称值不符（多纵模或谱线展宽）</li>
+                                    <li>缝边/孔径加工缺陷或边缘衍射附加相移</li>
+                                </ul>
+                            </div>
+                            <div class="error-item" style="background: #fff3e0; padding: 15px; border-radius: 8px; border-left: 3px solid #ff9800;">
+                                <h5 style="color: #e65100; margin-bottom: 8px;">随机误差</h5>
+                                <ul style="font-size: 0.9rem; margin-left: 15px;">
+                                    <li>暗纹或艾里斑边缘判读不一致</li>
+                                    <li>屏面与焦面未重合导致的离焦</li>
+                                    <li>支架振动与空气扰动</li>
+                                    <li>标尺与像面比例标定误差</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <h4>六、提高测量精度的方法</h4>
+                        <div class="tips-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 15px 0;">
+                            <div style="background: #e3f2fd; padding: 12px; border-radius: 8px; text-align: center;">
+                                <span style="font-size: 1.5rem;">📊</span>
+                                <p style="font-size: 0.9rem; margin-top: 5px;">暗纹位置多次测量取平均</p>
+                            </div>
+                            <div style="background: #e3f2fd; padding: 12px; border-radius: 8px; text-align: center;">
+                                <span style="font-size: 1.5rem;">🔢</span>
+                                <p style="font-size: 0.9rem; margin-top: 5px;">用多级暗纹逐差或拟合求斜率</p>
+                            </div>
+                            <div style="background: #e3f2fd; padding: 12px; border-radius: 8px; text-align: center;">
+                                <span style="font-size: 1.5rem;">🎯</span>
+                                <p style="font-size: 0.9rem; margin-top: 5px;">选用较长焦距透镜放大线度便于读数</p>
+                            </div>
+                            <div style="background: #e3f2fd; padding: 12px; border-radius: 8px; text-align: center;">
+                                <span style="font-size: 1.5rem;">🧹</span>
+                                <p style="font-size: 0.9rem; margin-top: 5px;">保持光阑与透镜清洁、共轴</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="theory-panel">
+                    <h3>实验注意事项</h3>
+                    <div class="theory-content">
+                        <div class="experiment-tips">
+                            <div class="tips-container">
+                                <div class="tip-item">
+                                    <div class="tip-icon">🧹</div>
+                                    <div class="tip-text">实验前清洁透镜、光阑与接收屏，避免灰尘与划痕散射</div>
+                                </div>
+                                <div class="tip-item">
+                                    <div class="tip-icon">💡</div>
+                                    <div class="tip-text">保证激光功率稳定、光路共轴，必要时加衰减片防饱和</div>
+                                </div>
+                                <div class="tip-item">
+                                    <div class="tip-icon">👁️</div>
+                                    <div class="tip-text">读数时视线垂直于屏面，接收屏尽量置于透镜焦面以减小离焦</div>
+                                </div>
+                                <div class="tip-item">
+                                    <div class="tip-icon">🌡️</div>
+                                    <div class="tip-text">减少气流与振动，避免图样抖动导致暗纹位置读数偏差</div>
+                                </div>
+                                <div class="tip-item">
+                                    <div class="tip-icon">📏</div>
+                                    <div class="tip-text">测量暗纹或艾里斑直径时，两侧边缘取同一判据（如强度半峰或目视暗线中心）</div>
+                                </div>
+                                <div class="tip-item">
+                                    <div class="tip-icon">📝</div>
+                                    <div class="tip-text">记录时注明级次 \(k\)、透镜焦距 \(f\) 与波长 \(\lambda\)，便于复核公式</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="data-optimization">
+                            <h4>数据拟合优化</h4>
+                            <div class="optimization-method">
+                                <div class="key-concept">
+                                    <p><strong>多级暗纹拟合</strong>：测量多组 \((k, y_k)\)，用最小二乘拟合直线 \(y_k = (\lambda f/a)\,k + b\)，可同时得到斜率与零点修正。</p>
+                                </div>
+                                <div class="formula">
+                                    \[ y_{k+\Delta k} - y_k = \frac{\Delta k \cdot \lambda f}{a} \]
+                                </div>
+                                <p class="method-advantage">逐差或拟合可削弱单次对准误差；外级次条纹线度较大时相对不确定度常更小。</p>
+                                <p class="method-tip">拟合时可对信噪比更高的暗纹赋予更大权重，或剔除明显离群的测量点后再回归。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2026 夫琅禾费衍射虚拟仿真实验平台</p>
+    </footer>
+
+    <!-- 实验报告预览模态框 -->
+    <div id="report-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>实验报告预览</h2>
+                <span class="report-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="report-content" class="report-content"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-print-btn" class="report-btn print-btn" onclick="printReport()">打印报告</button>
+                <button id="modal-download-btn" class="report-btn download-btn" onclick="downloadReport()">下载报告</button>
+                <button id="modal-close-btn" class="report-btn close-btn"
+                    onclick="document.getElementById('report-modal').style.display='none'">关闭预览</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="simulation.js"></script>
+    <script src="3d-demo.js"></script>
+    <script src="ai-model.js"></script>
+    <!--
+    <script>
+    window.addEventListener('load', function() {
+      // 移除所有可能的指示器
+      const elements = document.querySelectorAll('body > div');
+      elements.forEach(el => {
+        if (el.style.position === 'fixed' && el.getBoundingClientRect().top < 50) {
+          el.remove();
+        }
+      });
+    });
+    </script>
+    -->
+
+    <!-- 上划按钮 -->
+    <div class="scroll-to-top" id="scrollToTop">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="white" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+        </svg>
+    </div>
+
+    <script>
+        // 上划按钮功能
+        document.addEventListener('DOMContentLoaded', function () {
+            const scrollToTopBtn = document.getElementById('scrollToTop');
+
+            // 滚动事件监听
+            window.addEventListener('scroll', function () {
+                if (window.pageYOffset > 300) {
+                    scrollToTopBtn.classList.add('visible');
+                } else {
+                    scrollToTopBtn.classList.remove('visible');
+                }
+            });
+
+            // 点击事件
+            scrollToTopBtn.addEventListener('click', function () {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

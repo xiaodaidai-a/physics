@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <script src="../pages-demo.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>夫琅禾费单缝衍射虚拟仿真实验平台</title>
+
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Three.js 核心库 -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/RGBELoader.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', 'SimHei', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8f4f8 100%);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* 虚拟实验室容器 */
+        .virtual-lab-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+        }
+
+        /* 3D场景容器 */
+        #lab-scene-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+        }
+
+        /* 控制面板 */
+        .control-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            width: fit-content;
+            max-width: 90vw;
+        }
+
+        .control-panel.hidden {
+            transform: translateY(100px);
+            opacity: 0;
+        }
+
+        /* 控制按钮样式 */
+        .experiment-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .control-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-btn:hover {
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .control-btn.start {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            box-shadow: 0 4px 15px rgba(86, 171, 47, 0.3);
+        }
+
+        .control-btn.adjust {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .control-btn.light {
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+            box-shadow: 0 4px 15px rgba(255, 216, 155, 0.3);
+        }
+
+        .control-btn.end {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            box-shadow: 0 4px 15px rgba(116, 185, 255, 0.3);
+        }
+
+        .control-btn.reset {
+            background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+            box-shadow: 0 4px 15px rgba(162, 155, 254, 0.3);
+        }
+
+        .aperture-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            width: 100%;
+        }
+
+        .aperture-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #444;
+            white-space: nowrap;
+        }
+
+        .aperture-btn {
+            background: #eef1f8;
+            color: #555;
+            border: 2px solid transparent;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .aperture-btn:hover:not(:disabled) {
+            background: #e0e6f2;
+        }
+
+        .aperture-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border-color: rgba(102, 126, 234, 0.4);
+            box-shadow: 0 3px 12px rgba(102, 126, 234, 0.35);
+        }
+
+        .aperture-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 加载提示 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e3e3e3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            font-size: 18px;
+            color: #333;
+        }
+
+        /* 返回按钮 */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 15px;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            z-index: 1001;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 实验说明面板 */
+        .instruction-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 300px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            transition: all 0.3s ease;
+        }
+
+        .instruction-panel h3 {
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .instruction-panel p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* 全屏模式样式 */
+        .fullscreen-mode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 10000;
+            background: #f0f8ff;
+        }
+
+        .fullscreen-mode .control-panel {
+            bottom: 30px;
+        }
+
+        /* 光源调节面板 */
+        .light-adjustment-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 320px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            z-index: 1000;
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .panel-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #666;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+
+        .panel-content {
+            padding: 20px;
+        }
+
+        .wavelength-control {
+            margin-bottom: 20px;
+        }
+
+        .wavelength-control label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .wavelength-control input[type="range"] {
+            width: 100%;
+            margin-bottom: 10px;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .wavelength-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #007bff;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
+        }
+
+        .wavelength-control span {
+            display: block;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .preset-wavelengths label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .preset-btn {
+            padding: 10px 12px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .preset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .preset-btn.blue {
+            background: linear-gradient(135deg, #4169E1 0%, #1e3c72 100%);
+        }
+
+        .preset-btn.green {
+            background: linear-gradient(135deg, #32CD32 0%, #228B22 100%);
+        }
+
+        .preset-btn.yellow {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+        }
+
+        .preset-btn.red {
+            background: linear-gradient(135deg, #FF4500 0%, #DC143C 100%);
+        }
+
+        .panel-info {
+            margin-top: 15px;
+            padding: 12px;
+            background: rgba(0, 123, 255, 0.1);
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+
+        .panel-info p {
+            margin: 0;
+            font-size: 13px;
+            color: #495057;
+            line-height: 1.4;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .control-panel {
+                bottom: 10px;
+                padding: 15px 20px;
+            }
+
+            .control-btn {
+                padding: 10px 18px;
+                font-size: 12px;
+            }
+
+            .instruction-panel {
+                max-width: 250px;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 返回按钮 -->
+    <a href="../index.html" class="back-button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+        </svg>
+        返回首页
+    </a>
+
+    <!-- 实验说明面板 -->
+    <div class="instruction-panel">
+        <h3>夫琅禾费单缝衍射 · 虚拟仿真实验说明</h3>
+        <p>1. 点击"开始实验"进入全屏环境，开启激光光路<br>
+            2. 使用"校准光路"使激光器、透镜、单缝、接收屏共轴<br>
+            3. 通过"调节波长"改变激光波长 (380–780 nm)，观察条纹宽窄变化<br>
+            4. 点击"结束实验"退出虚拟环境</p>
+    </div>
+
+    <!-- 加载提示 -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">正在加载虚拟实验环境...</div>
+    </div>
+
+    <!-- 虚拟实验室容器 -->
+    <div class="virtual-lab-container">
+        <!-- 3D场景容器 -->
+        <div id="lab-scene-container"></div>
+
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <div class="experiment-controls">
+                <button id="start-experiment" class="control-btn start">开始实验</button>
+                <button id="adjust-apparatus" class="control-btn adjust">校准光路</button>
+                <button id="adjust-light" class="control-btn light">调节波长</button>
+                <button id="reset-experiment" class="control-btn reset">重置实验</button>
+                <button id="end-experiment" class="control-btn end">结束实验</button>
+            </div>
+            <div class="aperture-controls">
+                <span class="aperture-label">孔径选择：</span>
+                <button type="button" class="aperture-btn active" data-aperture="slit" id="aperture-slit">单缝</button>
+                <button type="button" class="aperture-btn" data-aperture="circular" id="aperture-circular">圆孔</button>
+            </div>
+        </div>
+
+        <!-- 激光波长调节面板 -->
+        <div id="light-adjustment-panel" class="light-adjustment-panel" style="display: none;">
+            <div class="panel-header">
+                <h3>实验参数调节</h3>
+                <button id="close-light-panel" class="close-btn">&times;</button>
+            </div>
+            <div class="panel-content">
+                <div class="wavelength-control">
+                    <label for="wavelength-slider">波长 (nm):</label>
+                    <input type="range" id="wavelength-slider" min="380" max="780" step="1" value="632">
+                    <span id="wavelength-value">632 nm</span>
+                </div>
+                <div class="wavelength-control">
+                    <label for="slit-width-slider" id="slit-width-label">缝宽 a (mm):</label>
+                    <input type="range" id="slit-width-slider" min="0.02" max="0.50" step="0.01" value="0.10">
+                    <span id="slit-width-value">0.10 mm</span>
+                </div>
+                <div class="preset-wavelengths">
+                    <label>预设波长:</label>
+                    <div class="preset-buttons">
+                        <button class="preset-btn blue" data-wavelength="450">蓝光 (450nm)</button>
+                        <button class="preset-btn green" data-wavelength="532">绿光 (532nm)</button>
+                        <button class="preset-btn red" data-wavelength="632">红光 (632nm)</button>
+                        <button class="preset-btn red" data-wavelength="780">深红 (780nm)</button>
+                    </div>
+                </div>
+                <div class="panel-info">
+                    <p>暗纹间距 Δy≈λf/a。波长越长或缝宽越小，条纹越疏；可在接收屏与后方大屏上同步观察。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 只加载必要的脚本，避免3d-demo.js冲突 -->
+    <script>
+        // 禁用3d-demo.js的自动执行，避免DOM冲突
+        window.addEventListener('error', function (event) {
+            if (event.filename && event.filename.includes('3d-demo.js')) {
+                event.preventDefault();
+                return true;
+            }
+        }, true);
+    </script>
+
+    <!-- 共享衍射图样绘制模块 -->
+    <script src="../js/diffraction-pattern.js"></script>
+
+    <!-- 虚拟实验室主脚本 - 夫琅禾费单缝衍射 -->
+    <script src="virtual-experiment-complete.js"></script>
+</body>
+
+</html>

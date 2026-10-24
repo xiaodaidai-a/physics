@@ -1,0 +1,1840 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <script src="../../pages-demo.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="基于多智能体教学辅助的偏振光与蔗糖旋光现象仿真实验平台 - 实验原理：偏振光学基础、马吕斯定律、旋光效应与三分视场法">
+    <title>实验原理 - 基于多智能体教学辅助的偏振光与蔗糖旋光现象仿真实验平台</title>
+
+    <!-- 字体：纯系统字体方案（零网络依赖） -->
+    <link rel="stylesheet" href="../css/styles.css">
+
+    <!-- MathJax 3：本地化 + 延迟加载 -->
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)'], ['$$', '$$'], ['\\[', '\\]']], displayMath: [] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="../libs/tex-svg.js" defer></script>
+</head>
+<body>
+
+    <!-- ==================== 导航栏 ==================== -->
+    <nav id="navbar" style="
+        position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+        height: 56px;
+        background: rgba(255,255,255,0.85);
+        border-bottom: 1px solid rgba(148,163,184,0.25);
+        display: flex; align-items: center;
+        padding: 0 28px;
+        backdrop-filter: blur(12px);
+    ">
+        <!-- 左侧：品牌名 -->
+        <a href="../index.html" style="display:flex; align-items:center; gap:10px; text-decoration:none;">
+            <span style="font-size:18px;">🎛️</span>
+            <span style="font-size:13px; font-weight:700; color:#1E293B; letter-spacing:0.03em; white-space:nowrap;">
+                液相旋光（蔗糖溶液）虚拟仿真实验
+            </span>
+        </a>
+
+        <!-- 中间：导航链接 -->
+        <div style="display:flex; align-items:center; gap:2px; margin-left:auto;" class="main-nav">
+            <a href="../index.html" class="nav-tab-item ">首页</a>
+            <a href="theory.html" class="nav-tab-item nav-active">理论原理</a>
+            <a href="module-malus.html" class="nav-tab-item ">马吕斯验证</a>
+            <a href="module-polarization-3d.html" class="nav-tab-item ">3D偏振模拟</a>
+            <a href="experiment.html" class="nav-tab-item ">主实验</a>
+            <a href="data-analysis.html" class="nav-tab-item ">数据分析</a>
+            <a href="ideological-education.html" class="nav-tab-item ">课程思政</a>
+            <a href="contact.html" class="nav-tab-item ">关于我们</a>
+        </div>
+    </nav>
+
+    <!-- ==================== Hero 区域（简化版） ==================== -->
+    <section class="theory-hero" id="theoryHero">
+        <div class="theory-hero-content">
+            <h1 class="theory-hero-title">实验原理</h1>
+            <p class="theory-hero-subtitle">偏振光学基础 &middot; 马吕斯定律 &middot; 旋光效应</p>
+        </div>
+    </section>
+
+    <!-- ==================== 文章主体 ==================== -->
+    <main class="theory-main">
+
+        <!-- ========== Section 1：偏振光基础 ========== -->
+        <article class="card theory-section" id="sec-polarization-basics">
+            <h2 class="theory-section-title">一、偏振光基础</h2>
+
+            <h3 class="theory-subtitle">自然光与偏振光</h3>
+            <p class="theory-paragraph">
+                普通光源（如太阳、白炽灯）发出的光称为<strong>自然光</strong>或<strong>非偏振光</strong>。在自然光中，电场矢量在垂直于传播方向的平面内以等概率沿各个方向振动，没有优先方向。当自然光通过某些光学元件（如偏振片）后，电场矢量被限制在某一固定方向振动，这种光称为<strong>线偏振光</strong>（或平面偏振光）。使自然光变为线偏振光的器件称为<strong>起偏器</strong>（Polarizer），用于检测偏振态的器件则称为<strong>检偏器</strong>（Analyzer）。
+            </p>
+
+            <div class="canvas-container">
+                <canvas id="naturalVsPolarized" width="500" height="200"></canvas>
+                <p class="canvas-caption">图1：左侧为自然光（多方向振动），中间为起偏器，右侧为线偏振光（单一方向振动）</p>
+            </div>
+
+            <h3 class="theory-subtitle">马吕斯定律</h3>
+            <p class="theory-paragraph">
+                当线偏振光通过检偏器时，透射光强与入射光强的关系由<strong>马吕斯定律</strong>（Malus's Law）描述。设入射线偏振光的光强为 $I_0$，其振动方向与检偏器透光轴的夹角为 $\theta$，则透射光强 $I$ 为：
+            </p>
+
+            <div class="formula-block">
+                $$I = I_0 \cos^2\theta$$
+            </div>
+
+            <p class="theory-paragraph">
+                该公式表明：当 $\theta = 0^\circ$（两偏振片透光轴平行）时，$I = I_0$，光全部通过；当 $\theta = 90^\circ$（两偏振片透光轴正交）时，$I = 0$，出现<strong>消光现象</strong>。
+            </p>
+        </article>
+
+        <!-- ========== Section 2：马吕斯定律详解 ========== -->
+        <article class="card theory-section" id="sec-malus-detail">
+            <h2 class="theory-section-title">二、马吕斯定律详解</h2>
+
+            <h3 class="theory-subtitle">定律表述</h3>
+            <p class="theory-paragraph">
+                马吕斯定律是偏振光学的核心定律之一，由法国物理学家 Etienne-Louis Malus 于 1809 年发现。其完整表述为：<strong>强度为 $I_0$ 的线偏振光，透过透光轴与其振动方向成 $\theta$ 角的理想偏振片后，出射光强度为 $I_0 \cos^2\theta$。</strong>
+            </p>
+
+            <h3 class="theory-subtitle">数学推导</h3>
+            <p class="theory-paragraph">
+                设入射到检偏器上的线偏振光电场矢量的振幅为 $E_0$，其振动方向与检偏器透光轴夹角为 $\theta$。将 $E_0$ 分解为平行于透光轴的分量 $E_\parallel$ 和垂直于透光轴的分量 $E_\perp$：
+            </p>
+            <div class="formula-block">
+                $$E_\parallel = E_0 \cos\theta, \quad E_\perp = E_0 \sin\theta$$
+            </div>
+            <p class="theory-paragraph">
+                理想检偏器只允许平行分量通过，因此出射光电场振幅为 $E = E_0 \cos\theta$。由于光强正比于电场振幅的平方（$I \propto E^2$），故：
+            </p>
+            <div class="formula-block">
+                $$\frac{I}{I_0} = \frac{E^2}{E_0^2} = \cos^2\theta \quad\Rightarrow\quad I = I_0 \cos^2\theta$$
+            </div>
+
+            <h3 class="theory-subtitle">消光现象</h3>
+            <p class="theory-paragraph">
+                当 $\theta = 90^\circ$ 时，$\cos 90^\circ = 0$，因此 $I = 0$。此时入射光的振动方向完全被检偏器阻挡，无光线透过——这就是<strong>消光现象</strong>。消光是判断线偏振光最直接的方法：旋转检偏器一周，若出现两次完全消光（光强为零），则可确认入射光为线偏振光。
+            </p>
+
+            <div class="canvas-container">
+                <canvas id="malusDemo" width="500" height="280"></canvas>
+                <p class="canvas-caption">图2：马吕斯定律动态演示 — 调节检偏器角度 θ，观察光强随 cos²θ 的变化规律</p>
+            </div>
+        </article>
+
+        <!-- ========== Section 3：旋光现象 ========== -->
+        <article class="card theory-section" id="sec-optical-rotation">
+            <h2 class="theory-section-title">三、旋光现象（Optical Rotation）</h2>
+
+            <h3 class="theory-subtitle">什么是旋光性</h3>
+            <p class="theory-paragraph">
+                当线偏振光通过某些物质（如蔗糖溶液、石英晶体）后，其偏振面会发生旋转，这种现象称为<strong>旋光性</strong>（Optical Activity）或<strong>光活性</strong>。1811 年，法国物理学家 Arago 首次观察到石英晶体的旋光现象；随后 Biot 发现许多有机化合物（如糖类、氨基酸、松节油）也具有旋光性。
+            </p>
+            <p class="theory-paragraph">
+                使偏振面<strong>向右旋转</strong>（顺时针，面对光源观察）的物质称为<strong>右旋体</strong>（Dextrorotatory），记为 (+) 或 (d)；使偏振面向左旋转者称为<strong>左旋体</strong>（Levorotatory），记为 (-) 或 (l)。
+            </p>
+
+            <h3 class="theory-subtitle">旋光机理</h3>
+            <p class="theory-paragraph">
+                旋光性的微观起源在于物质的<strong>分子手性</strong>（Molecular Chirality）。手性分子不能与其镜像重合（如同左手和右手的关系）。当线偏振光进入旋光性介质时，可分解为两个反向旋转的圆偏振光分量——<strong>左旋圆偏振光</strong>（LCP）和<strong>右旋圆偏振光</strong>（RCP）。在手性介质中，这两种圆偏振光的传播速度不同，即折射率 $n_L \neq n_R$，这导致它们在穿过介质后产生相位差，合成后的线偏振光偏振面便发生了旋转。
+            </p>
+
+            <h3 class="theory-subtitle">关键公式</h3>
+            <p class="theory-paragraph">
+                对于溶液中的旋光物质，旋光角 $\theta$ 由以下公式决定：
+            </p>
+            <div class="formula-block">
+                $$\theta = [\alpha]_T^\lambda \cdot c \cdot L$$
+            </div>
+
+            <p class="theory-paragraph">式中各参数的含义如下：</p>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>符号</th>
+                        <th>名称</th>
+                        <th>单位</th>
+                        <th>典型值 / 说明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>$\theta$</td>
+                        <td>旋光角</td>
+                        <td>&deg;（度）</td>
+                        <td>测量值，由仪器读出</td>
+                    </tr>
+                    <tr>
+                        <td>$[\alpha]$</td>
+                        <td>比旋光度</td>
+                        <td>&deg;&middot;mL/(dm&middot;g)</td>
+                        <td>蔗糖: +66.37；葡萄糖: +52.7</td>
+                    </tr>
+                    <tr>
+                        <td>$c$</td>
+                        <td>溶液浓度</td>
+                        <td>g/mL</td>
+                        <td>通常范围: 0 ~ 0.2 g/mL</td>
+                    </tr>
+                    <tr>
+                        <td>$L$</td>
+                        <td>光程长度（管长）</td>
+                        <td>dm（分米）</td>
+                        <td>标准旋光管: 1 dm 或 2 dm</td>
+                    </tr>
+                    <tr>
+                        <td>$T$</td>
+                        <td>温度</td>
+                        <td>&deg;C</td>
+                        <td>标准温度: 20 &deg;C</td>
+                    </tr>
+                    <tr>
+                        <td>$\lambda$</td>
+                        <td>波长</td>
+                        <td>nm</td>
+                        <td>钠 D 线: 589.3 nm（标准光源）</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 class="theory-subtitle">温度修正</h3>
+            <p class="theory-paragraph">
+                比旋光度随温度变化而改变。对于蔗糖溶液，温度修正的经验公式为：
+            </p>
+            <div class="formula-block">
+                $$[\alpha]_T = [\alpha]_{20} - 0.00014\,(T - 20)$$
+            </div>
+            <p class="theory-paragraph">
+                其中 $[\alpha]_{20}$ 为 20 &deg;C 时的比旋光度，$T$ 为实际测量温度（单位：&deg;C）。该修正系数表明：温度每升高 1 &deg;C，蔗糖的比旋光度约减小 0.00014 &deg;&middot;mL/(dm&middot;g)。因此在精密测量中需记录环境温度并进行修正。
+            </p>
+        </article>
+
+        <!-- ========== Section 4：三分视场法 ========== -->
+        <article class="card theory-section" id="sec-half-shade">
+            <h2 class="theory-section-title">四、三分视场法（Half-Shade Method）</h2>
+
+            <h3 class="theory-subtitle">为什么需要半荫片</h3>
+            <p class="theory-paragraph">
+                在旋光测量中，需要精确确定偏振面的旋转角度。如果仅凭人眼判断视场的绝对亮度来定位消光位置，误差会很大。这是因为<strong>人眼对微小亮度差异非常敏感（可分辨约 1%~2% 的亮度差），但对绝对亮度的判断能力较差</strong>。三分视场法利用这一生理特性，通过引入半荫片（Half-Shade Plate）将视场分为三个区域，将"找绝对零点"转化为"找相对等亮点"，从而大幅提高测量精度。
+            </p>
+
+            <h3 class="theory-subtitle">半荫片原理</h3>
+            <p class="theory-paragraph">
+                半荫片是一块特殊的圆形光学元件，覆盖于视场中央。它由一片石英（或玻璃）半波片构成，使经过它的光相对于两侧区域产生一个固定的微小偏振方向偏转角 $\delta$（通常约为 3°~5°，本实验取 $\delta \approx 4^\circ$）。这样，从望远镜中观察到的视场被分为三个扇形区域：左右两侧区域的偏振方向相同（经溶液旋转了角度 $\theta$），而中间区域的偏振方向与两侧相差一个固定角 $\delta$。
+            </p>
+
+            <div class="canvas-container">
+                <canvas id="halfShadeDiagram" width="500" height="300"></canvas>
+                <p class="canvas-caption">图3：三分视场示意图 — 左右两侧与中间区域的偏振方向存在固定夹角 δ</p>
+            </div>
+
+            <h3 class="theory-subtitle">等亮条件推导</h3>
+            <p class="theory-paragraph">
+                设溶液产生的旋光角为 $\theta$（待测），检偏器的透光轴方位角为 $\alpha$。根据马吕斯定律：
+            </p>
+            <ul class="theory-list">
+                <li>左右两侧区域的光强：$I_{side} = I_0 \cos^2(\alpha - \theta)$</li>
+                <li>中间区域的光强：$I_{center} = I_0 \cos^2(\alpha - \theta - \delta)$</li>
+            </ul>
+            <p class="theory-paragraph">
+                当调节检偏器使三区亮度相等时（即 $I_{side} = I_{center}$），有两种情况：
+            </p>
+            <div class="formula-block">
+                $$\alpha - \theta = -\frac{\delta}{2} \quad\text{（等亮点，本实验采用）}$$
+            </div>
+            <p class="theory-paragraph">
+                此时三区亮度均为 $I_0 \cos^2(\delta/2)$，处于中等亮度状态。由于 $\delta$ 很小（~4&deg;），$\cos^2(\delta/2) \approx 0.998$，接近最大亮度，人眼对这种等亮状态的判断灵敏度极高。
+            </p>
+
+            <h3 class="theory-subtitle">灵敏度分析</h3>
+            <p class="theory-paragraph">
+                单视场法（无半荫片）依赖人眼判断绝对消光点（$I \to 0$），在接近消光时光强曲线平缓（$\mathrm{d}I/\mathrm{d}\theta \approx 0$），角度微小偏差引起的光强变化极小，人眼难以分辨。而三分视场法中，等亮点的位置位于光强曲线斜率最大的区域附近，同样的角度偏差会产生显著的亮度差异。理论上，半荫法的测量精度可比单视场法提高 <strong>10 倍以上</strong>，这也是现代旋光仪普遍采用三分视场设计的原因。
+            </p>
+        </article>
+
+        <!-- ========== Section 5：实验仪器介绍 ========== -->
+        <article class="card theory-section" id="sec-instrument">
+            <h2 class="theory-section-title">五、实验仪器介绍</h2>
+
+            <h3 class="theory-subtitle">旋光仪结构</h3>
+            <p class="theory-paragraph">
+                本实验使用的 WXG 型圆盘旋光仪是一种基于三分视场法的精密光学测量仪器。光路依次经过以下部件：
+            </p>
+
+            <div class="instrument-diagram">
+                <div class="instrument-flow">
+                    <div class="inst-component">
+                        <div class="inst-icon inst-light"></div>
+                        <span class="inst-label">钠光灯<br><small>589.3 nm</small></span>
+                    </div>
+                    <div class="inst-arrow">&rarr;</div>
+                    <div class="inst-component">
+                        <div class="inst-icon inst-polarizer"></div>
+                        <span class="inst-label">起偏器<br><small>产生线偏振光</small></span>
+                    </div>
+                    <div class="inst-arrow">&rarr;</div>
+                    <div class="inst-component">
+                        <div class="inst-icon inst-halfshade"></div>
+                        <span class="inst-label">半荫片<br><small>三分视场</small></span>
+                    </div>
+                    <div class="inst-arrow">&rarr;</div>
+                    <div class="inst-component">
+                        <div class="inst-icon inst-tube"></div>
+                        <span class="inst-label">旋光管<br><small>盛放待测液</small></span>
+                    </div>
+                    <div class="inst-arrow">&rarr;</div>
+                    <div class="inst-component">
+                        <div class="inst-icon inst-analyzer"></div>
+                        <span class="inst-label">检偏器<br><small>可旋转读数</small></span>
+                    </div>
+                    <div class="inst-arrow">&rarr;</div>
+                    <div class="inst-component">
+                        <div class="inst-icon inst-telescope"></div>
+                        <span class="inst-label">望远镜<br><small>观测视场</small></span>
+                    </div>
+                </div>
+            </div>
+
+            <p class="theory-paragraph">
+                其中，钠光灯提供波长为 589.3 nm（钠 D 线）的单色黄光作为光源；起偏器将自然光变为线偏振光；半荫片将视场分为三个区域；旋光管内装入待测蔗糖溶液；检偏器可绕光轴旋转并带有刻度盘用于读取角度；望远镜用于放大观察三分视场的亮度分布。
+            </p>
+
+            <h3 class="theory-subtitle">读数方法</h3>
+            <p class="theory-paragraph">
+                旋光仪的度盘采用<strong>双游标读数</strong>方式，目的是消除因度盘中心与旋转轴不完全重合而产生的<strong>偏心差</strong>（Eccentricity Error）。具体操作：
+            </p>
+            <ol class="theory-list ordered">
+                <li>调节望远镜聚焦，看清三分视场的边界</li>
+                <li>旋转检偏器手轮，找到三区等亮位置</li>
+                <li>分别读取左右两个游标的示数</li>
+                <li>最终读数取两个游标值的平均值：$\bar{\alpha} = (\alpha_{left} + \alpha_{right}) / 2$</li>
+            </ol>
+            <p class="theory-paragraph">
+                度盘最小分度为 0.05&deg;，借助游标可估读到 0.01&deg;~0.02&deg;。双游标读数可将偏心差的影响降至最低（理论上完全消除一阶偏心误差）。
+            </p>
+        </article>
+
+        <!-- ========== Section 6：误差来源分析 ========== -->
+        <article class="card theory-section" id="sec-error-analysis">
+            <h2 class="theory-section-title">六、误差来源分析</h2>
+
+            <h3 class="theory-subtitle">系统误差</h3>
+            <div class="error-grid sys-error">
+                <div class="error-card">
+                    <div class="error-num">1</div>
+                    <h4 class="error-title">温度偏离标准温度</h4>
+                    <p class="error-desc">比旋光度具有温度依赖性。若实验室温度不等于 20 &deg;C 且未进行温度修正，将导致比旋光度值存在系统性偏差。</p>
+                    <span class="error-tag">可修正</span>
+                </div>
+                <div class="error-card">
+                    <div class="error-num">2</div>
+                    <h4 class="error-title">光源非单色性</h4>
+                    <p class="error-desc">实际钠光灯并非理想的单色光源，包含少量邻近谱线。不同波长对应的旋光率不同（旋光色散），造成测量值偏差。</p>
+                    <span class="error-tag">仪器固有</span>
+                </div>
+                <div class="error-card">
+                    <div class="error-num">3</div>
+                    <h4 class="error-title">半荫片缺陷</h4>
+                    <p class="error-desc">若半荫片的石英楔角加工不均匀，导致各处偏振夹角 &delta; 不一致，会使等亮位置的判断产生系统漂移。</p>
+                    <span class="error-tag">仪器固有</span>
+                </div>
+                <div class="error-card">
+                    <div class="error-num">4</div>
+                    <h4 class="error-title">接触不完全</h4>
+                    <p class="error-desc">旋光管两端光学窗片若未清洁干净或存在应力残留，会引起额外的偏振态改变，表现为初始零点偏差。</p>
+                    <span class="error-tag">可通过调零消除</span>
+                </div>
+            </div>
+
+            <h3 class="theory-subtitle">随机误差</h3>
+            <div class="error-grid rand-error">
+                <div class="error-card">
+                    <div class="error-num">1</div>
+                    <h4 class="error-title">读数误差</h4>
+                    <p class="error-desc">游标读数的估读不确定度约为 &plusmn;0.02&deg;，双游标平均后可降低至约 &plusmn;0.014&deg;。</p>
+                    <span class="error-tag rand">随机</span>
+                </div>
+                <div class="error-card">
+                    <div class="error-num">2</div>
+                    <h4 class="error-title">等亮判断主观性</h4>
+                    <p class="error-desc">尽管三分视场法显著提高了判断精度，但不同观察者对"等亮"的主观判据仍存在细微差异。</p>
+                    <span class="error-tag rand">随机</span>
+                </div>
+                <div class="error-card">
+                    <div class="error-num">3</div>
+                    <h4 class="error-title">溶液浓度配制误差</h4>
+                    <p class="error-desc">称量、定容过程中引入的浓度不确定性会直接传递到旋光角的计算结果中。</p>
+                    <span class="error-tag rand">随机</span>
+                </div>
+            </div>
+        </article>
+
+    </main>
+
+    <!-- ==================== 页脚 ==================== -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-info">
+                <p class="footer-copyright">&copy; 2026 基于多智能体教学辅助的偏振光与蔗糖旋光现象仿真实验平台. All rights reserved.</p>
+                <p class="footer-icp"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">辽ICP备2026009553号-1</a></p>
+            </div>
+            <div class="footer-links">
+                <a href="contact.html">联系我们</a>
+                <span class="footer-divider">|</span>
+                <a href="#">使用协议</a>
+                <span class="footer-divider">|</span>
+                <a href="#">隐私政策</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 本地脚本 -->
+    <script src="../js/physics-engine.js"></script>
+    <script src="../js/app.js"></script>
+    
+    
+
+    <!-- 内嵌脚本：理论页面专用逻辑 -->
+    <script>
+        // ========== 导航栏滚动阴影 ==========
+        const navbar = document.getElementById('navbar');
+        let lastScrollY = 0;
+
+        function handleNavScroll() {
+            const scrollY = window.scrollY;
+            if (scrollY > 20) {
+                navbar.style.boxShadow = '0 4px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(59, 130, 246, 0.1)';
+            } else {
+                navbar.style.boxShadow = 'none';
+            }
+            lastScrollY = scrollY;
+        }
+
+        window.addEventListener('scroll', handleNavScroll, { passive: true });
+
+        // ========== 移动端菜单切换 ==========
+        function toggleMobileMenu() {
+            const navLinks = document.getElementById('navLinks');
+            const toggle = document.getElementById('navToggle');
+
+            navLinks.classList.toggle('mobile-open');
+            toggle.classList.toggle('active');
+
+            if (navLinks.classList.contains('mobile-open')) {
+                navLinks.style.display = 'flex';
+                navLinks.style.flexDirection = 'column';
+                navLinks.style.position = 'absolute';
+                navLinks.style.top = '64px';
+                navLinks.style.left = '0';
+                navLinks.style.right = '0';
+                navLinks.style.background = 'rgba(255,255,255,0.95)';
+                navLinks.style.padding = '1rem';
+                navLinks.style.gap = '4px';
+                navLinks.style.backdropFilter = 'blur(20px)';
+                navLinks.style.borderBottom = '1px solid var(--border-color)';
+            } else {
+                navLinks.style.display = '';
+                navLinks.style.flexDirection = '';
+                navLinks.style.position = '';
+                navLinks.style.top = '';
+                navLinks.style.left = '';
+                navLinks.style.right = '';
+                navLinks.style.background = '';
+                navLinks.style.padding = '';
+                navLinks.style.gap = '';
+                navLinks.style.backdropFilter = '';
+                navLinks.style.borderBottom = '';
+            }
+        }
+
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                const navLinks = document.getElementById('navLinks');
+                if (navLinks.classList.contains('mobile-open')) {
+                    toggleMobileMenu();
+                }
+            });
+        });
+
+        // ========== Canvas 图示绘制 ==========
+
+        /**
+         * 绘制 Canvas 1：自然光 vs 线偏振光 示意图
+         */
+        function drawNaturalVsPolarized() {
+            const canvas = document.getElementById('naturalVsPolarized');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const W = canvas.width;
+            const H = canvas.height;
+
+            ctx.clearRect(0, 0, W, H);
+
+            // 背景渐变
+            const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+            bgGrad.addColorStop(0, '#F8FAFC');
+            bgGrad.addColorStop(1, '#FFFFFF');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            const centerY = H / 2;
+
+            // ===== 左侧：自然光 =====
+            ctx.save();
+            ctx.translate(70, centerY);
+
+            // 光源点
+            const sunGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, 22);
+            sunGrad.addColorStop(0, 'rgba(245, 200, 66, 0.9)');
+            sunGrad.addColorStop(0.4, 'rgba(245, 200, 66, 0.35)');
+            sunGrad.addColorStop(1, 'rgba(245, 200, 66, 0)');
+            ctx.fillStyle = sunGrad;
+            ctx.beginPath();
+            ctx.arc(0, 0, 22, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 多方向振动箭头
+            const arrowLen = 28;
+            const arrowColors = ['#52525B', '#3B82F6', '#16A34A', '#DC2626', '#71717A', '#ec4899'];
+            for (let i = 0; i < 6; i++) {
+                const angle = (i * Math.PI * 2) / 6;
+                ctx.strokeStyle = arrowColors[i];
+                ctx.lineWidth = 1.8;
+                ctx.globalAlpha = 0.75;
+                ctx.beginPath();
+                ctx.moveTo(26, 0);
+                ctx.lineTo(26 + arrowLen * Math.cos(angle), arrowLen * Math.sin(angle));
+                ctx.stroke();
+                // 箭头头部
+                const tipX = 26 + arrowLen * Math.cos(angle);
+                const tipY = arrowLen * Math.sin(angle);
+                ctx.beginPath();
+                ctx.moveTo(tipX, tipY);
+                ctx.lineTo(
+                    tipX - 5 * Math.cos(angle - 0.4),
+                    tipY - 5 * Math.sin(angle - 0.4)
+                );
+                ctx.moveTo(tipX, tipY);
+                ctx.lineTo(
+                    tipX - 5 * Math.cos(angle + 0.4),
+                    tipY - 5 * Math.sin(angle + 0.4)
+                );
+                ctx.stroke();
+            }
+            ctx.globalAlpha = 1;
+
+            // 标签
+            ctx.fillStyle = '#475569';
+            ctx.font = '12px "Noto Sans SC", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('自然光', 30, 52);
+            ctx.font = '10px "Noto Sans SC", sans-serif';
+            ctx.fillStyle = '#94A3B8';
+            ctx.fillText('多方向振动', 30, 66);
+
+            ctx.restore();
+
+            // ===== 中间：起偏器 =====
+            ctx.save();
+            ctx.translate(W / 2, centerY);
+
+            // 栅格背景框
+            ctx.fillStyle = 'rgba(59, 130, 246, 0.06)';
+            ctx.strokeStyle = 'rgba(59, 130, 246, 0.3)';
+            ctx.lineWidth = 1;
+            roundRect(ctx, -16, -50, 32, 100, 4);
+            ctx.fill();
+            ctx.stroke();
+
+            // 竖线栅格
+            ctx.strokeStyle = '#94A3B8';
+            ctx.lineWidth = 1.5;
+            for (let i = -11; i <= 11; i += 5) {
+                ctx.beginPath();
+                ctx.moveTo(i, -46);
+                ctx.lineTo(i, 46);
+                ctx.stroke();
+            }
+            ctx.lineWidth = 1;
+            for (let i = -9; i <= 9; i += 5) {
+                if (Math.abs(i) % 10 !== 0) {
+                    ctx.globalAlpha = 0.35;
+                    ctx.beginPath();
+                    ctx.moveTo(i, -44);
+                    ctx.lineTo(i, 44);
+                    ctx.stroke();
+                }
+            }
+            ctx.globalAlpha = 1;
+
+            // 标签
+            ctx.fillStyle = '#475569';
+            ctx.font = '11px "Noto Sans SC", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('起偏器', 0, 68);
+
+            ctx.restore();
+
+            // ===== 右侧：线偏振光 =====
+            ctx.save();
+            ctx.translate(W - 80, centerY);
+
+            // 单一方向振动箭头（竖直）
+            ctx.strokeStyle = '#16A34A';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(-36, 0);
+            ctx.lineTo(-36 + 38, 0);
+            ctx.stroke();
+
+            // 箭头头部
+            ctx.beginPath();
+            ctx.moveTo(2, 0);
+            ctx.lineTo(-4, -5);
+            ctx.moveTo(2, 0);
+            ctx.lineTo(-4, 5);
+            ctx.stroke();
+
+            // 双箭头表示振动方向
+            ctx.setLineDash([4, 3]);
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(-15, -22);
+            ctx.lineTo(-15, 22);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // 小箭头标注振动
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(-15, -22);
+            ctx.lineTo(-18, -15);
+            ctx.moveTo(-15, -22);
+            ctx.lineTo(-12, -15);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(-15, 22);
+            ctx.lineTo(-18, 15);
+            ctx.moveTo(-15, 22);
+            ctx.lineTo(-12, 15);
+            ctx.stroke();
+
+            // 标签
+            ctx.fillStyle = '#06B6D4';
+            ctx.font = '12px "Noto Sans SC", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('线偏振光', -12, 52);
+            ctx.font = '10px "Noto Sans SC", sans-serif';
+            ctx.fillStyle = '#94A3B8';
+            ctx.fillText('单一方向振动', -12, 66);
+
+            ctx.restore();
+
+            // 传播方向箭头（底部）
+            ctx.save();
+            ctx.strokeStyle = 'rgba(148,163,184,0.4)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([6, 4]);
+            ctx.beginPath();
+            ctx.moveTo(105, H - 18);
+            ctx.lineTo(W - 105, H - 18);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            // 箭头
+            ctx.beginPath();
+            ctx.moveTo(W - 105, H - 18);
+            ctx.lineTo(W - 113, H - 23);
+            ctx.moveTo(W - 105, H - 18);
+            ctx.lineTo(W - 113, H - 13);
+            ctx.stroke();
+            ctx.fillStyle = 'rgba(148,163,184,0.5)';
+            ctx.font = '10px "Noto Sans SC", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('光传播方向', W / 2, H - 6);
+            ctx.restore();
+        }
+
+        /**
+         * 辅助函数：绘制圆角矩形
+         */
+        function roundRect(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+        }
+
+        /**
+         * 绘制 Canvas 2：马吕斯定律动态演示
+         */
+        let malusAnimId = null;
+        let malusAngle = 0;
+        let malusTime = 0;
+
+        function drawMalusDemo() {
+            const canvas = document.getElementById('malusDemo');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const W = canvas.width;
+            const H = canvas.height;
+
+            ctx.clearRect(0, 0, W, H);
+
+            // 背景
+            const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+            bgGrad.addColorStop(0, '#F8FAFC');
+            bgGrad.addColorStop(1, '#FFFFFF');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            const mainAreaH = 190;   // 上部主演示区高度
+            const chartAreaY = mainAreaH + 10; // 下部图表区起始 Y
+            const chartAreaH = H - chartAreaY - 5;
+
+            // 更新角度（缓慢往复运动）
+            malusTime += 0.015;
+            malusAngle = (Math.sin(malusTime) * 88); // -88° ~ +88°
+
+            const cos2 = Math.cos(malusAngle * Math.PI / 180) ** 2;
+            const lightIntensity = cos2;
+
+            // ===== 主演示区 =====
+
+            // 1. 光源（黄色发光点）
+            const sourceX = 40;
+            const sourceY = mainAreaH / 2;
+            const pulseSize = 10 + 3 * Math.sin(malusTime * 3);
+            const sunGrad = ctx.createRadialGradient(sourceX, sourceY, 0, sourceX, sourceY, pulseSize + 14);
+            sunGrad.addColorStop(0, `rgba(245, 200, 66, ${0.6 + 0.3 * lightIntensity})`);
+            sunGrad.addColorStop(0.45, `rgba(245, 200, 66, ${0.25 * lightIntensity})`);
+            sunGrad.addColorStop(1, 'rgba(245, 200, 66, 0)');
+            ctx.fillStyle = sunGrad;
+            ctx.beginPath();
+            ctx.arc(sourceX, sourceY, pulseSize + 14, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#3B82F6';
+            ctx.beginPath();
+            ctx.arc(sourceX, sourceY, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 光源标签
+            ctx.fillStyle = '#475569';
+            ctx.font = '10px "Noto Sans SC", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('光源', sourceX, sourceY + 34);
+
+            // 2. 入射光束（水平线）
+            ctx.strokeStyle = `rgba(245, 200, 66, ${0.3 + 0.5 * lightIntensity})`;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(sourceX + 12, sourceY);
+            ctx.lineTo(100, sourceY);
+            ctx.stroke();
+
+            // 3. 起偏器（竖直栅格，固定 0°）
+            const polX = 110;
+            ctx.fillStyle = 'rgba(59, 130, 246, 0.06)';
+            ctx.strokeStyle = 'rgba(59, 130, 246, 0.35)';
+            ctx.lineWidth = 1;
+            roundRect(ctx, polX - 10, sourceY - 60, 20, 120, 3);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.strokeStyle = '#94A3B8';
+            ctx.lineWidth = 1.5;
+            for (let i = -7; i <= 7; i += 5) {
+                ctx.beginPath();
+                ctx.moveTo(polX + i, sourceY - 56);
+                ctx.lineTo(polX + i, sourceY + 56);
+                ctx.stroke();
+            }
+
+            // 起偏器透光轴指示（竖直双向箭头）
+            ctx.strokeStyle = '#94A3B8';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(polX, sourceY - 48);
+            ctx.lineTo(polX, sourceY + 48);
+            ctx.stroke();
+            // 箭头
+            ctx.beginPath();
+            ctx.moveTo(polX, sourceY - 48);
+            ctx.lineTo(polX - 3, sourceY - 41);
+            ctx.moveTo(polX, sourceY - 48);
+            ctx.lineTo(polX + 3, sourceY - 41);
+            ctx.moveTo(polX, sourceY + 48);
+            ctx.lineTo(polX - 3, sourceY + 41);
+            ctx.moveTo(polX, sourceY + 48);
+            ctx.lineTo(polX + 3, sourceY + 41);
+            ctx.stroke();
+
+            ctx.fillStyle = '#475569';
+            ctx.font = '9px "Noto Sans SC", sans-serif';
+            ctx.fillText('起偏器', polX, sourceY + 76);
+            ctx.font = '8px "Noto Sans SC", sans-serif';
+            ctx.fillStyle = '#94A3B8';
+            ctx.fillText('0°', polX, sourceY + 87);
+
+            // 4. 偏振光束（起偏器 -> 检偏器）
+            ctx.strokeStyle = `rgba(6, 182, 212, ${0.3 + 0.5 * lightIntensity})`;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(polX + 12, sourceY);
+            ctx.lineTo(220, sourceY);
+            ctx.stroke();
+
+            // 5. 检偏器（可旋转栅格）
+            const anaX = 230;
+            ctx.save();
+            ctx.translate(anaX, sourceY);
+            ctx.rotate(malusAngle * Math.PI / 180);
+
+            ctx.fillStyle = 'rgba(245, 158, 11, 0.06)';
+            ctx.strokeStyle = `rgba(245, 158, 11, ${0.35 + 0.3 * lightIntensity})`;
+            ctx.lineWidth = 1;
+            roundRect(ctx, -10, -60, 20, 120, 3);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.strokeStyle = `#3B82F6`;
+            ctx.lineWidth = 1.5;
+            ctx.globalAlpha = 0.5 + 0.5 * lightIntensity;
+            for (let i = -7; i <= 7; i += 5) {
+                ctx.beginPath();
+                ctx.moveTo(i, -56);
+                ctx.lineTo(i, 56);
+                ctx.stroke();
+            }
+            ctx.globalAlpha = 1;
+
+            // 透光轴指示
+            ctx.strokeStyle = '#3B82F6';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(0, -48);
+            ctx.lineTo(0, 48);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(0, -48);
+            ctx.lineTo(-3, -41);
+            ctx.moveTo(0, -48);
+            ctx.lineTo(3, -41);
+            ctx.moveTo(0, 48);
+            ctx.lineTo(-3, 41);
+            ctx.moveTo(0, 48);
+            ctx.lineTo(3, 41);
+            ctx.stroke();
+
+            ctx.restore(); // 恢复坐标系
+
+            ctx.fillStyle = '#3B82F6';
+            ctx.font = '9px "Noto Sans SC", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('检偏器', anaX, sourceY + 76);
+            ctx.font = '10px "JetBrains Mono", monospace';
+            ctx.fillStyle = '#06B6D4';
+            const angleDisplay = malusAngle >= 0 ? `${malusAngle.toFixed(0)}°` : `${malusAngle.toFixed(0)}°`;
+            ctx.fillText(`θ = ${angleDisplay}`, anaX, sourceY + 89);
+
+            // 6. 出射光束 + 光强指示条
+            const barX = anaX + 28;
+            const barMaxH = 90;
+            const barW = 26;
+            const barH = barMaxH * lightIntensity;
+
+            // 出射光线
+            ctx.strokeStyle = `rgba(6, 182, 212, ${0.15 + 0.7 * lightIntensity})`;
+            ctx.lineWidth = 1.5 + 2 * lightIntensity;
+            ctx.beginPath();
+            ctx.moveTo(anaX + 12, sourceY);
+            ctx.lineTo(barX - 4, sourceY);
+            ctx.stroke();
+
+            // 光强条背景
+            ctx.fillStyle = 'rgba(148,163,184,0.15)';
+            roundRect(ctx, barX, sourceY - barMaxH / 2, barW, barMaxH, 3);
+            ctx.fill();
+
+            // 光强条填充（颜色从暗红到亮绿渐变）
+            if (barH > 1) {
+                const intensityGrad = ctx.createLinearGradient(barX, sourceY + barMaxH / 2, barX, sourceY + barMaxH / 2 - barH);
+                intensityGrad.addColorStop(0, '#DC2626');
+                intensityGrad.addColorStop(0.3, '#3B82F6');
+                intensityGrad.addColorStop(1, '#16A34A');
+                ctx.fillStyle = intensityGrad;
+                roundRect(ctx, barX, sourceY + barMaxH / 2 - barH, barW, barH, 3);
+                ctx.fill();
+            }
+
+            // 光强条边框
+            ctx.strokeStyle = 'rgba(148,163,184,0.3)';
+            ctx.lineWidth = 1;
+            roundRect(ctx, barX, sourceY - barMaxH / 2, barW, barMaxH, 3);
+            ctx.stroke();
+
+            // 光强数值
+            ctx.fillStyle = '#1E293B';
+            ctx.font = '10px "JetBrains Mono", monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(`I/I₀`, barX + barW / 2, sourceY - barMaxH / 2 - 6);
+            ctx.fillStyle = '#06B6D4';
+            ctx.font = 'bold 12px "JetBrains Mono", monospace';
+            ctx.fillText(cos2.toFixed(3), barX + barW / 2, sourceY + barMaxH / 2 + 16);
+
+            // ===== 底部 I-θ 曲线 =====
+            const chartX = 30;
+            const chartW = W - 60;
+            const chartCY = chartAreaY + chartAreaH / 2;
+
+            // 图表背景
+            ctx.fillStyle = 'rgba(248,250,252,0.7)';
+            roundRect(ctx, chartX, chartAreaY, chartW, chartAreaH, 4);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(148,163,184,0.2)';
+            ctx.lineWidth = 1;
+            roundRect(ctx, chartX, chartAreaY, chartW, chartAreaH, 4);
+            ctx.stroke();
+
+            // 网格线
+            ctx.strokeStyle = 'rgba(148,163,184,0.15)';
+            ctx.lineWidth = 0.5;
+            // 水平中线
+            ctx.beginPath();
+            ctx.moveTo(chartX, chartCY);
+            ctx.lineTo(chartX + chartW, chartCY);
+            ctx.stroke();
+            // 垂直线（-90, -45, 0, 45, 90）
+            for (let deg of [-90, -45, 0, 45, 90]) {
+                const px = chartX + chartW / 2 + (deg / 90) * (chartW / 2 - 10);
+                ctx.beginPath();
+                ctx.moveTo(px, chartAreaY + 4);
+                ctx.lineTo(px, chartAreaY + chartAreaH - 4);
+                ctx.stroke();
+            }
+
+            // 绘制 cos²θ 曲线
+            ctx.strokeStyle = '#94A3B8';
+            ctx.lineWidth = 1.8;
+            ctx.beginPath();
+            for (let px = chartX + 5; px <= chartX + chartW - 5; px++) {
+                const deg = ((px - chartX - chartW / 2) / (chartW / 2 - 10)) * 90;
+                const val = Math.cos(deg * Math.PI / 180) ** 2;
+                const py = chartCY - (val - 0.5) * (chartAreaH * 0.72);
+                if (px === chartX + 5) {
+                    ctx.moveTo(px, py);
+                } else {
+                    ctx.lineTo(px, py);
+                }
+            }
+            ctx.stroke();
+
+            // 当前角度标记点
+            const markerPx = chartX + chartW / 2 + (malusAngle / 90) * (chartW / 2 - 10);
+            const markerPy = chartCY - (cos2 - 0.5) * (chartAreaH * 0.72);
+            ctx.fillStyle = '#3B82F6';
+            ctx.beginPath();
+            ctx.arc(markerPx, markerPy, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#3B82F6';
+            ctx.font = 'bold 10px "JetBrains Mono", monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(`(${malusAngle.toFixed(0)}°, ${cos2.toFixed(2)})`, markerPx, chartAreaY + chartAreaH - 8);
+
+            // 坐标轴标签
+            ctx.fillStyle = '#94A3B8';
+            ctx.font = '9px "Noto Sans SC", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('θ (°)', chartX + chartW / 2, chartAreaY + chartAreaH - 2);
+            ctx.save();
+            ctx.translate(chartX + 8, chartCY);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('I/I₀', 0, 0);
+            ctx.restore();
+
+            // 继续动画
+            malusAnimId = requestAnimationFrame(drawMalusDemo);
+        }
+
+        /**
+         * 绘制 Canvas 3：三分视场（半荫片）示意图
+         */
+        function drawHalfShadeDiagram() {
+            const canvas = document.getElementById('halfShadeDiagram');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const W = canvas.width;
+            const H = canvas.height;
+
+            ctx.clearRect(0, 0, W, H);
+
+            // 背景
+            const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+            bgGrad.addColorStop(0, '#F8FAFC');
+            bgGrad.addColorStop(1, '#FFFFFF');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            const cx = W / 2;
+            const cy = H / 2 - 10;
+            const R = 85; // 视场半径
+
+            // ===== 绘制圆形视场（三个扇区） =====
+            // 左扇区（约 150° ~ 210°，即左侧 60° 扇区）
+            // 右扇区（约 -30° ~ 30°，即右侧 60° 扇区）
+            // 中间扇区（其余部分）
+
+            const delta = 4; // 半荫片偏转角（度）
+
+            // 计算各区域亮度（模拟等亮状态附近的视觉效果）
+            // 这里静态展示 δ ≈ 4° 的结构示意
+
+            // 外圈边框
+            ctx.strokeStyle = 'rgba(148,163,184,0.4)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, R, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // --- 左扇区 ---
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, R, (150 * Math.PI) / 180, (210 * Math.PI) / 180);
+            ctx.closePath();
+            ctx.clip();
+
+            // 左扇区底色（略暗）
+            ctx.fillStyle = 'rgba(148,163,184,0.15)';
+            ctx.beginPath();
+            ctx.arc(cx, cy, R, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 左扇区偏振方向箭头（竖直偏 +δ/2 的效果，这里画为略偏）
+            drawPolarArrow(ctx, cx - 35, cy, 0 + delta / 2, 30, '#94A3B8');
+
+            // 区域标签
+            ctx.fillStyle = '#475569';
+            ctx.font = 'bold 11px "Noto Sans SC", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('左区', cx - 35, cy + 52);
+
+            ctx.restore();
+
+            // --- 右扇区 ---
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, R, (-30 * Math.PI) / 180, (30 * Math.PI) / 180);
+            ctx.closePath();
+            ctx.clip();
+
+            ctx.fillStyle = 'rgba(148,163,184,0.15)';
+            ctx.beginPath();
+            ctx.arc(cx, cy, R, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 右扇区偏振方向箭头（同左区）
+            drawPolarArrow(ctx, cx + 35, cy, 0 + delta / 2, 30, '#3B82F6');
+
+            ctx.fillStyle = '#475569';
+            ctx.font = 'bold 11px "Noto Sans SC", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('右区', cx + 35, cy + 52);
+
+            ctx.restore();
+
+            // --- 中间扇区 ---
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, R, (33 * Math.PI) / 180, (147 * Math.PI) / 180);
+            ctx.closePath();
+            ctx.arc(cx, cy, R, (213 * Math.PI) / 180, (327 * Math.PI) / 180);
+            ctx.closePath();
+            ctx.clip();
+
+            ctx.fillStyle = 'rgba(59,130,246,0.08)';
+            ctx.beginPath();
+            ctx.arc(cx, cy, R, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 中间扇区偏振方向箭头（偏 -δ/2）
+            drawPolarArrow(ctx, cx, cy - 10, 0 - delta / 2, 30, '#3B82F6');
+
+            ctx.fillStyle = '#1E293B';
+            ctx.font = 'bold 11px "Noto Sans SC", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('中区', cx, cy + 42);
+
+            ctx.restore();
+
+            // 分界线
+            ctx.strokeStyle = 'rgba(148,163,184,0.35)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4, 3]);
+            // 左分界线
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            const lbx1 = cx + R * Math.cos((148 * Math.PI) / 180);
+            const lby1 = cy + R * Math.sin((148 * Math.PI) / 180);
+            ctx.lineTo(lbx1, lby1);
+            ctx.stroke();
+            // 右分界线
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            const rbx1 = cx + R * Math.cos((32 * Math.PI) / 180);
+            const rby1 = cy + R * Math.sin((32 * Math.PI) / 180);
+            ctx.lineTo(rbx1, rby1);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // ===== 右侧：检偏器示意 =====
+            const anaCX = cx + R + 65;
+            ctx.save();
+            ctx.translate(anaCX, cy);
+
+            // 检偏器方框
+            ctx.fillStyle = 'rgba(139, 92, 246, 0.04)';
+            ctx.strokeStyle = 'rgba(139, 92, 246, 0.3)';
+            ctx.lineWidth = 1.2;
+            roundRect(ctx, -14, -55, 28, 110, 4);
+            ctx.fill();
+            ctx.stroke();
+
+            // 检偏器栅格（旋转至 -δ/2 位置，即等亮点位置）
+            ctx.rotate((-delta / 2) * Math.PI / 180);
+            ctx.strokeStyle = '#94A3B8';
+            ctx.lineWidth = 1.3;
+            for (let i = -8; i <= 8; i += 5) {
+                ctx.beginPath();
+                ctx.moveTo(i, -50);
+                ctx.lineTo(i, 50);
+                ctx.stroke();
+            }
+
+            // 透光轴箭头
+            ctx.strokeStyle = '#94A3B8';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(0, -42);
+            ctx.lineTo(0, 42);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(0, -42);
+            ctx.lineTo(-3, -35);
+            ctx.moveTo(0, -42);
+            ctx.lineTo(3, -35);
+            ctx.moveTo(0, 42);
+            ctx.lineTo(-3, 35);
+            ctx.moveTo(0, 42);
+            ctx.lineTo(3, 35);
+            ctx.stroke();
+
+            ctx.restore();
+
+            ctx.fillStyle = '#475569';
+            ctx.font = '10px "Noto Sans SC", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('检偏器', anaCX, cy + 72);
+            ctx.font = '9px "JetBrains Mono", monospace';
+            ctx.fillStyle = '#8B5CF6';
+            ctx.fillText(`α = -δ/2`, anaCX, cy + 84);
+
+            // ===== 底部说明文字 =====
+            ctx.fillStyle = '#475569';
+            ctx.font = '11px "Noto Sans SC", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`左右两侧偏振方向相同（经溶液旋转 θ 后），与中间区域相差固定夹角 δ ≈ ${delta}°`, cx, H - 14);
+
+            // ===== 夹角标注弧线 =====
+            // 在中区画一个小弧表示 δ
+            ctx.save();
+            ctx.translate(cx, cy - 10);
+            ctx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([3, 2]);
+            ctx.beginPath();
+            ctx.arc(0, 0, 18, (-delta / 2 - 8) * Math.PI / 180, (delta / 2 + 8) * Math.PI / 180);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = '#3B82F6';
+            ctx.font = '9px "JetBrains Mono", monospace';
+            ctx.fillText('δ', 22, 4);
+            ctx.restore();
+        }
+
+        /**
+         * 辅助函数：在指定位置绘制表示偏振方向的双向箭头
+         * @param {CanvasRenderingContext2D} ctx
+         * @param {number} x - 中心 X
+         * @param {number} y - 中心 Y
+         * @param {number} angleDeg - 角度（度），0 为竖直向上
+         * @param {number} len - 箭头半长
+         * @param {string} color - 颜色
+         */
+        function drawPolarArrow(ctx, x, y, angleDeg, len, color) {
+            const rad = (angleDeg - 90) * Math.PI / 180; // 转换为标准数学角（0度为右）
+
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(rad);
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, -len);
+            ctx.lineTo(0, len);
+            ctx.stroke();
+
+            // 上箭头
+            ctx.beginPath();
+            ctx.moveTo(0, -len);
+            ctx.lineTo(-4, -len + 7);
+            ctx.moveTo(0, -len);
+            ctx.lineTo(4, -len + 7);
+            ctx.stroke();
+
+            // 下箭头
+            ctx.beginPath();
+            ctx.moveTo(0, len);
+            ctx.lineTo(-4, len - 7);
+            ctx.moveTo(0, len);
+            ctx.lineTo(4, len - 7);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // ========== 初始化 ==========
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // 绘制静态 Canvas
+            drawNaturalVsPolarized();
+            drawHalfShadeDiagram();
+
+            // 启动马吕斯动画
+            drawMalusDemo();
+
+            // 检查 physics-engine 是否加载
+            if (typeof PhysicsEngine !== 'undefined' && PhysicsEngine) {
+                console.log('[Theory Page] physics-engine.js 已加载，可用于高级数值演示');
+            } else {
+                console.warn('[Theory Page] physics-engine.js 未加载或不可用，跳过物理引擎增强功能');
+            }
+
+            // IntersectionObserver 滚动渐入
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px 0px -40px 0px',
+                threshold: 0.08
+            };
+
+            const observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.theory-section').forEach(function (el) {
+                observer.observe(el);
+            });
+        });
+
+        // 页面不可见时暂停动画
+        document.addEventListener('visibilitychange', function () {
+            if (document.hidden) {
+                if (malusAnimId) cancelAnimationFrame(malusAnimId);
+            } else {
+                drawMalusDemo();
+            }
+        });
+    </script>
+
+    <!-- 理论页面专用补充样式 -->
+    <style>
+        /* ===== Hero 区域（简化版） ===== */
+        .theory-hero {
+            background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 50%, #E2E8F0 100%);
+            padding: 5rem 2rem 3.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .theory-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(ellipse at 25% 40%, rgba(59, 130, 246, 0.1) 0%, transparent 55%),
+                radial-gradient(ellipse at 75% 60%, rgba(245, 158, 11, 0.08) 0%, transparent 55%);
+            pointer-events: none;
+        }
+
+        .theory-hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .theory-hero-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            letter-spacing: 0.06em;
+            animation: fadeInUp 0.7s ease-out both;
+        }
+
+        .theory-hero-subtitle {
+            font-size: clamp(0.95rem, 2vw, 1.15rem);
+            color: var(--text-secondary);
+            animation: fadeInUp 0.7s ease-out 0.15s both;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== 文章主体布局 ===== */
+        .theory-main {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem 4rem;
+        }
+
+        /* ===== Section 卡片 ===== */
+        .theory-section {
+            margin-bottom: 2rem;
+            padding: 2rem 2.2rem;
+            border-radius: var(--radius-lg);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .theory-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .theory-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(59, 130, 246, 0.12);
+        }
+
+        .theory-section-title {
+            font-family: var(--font-display);
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+            letter-spacing: 0.03em;
+        }
+
+        .theory-subtitle {
+            font-family: var(--font-display);
+            font-size: 1.08rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-top: 1.5rem;
+            margin-bottom: 0.7rem;
+        }
+
+        .theory-subtitle:first-child {
+            margin-top: 0;
+        }
+
+        .theory-paragraph {
+            color: var(--text-secondary);
+            font-size: 0.94rem;
+            line-height: 1.8;
+            margin-bottom: 0.85rem;
+        }
+
+        /* ===== 公式块 ===== */
+        .formula-block {
+            background: rgba(59, 130, 246, 0.05);
+            border-left: 3px solid var(--accent-blue);
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            padding: 1.1rem 1.5rem;
+            margin: 1.2rem 0;
+            overflow-x: auto;
+            text-align: center;
+        }
+
+        /* ===== 列表 ===== */
+        .theory-list {
+            color: var(--text-secondary);
+            font-size: 0.93rem;
+            line-height: 1.75;
+            padding-left: 1.5rem;
+            margin: 0.7rem 0;
+        }
+
+        .theory-list li {
+            margin-bottom: 0.4rem;
+        }
+
+        .theory-list.ordered {
+            list-style-type: decimal;
+        }
+
+        /* ===== Canvas 容器 ===== */
+        .canvas-container {
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .canvas-container canvas {
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .canvas-caption {
+            color: var(--text-muted);
+            font-size: 0.83rem;
+            margin-top: 0.6rem;
+            font-style: italic;
+        }
+
+        /* ===== 数据表格 ===== */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.2rem 0;
+            font-size: 0.9rem;
+        }
+
+        .data-table thead th {
+            background: rgba(59, 130, 246, 0.08);
+            color: var(--accent-blue);
+            font-weight: 600;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 2px solid rgba(59, 130, 246, 0.25);
+            font-family: var(--font-body);
+        }
+
+        .data-table tbody td {
+            padding: 0.65rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(59, 130, 246, 0.03);
+        }
+
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* ===== 仪器结构流程图 ===== */
+        .instrument-diagram {
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            padding: 0.5rem 0;
+        }
+
+        .instrument-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            flex-wrap: nowrap;
+            min-width: max-content;
+            padding: 1rem 0.5rem;
+        }
+
+        .inst-component {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem;
+            min-width: 64px;
+        }
+
+        .inst-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .inst-light {
+            background: radial-gradient(circle at center, rgba(245, 158, 11, 0.25), rgba(245, 158, 11, 0.05));
+            border: 1.5px solid rgba(245, 158, 11, 0.35);
+        }
+        .inst-light::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: #3B82F6;
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+        }
+
+        .inst-polarizer {
+            background: rgba(59, 130, 246, 0.08);
+            border: 1.5px solid rgba(59, 130, 246, 0.35);
+        }
+        .inst-polarizer::after {
+            content: '';
+            width: 2px;
+            height: 26px;
+            background: #94A3B8;
+            position: relative;
+        }
+        .inst-polarizer::before {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 26px;
+            background: rgba(59, 130, 246, 0.35);
+            left: calc(50% + 5px);
+        }
+
+        .inst-halfshade {
+            background: rgba(245, 158, 11, 0.06);
+            border: 1.5px solid rgba(245, 158, 11, 0.3);
+        }
+        .inst-halfshade::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 2px solid #3B82F6;
+            border-radius: 50%;
+            position: relative;
+        }
+        .inst-halfshade::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 10px;
+            border-left: 2px solid #3B82F6;
+            border-right: 2px solid #3B82F6;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .inst-tube {
+            background: rgba(6, 182, 212, 0.06);
+            border: 1.5px solid rgba(6, 182, 212, 0.3);
+        }
+        .inst-tube::after {
+            content: '';
+            width: 12px;
+            height: 30px;
+            border: 2px solid #06B6D4;
+            border-radius: 3px;
+            position: relative;
+        }
+
+        .inst-analyzer {
+            background: rgba(139, 92, 246, 0.08);
+            border: 1.5px solid rgba(139, 92, 246, 0.35);
+        }
+        .inst-analyzer::after {
+            content: '';
+            width: 2px;
+            height: 26px;
+            background: #94A3B8;
+            transform: rotate(15deg);
+            position: relative;
+        }
+
+        .inst-telescope {
+            background: rgba(239, 68, 68, 0.08);
+            border: 1.5px solid rgba(239, 68, 68, 0.35);
+        }
+        .inst-telescope::after {
+            content: '';
+            width: 22px;
+            height: 14px;
+            border: 2px solid #DC2626;
+            border-radius: 3px 3px 8px 8px;
+            position: relative;
+        }
+
+        .inst-label {
+            font-size: 0.76rem;
+            color: var(--text-secondary);
+            text-align: center;
+            line-height: 1.3;
+            white-space: nowrap;
+        }
+
+        .inst-label small {
+            color: var(--text-muted);
+            font-size: 0.68rem;
+        }
+
+        .inst-arrow {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        /* ===== 误差卡片网格 ===== */
+        .error-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .error-card {
+            background: rgba(248, 250, 252, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.2rem 1.3rem;
+            position: relative;
+            transition: border-color 0.25s ease;
+        }
+
+        .error-card:hover {
+            border-color: rgba(59, 130, 246, 0.25);
+        }
+
+        .error-num {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            color: #FFFFFF;
+            font-size: 0.78rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.6rem;
+            font-family: var(--font-display);
+        }
+
+        .error-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.4rem;
+        }
+
+        .error-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 0.6rem;
+        }
+
+        .error-tag {
+            display: inline-block;
+            font-size: 0.72rem;
+            padding: 0.15rem 0.55rem;
+            border-radius: 9999px;
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--accent-blue);
+            font-weight: 500;
+        }
+
+        .error-tag.rand {
+            background: rgba(245, 158, 11, 0.1);
+            color: #F59E0B;
+        }
+
+        /* ===== AI 助手补充样式 ===== */
+        .ai-assistant {
+            display: flex !important;
+            flex-direction: column;
+        }
+
+        .ai-assistant.collapsed {
+            flex-direction: row;
+            align-self: flex-end;
+            width: auto;
+            max-height: none;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            backdrop-filter: none;
+        }
+
+        .ai-toggle-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3B82F6, #06B6D4);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3), 0 0 0 0 rgba(59, 130, 246, 0.35);
+            animation: pulseRing 2.5s ease-in-out infinite;
+            z-index: 2;
+            transition: all var(--transition-normal);
+        }
+
+        .ai-toggle-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 28px rgba(59, 130, 246, 0.4), 0 0 0 8px rgba(59, 130, 246, 0.08);
+        }
+
+        @keyframes pulseRing {
+            0%, 100% { box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3), 0 0 0 0 rgba(59, 130, 246, 0.35); }
+            50% { box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3), 0 0 0 12px rgba(59, 130, 246, 0.06); }
+        }
+
+        .ai-chat-panel {
+            display: none;
+            flex-direction: column;
+        }
+
+        /* ===== 页脚 ===== */
+        .footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 2.5rem 2rem;
+            margin-top: 2rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .footer-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .footer-copyright {
+            color: var(--text-muted);
+            font-size: 0.86rem;
+        }
+
+        .footer-icp {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+
+        .footer-icp a {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+
+        .footer-icp a:hover {
+            color: var(--accent-blue);
+        }
+
+        .footer-links {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.86rem;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            font-size: 0.86rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-blue);
+        }
+
+        .footer-divider {
+            color: var(--border-color);
+            font-size: 0.76rem;
+        }
+
+        /* ===== 响应式适配 ===== */
+        @media (max-width: 767px) {
+            .theory-main {
+                padding: 1.5rem 1rem 3rem;
+            }
+
+            .theory-section {
+                padding: 1.5rem 1.2rem;
+            }
+
+            .theory-section-title {
+                font-size: 1.15rem;
+            }
+
+            .error-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .instrument-flow {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .data-table {
+                font-size: 0.8rem;
+            }
+
+            .data-table thead th,
+            .data-table tbody td {
+                padding: 0.5rem 0.6rem;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .footer-links {
+                justify-content: center;
+            }
+
+            .canvas-container canvas {
+                max-width: 100%;
+                height: auto;
+            }
+        }
+    </style>
+    <script src="../js/platform-home-button.js"></script>
+</body>
+</html>

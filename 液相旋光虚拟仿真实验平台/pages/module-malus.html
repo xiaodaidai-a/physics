@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <script src="../../pages-demo.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="模块一：马吕斯定律验证 - 基于多智能体教学辅助的偏振光与蔗糖旋光现象仿真实验平台">
+    <title>马吕斯定律验证 - 基于多智能体教学辅助的偏振光与蔗糖旋光现象仿真实验平台</title>
+
+    <!-- 字体：纯系统字体方案（零网络依赖） -->
+    <link rel="stylesheet" href="../css/styles.css">
+
+    <!-- Chart.js 3.5.1：本地化 -->
+    <script src="../libs/chart.min.js"></script>
+
+    <!-- MathJax 3：本地化 + 延迟加载 -->
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)'], ['$$', '$$'], ['\\[', '\\]']], displayMath: [] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="../libs/tex-svg.js" defer></script>
+
+    <!-- 马吕斯模块专用样式 -->
+    <style>
+        /* 马吕斯页面两栏布局 */
+        .malus-layout {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 0;
+            min-height: calc(100vh - 64px);
+            padding-top: 64px;
+        }
+
+        .malus-panel-left {
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border-color);
+            padding: 1.5rem;
+            overflow-y: auto;
+            max-height: calc(100vh - 64px);
+        }
+
+        .malus-panel-right {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 2rem;
+            gap: 1.5rem;
+            background: radial-gradient(ellipse at center, #0f1629 0%, var(--bg-primary) 70%);
+            overflow-y: auto;
+            max-height: calc(100vh - 64px);
+        }
+
+        /* 实验说明卡片 */
+        .experiment-intro {
+            margin-bottom: 1.25rem;
+        }
+
+        .experiment-intro h3 {
+            font-size: 1.15rem;
+            color: var(--accent-gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .experiment-intro p {
+            font-size: 0.88rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            margin-bottom: 0.6rem;
+        }
+
+        .intro-badge-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 0.6rem;
+        }
+
+        /* 角度大号显示 */
+        .angle-display-large {
+            text-align: center;
+            padding: 1rem 0;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            margin-bottom: 0.75rem;
+        }
+
+        .angle-display-large .angle-value {
+            font-family: var(--font-mono);
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            text-shadow: 0 0 20px rgba(245, 200, 66, 0.35);
+        }
+
+        .angle-display-large .angle-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* 快捷角度按钮组 */
+        .quick-angle-btns {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 0.75rem;
+        }
+
+        .quick-angle-btns button {
+            padding: 6px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .quick-angle-btns button:hover {
+            background: rgba(59, 130, 246, 0.12);
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        /* 光强读数面板 */
+        .intensity-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 0.75rem;
+        }
+
+        .intensity-item {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 10px;
+            text-align: center;
+        }
+
+        .intensity-item .intensity-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .intensity-item .intensity-value {
+            font-family: var(--font-mono);
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+
+        .intensity-item .intensity-value.percent {
+            color: var(--accent-green);
+        }
+
+        /* 数据表格容器 */
+        .data-table-container {
+            overflow-x: auto;
+            max-height: 220px;
+            overflow-y: auto;
+            margin-top: 0.5rem;
+        }
+
+        /* Canvas 光场容器 */
+        .malus-field-wrapper {
+            position: relative;
+            border-radius: 50%;
+            box-shadow:
+                0 0 40px rgba(0, 0, 0, 0.5),
+                inset 0 0 30px rgba(0, 0, 0, 0.3),
+                0 0 60px rgba(245, 200, 66, 0.06);
+        }
+
+        #malusField {
+            display: block;
+            border-radius: 50%;
+        }
+
+        /* 图表容器 */
+        .chart-container {
+            width: 100%;
+            max-width: 650px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+        }
+
+        .chart-container h4 {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+        }
+
+        /* 只读显示 */
+        .readonly-display {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            margin-bottom: 0.75rem;
+        }
+
+        .readonly-display .readonly-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .readonly-display .readonly-value {
+            font-family: var(--font-mono);
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 991px) {
+            .malus-layout {
+                grid-template-columns: 1fr;
+            }
+            .malus-panel-left,
+            .malus-panel-right {
+                max-height: none;
+                border: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+            .malus-field-wrapper {
+                transform: scale(0.8);
+            }
+        }
+    </style>
+</head>
+<body class="page-enter">
+
+    <!-- ==================== 导航栏 ==================== -->
+    <nav id="navbar" style="
+        position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+        height: 56px;
+        background: rgba(255,255,255,0.75);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-bottom: 1px solid rgba(148,163,184,0.2);
+        display: flex; align-items: center;
+        padding: 0 28px;
+    ">
+        <!-- 左侧：品牌名 -->
+        <a href="../index.html" style="display:flex; align-items:center; gap:10px; text-decoration:none;">
+            <span style="font-size:18px;">🎛️</span>
+            <span style="font-size:13px; font-weight:700; color:#1E293B; letter-spacing:0.03em; white-space:nowrap;">
+                液相旋光虚拟仿真实验
+            </span>
+        </a>
+
+        <!-- 中间：导航链接 -->
+        <div style="display:flex; align-items:center; gap:2px; margin-left:auto;" class="main-nav">
+            <a href="../index.html" class="nav-tab-item ">首页</a>
+            <a href="theory.html" class="nav-tab-item ">理论原理</a>
+            <a href="module-malus.html" class="nav-tab-item nav-active">马吕斯验证</a>
+            <a href="module-polarization-3d.html" class="nav-tab-item ">3D偏振模拟</a>
+            <a href="experiment.html" class="nav-tab-item ">主实验</a>
+            <a href="data-analysis.html" class="nav-tab-item ">数据分析</a>
+            <a href="ideological-education.html" class="nav-tab-item ">课程思政</a>
+            <a href="contact.html" class="nav-tab-item ">关于我们</a>
+        </div>
+    </nav>
+
+    <!-- ==================== 实验主区域（两栏布局） ==================== -->
+    <div class="malus-layout">
+
+        <!-- ========== 左侧：控制面板 ========== -->
+        <div class="malus-panel-left">
+
+            <!-- 1. 实验说明卡片 -->
+            <div class="card experiment-intro">
+                <h3>马吕斯定律验证</h3>
+                <p>通过旋转检偏器观察光强变化，验证 $I = I_0 \cos^2\theta$ 关系</p>
+                <div class="intro-badge-row">
+                    <span class="badge badge-info">模块一 / 入门必做</span>
+                </div>
+            </div>
+
+            <!-- 2. 起偏器设置（固定为0度） -->
+            <div class="var-control-item" style="margin-top: 1rem;">
+                <div class="var-control-header">
+                    <span class="var-control-name">起偏器角度</span>
+                </div>
+                <div class="readonly-display">
+                    <span class="readonly-label">固定透光轴方向</span>
+                    <span class="readonly-value">0&deg;</span>
+                </div>
+            </div>
+
+            <!-- 3. 检偏器角度控制 -->
+            <div class="var-control-item" style="margin-top: 1rem;">
+                <div class="var-control-header">
+                    <span class="var-control-name">检偏器角度 &theta;</span>
+                    <span class="var-control-value" id="malusAngleValueDisplay">0.0&deg;</span>
+                </div>
+
+                <!-- 大号角度显示 -->
+                <div class="angle-display-large">
+                    <div class="angle-value" id="malusAngleLarge">0.0&deg;</div>
+                    <div class="angle-label">当前检偏器角度</div>
+                </div>
+
+                <!-- 滑块 -->
+                <div class="slider-container">
+                    <input type="range" id="malusAngleSlider" min="0" max="180" step="1" value="0">
+                </div>
+
+                <!-- 快捷按钮 -->
+                <div class="quick-angle-btns">
+                    <button data-angle="0">0&deg;</button>
+                    <button data-angle="45">45&deg;</button>
+                    <button data-angle="90">90&deg;</button>
+                    <button data-angle="135">135&deg;</button>
+                    <button data-angle="180">180&deg;</button>
+                </div>
+            </div>
+
+            <!-- 4. 光强读数 -->
+            <div class="var-control-item" style="margin-top: 1rem;">
+                <div class="var-control-header">
+                    <span class="var-control-name">光强读数</span>
+                </div>
+                <div class="intensity-panel">
+                    <div class="intensity-item">
+                        <div class="intensity-label">实时光强 I (0~255)</div>
+                        <div class="intensity-value" id="malusIntensityRaw">255</div>
+                    </div>
+                    <div class="intensity-item">
+                        <div class="intensity-label">归一化 I/I&sub0;</div>
+                        <div class="intensity-value percent" id="malusIntensityPercent">100.0%</div>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-sm" id="btnRecordPoint" style="width: 100%;">记录数据点</button>
+            </div>
+
+            <!-- 5. 数据记录表 -->
+            <div class="card" style="margin-top: 1rem; padding: 1.25rem;">
+                <h4 style="color: var(--text-primary); margin-bottom: 0.75rem; font-size: 0.95rem;">数据记录表</h4>
+                <div class="data-table-container">
+                    <table class="data-table" id="malusDataTable">
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>&theta; (&deg;)</th>
+                                <th>光强 I</th>
+                                <th>I/I&sub0;</th>
+                                <th>cos&sup2;&theta;</th>
+                            </tr>
+                        </thead>
+                        <tbody id="malusDataTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 6. 操作按钮 -->
+            <div class="action-buttons" style="margin-top: 1rem;">
+                <button class="btn btn-danger btn-sm" id="btnClearData">清空数据</button>
+                <button class="btn btn-success btn-sm" id="btnAutoCollect">自动采集</button>
+                <button class="btn btn-info btn-sm" id="btnVerifyLinearity">验证线性关系</button>
+            </div>
+
+        </div>
+
+        <!-- ========== 右侧：Canvas 视场 + 图表 ========== -->
+        <div class="malus-panel-right">
+
+            <!-- 光场视场 -->
+            <div class="field-viewer">
+                <div class="malus-field-wrapper">
+                    <canvas id="malusField" width="450" height="450"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart.js 图表 -->
+            <div class="chart-container">
+                <h4>I - &theta; 关系曲线</h4>
+                <canvas id="malusChart" width="500" height="300"></canvas>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Toast 提示容器 -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ==================== 脚本引入 ==================== -->
+    <script src="../js/physics-engine.js"></script>
+    <script src="../js/app.js"></script>
+    
+    
+    <script src="../js/module-malus.js"></script>
+
+    <script src="../js/platform-home-button.js"></script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <script src="../pages-demo.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 智能聊天机器人 - 示例页面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 60px 80px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+        }
+        
+        h1 {
+            font-size: 32px;
+            color: #1e293b;
+            margin-bottom: 16px;
+        }
+        
+        p {
+            font-size: 16px;
+            color: #64748b;
+            line-height: 1.8;
+            margin-bottom: 24px;
+        }
+        
+        .hint {
+            background: linear-gradient(135deg, #f0f4ff, #f8f0ff);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 30px;
+        }
+        
+        .hint p {
+            margin-bottom: 0;
+            color: #667eea;
+            font-weight: 500;
+        }
+        
+        .arrow {
+            font-size: 48px;
+            animation: bounce 1s infinite;
+            margin-top: 20px;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .features {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .feature {
+            background: #f8fafc;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI 智能聊天机器人</h1>
+        <p>这是一个可独立部署的 AI 聊天组件，支持多模态输入，基于豆包 API。</p>
+        
+        <div class="hint">
+            <p>点击右下角的机器人图标开始对话 👇</p>
+        </div>
+        
+        <div class="arrow">↘️</div>
+        
+        <div class="features">
+            <div class="feature">✨ 拖拽移动</div>
+            <div class="feature">📐 调整大小</div>
+            <div class="feature">🖼️ 图片输入</div>
+            <div class="feature">💬 智能对话</div>
+        </div>
+    </div>
+    
+    
+    
+</body>
+</html>

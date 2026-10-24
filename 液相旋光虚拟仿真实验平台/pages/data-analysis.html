@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <script src="../../pages-demo.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据分析 - 基于多智能体教学辅助的偏振光与蔗糖旋光现象仿真实验平台</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="../libs/chart.min.js"></script>
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)'], ['$$', '$$'], ['\\[', '\\]']], displayMath: [] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="../libs/tex-svg.js" defer></script>
+    <style>
+        /* ════════════════════════════════════════════════════════════
+           亮色学术主题 — 数据分析页面 v6 (Light Mode)
+           浅灰底色 + 白卡片 + 四模块独立色彩标识
+        ════════════════════════════════════════════════════════════ */
+
+        :root {
+            --blue-50:  #EFF6FF;
+            --blue-100: #DBEAFE;
+            --blue-200: #BFDBFE;
+            --blue-300: #93C5FD;
+            --blue-400: #60A5FA;
+            --blue-500: #3B82F6;   /* 主色 */
+            --blue-600: #2563EB;
+            --blue-700: #1D4ED8;
+            --blue-800: #1E40AF;
+            --blue-900: #1E3A8A;
+            /* 亮色语义变量 */
+            --lt-bg:       #F8FAFC;     /* 页面底 */
+            --lt-surface:   #FFFFFF;      /* 卡片/面板 */
+            --lt-elevated:  #FFFFFF;      /* 输入框/弹窗 */
+            --lt-subtle:    #F1F5F9;     /* 次级区域 */
+            --lt-border:    #E2E8F0;     /* 分割线 */
+            --lt-border-strong: #CBD5E1; /* 强分割 */
+            --lt-text:      #1E293B;     /* 主文字 slate-800 */
+            --lt-text-sec:  #475569;     /* 次文字 slate-600 */
+            --lt-text-mute: #94A3B8;     /* 弱文字 slate-400 */
+        }
+
+        /* ===== 页面容器：浅灰渐变底 ===== */
+        .da-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 64px 28px 48px;
+            min-height: 100vh;
+            background:
+                radial-gradient(ellipse at 50% -20%, rgba(59,130,246,0.07) 0%, transparent 60%),
+                linear-gradient(180deg, var(--lt-bg) 0%, #EEF2F7 100%);
+            animation: daPageIn 0.45s ease forwards;
+        }
+        @keyframes daPageIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== 标题区 ===== */
+        .da-header {
+            text-align: center;
+            margin-bottom: 28px;
+            position: relative;
+            padding-bottom: 22px;
+        }
+        .da-header::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px; height: 110px;
+            background: radial-gradient(ellipse, rgba(59,130,246,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .da-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 80px; height: 2px;
+            background: var(--blue-500);
+            border-radius: 1px;
+            box-shadow: 0 0 12px rgba(59,130,246,0.35), 0 0 36px rgba(59,130,246,0.12);
+            animation: headerLineGlow 3s ease-in-out infinite alternate;
+        }
+        @keyframes headerLineGlow {
+            from { box-shadow: 0 0 12px rgba(59,130,246,0.35), 0 0 36px rgba(59,130,246,0.12); width: 80px; }
+            to   { box-shadow: 0 0 18px rgba(59,130,246,0.5), 0 0 52px rgba(59,130,246,0.2); width: 140px; }
+        }
+        .da-title {
+            font-family: var(--font-display);
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--lt-text);
+            letter-spacing: 0.04em;
+            margin-bottom: 4px;
+            position: relative;
+        }
+        .da-subtitle {
+            font-size: 0.68rem;
+            color: var(--blue-500);
+            font-family: var(--font-mono);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            opacity: 0.85;
+        }
+
+        /* ===== 概览横条：白底参数面板 ===== */
+        .da-overview {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            background: var(--lt-surface);
+            border: 1px solid var(--lt-border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            margin-bottom: 26px;
+            box-shadow:
+                0 1px 3px rgba(0,0,0,0.04),
+                0 4px 16px rgba(0,0,0,0.03);
+            position: relative;
+        }
+        .da-overview::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 10%, rgba(59,130,246,0.25), transparent 90%);
+        }
+        .da-ov-item {
+            padding: 14px 8px;
+            text-align: center;
+            border-right: 1px solid var(--lt-border);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .da-ov-item:last-child { border-right: none; }
+        .da-ov-item:hover {
+            background: var(--blue-50);
+        }
+        .da-ov-item:hover .da-ov-value {
+            color: var(--blue-600);
+        }
+        .da-ov-label {
+            font-size: 0.6rem;
+            color: var(--blue-500);
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-family: var(--font-mono);
+            opacity: 0.85;
+        }
+        .da-ov-value {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--blue-600);
+            font-family: var(--font-mono);
+            transition: all 0.2s ease;
+        }
+
+        /* ===== 模块通用卡片（白色骨架） ===== */
+        .da-module {
+            background: var(--lt-surface);
+            border: 1px solid var(--lt-border);
+            border-top: 2px solid transparent;
+            border-radius: var(--radius-md);
+            margin-bottom: 20px;
+            box-shadow:
+                0 1px 3px rgba(0,0,0,0.04),
+                0 4px 16px rgba(0,0,0,0.03);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 每个模块的顶部色条 — 各自独立 */
+        #module-calc { border-top-color: var(--blue-500); }
+        #module-charts { border-top-color: #06B6D4; }     /* 青色 = 图表/数据可视化 */
+        #module-error { border-top-color: #F59E0B; }      /* 琥珀 = 警告/诊断 */
+        #module-assess { border-top-color: #8B5CF6; }    /* 紫色 = 评定/学术 */
+
+        .da-module-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 13px 20px;
+            border-bottom: 1px solid var(--lt-border);
+            background: linear-gradient(180deg, rgba(59,130,246,0.02) 0%, transparent 100%);
+        }
+        .da-module-title {
+            font-family: var(--font-display);
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--lt-text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 0.01em;
+        }
+        .da-module-num {
+            width: 26px; height: 26px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; font-weight: 800;
+            border-radius: 6px;
+            flex-shrink: 0;
+            letter-spacing: -0.02em;
+        }
+        /* 各模块序号徽章颜色 */
+        #module-calc .da-module-num { background: linear-gradient(135deg, var(--blue-500), var(--blue-700)); color: #fff; box-shadow: 0 2px 8px rgba(59,130,246,0.25); }
+        #module-charts .da-module-num { background: linear-gradient(135deg, #06B6D4, #0891B2); color: #fff; box-shadow: 0 2px 8px rgba(6,182,212,0.25); }
+        #module-error .da-module-num { background: linear-gradient(135deg, #F59E0B, #D97706); color: #fff; box-shadow: 0 2px 8px rgba(245,158,11,0.2); }
+        #module-assess .da-module-num { background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: #fff; box-shadow: 0 2px 8px rgba(139,92,246,0.25); }
+
+        .da-module-badge {
+            font-size: 0.58rem;
+            font-weight: 700;
+            color: var(--lt-text-mute);
+            background: var(--lt-subtle);
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-family: var(--font-mono);
+            letter-spacing: 0.07em;
+            border: 1px solid var(--lt-border);
+        }
+        .da-module-body { padding: 18px 20px; }
+
+        /* ════════════════════════════════════════════════════════════
+           模块一：数据与演算核对 — 实验记录本风格（亮色版）
+        ════════════════════════════════════════════════════════════ */
+        .calc-formula-hint {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 15px;
+            background: linear-gradient(90deg, rgba(59,130,246,0.06) 0%, transparent 100%);
+            border-left: 3px solid var(--blue-500);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            margin-bottom: 16px;
+            font-size: 0.77rem;
+            color: var(--lt-text-sec);
+            font-family: var(--font-mono);
+        }
+        .calc-formula-hint strong { color: var(--blue-600); }
+
+        .calc-table-wrap {
+            overflow-x: auto;
+            margin-bottom: 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--lt-border);
+            background: var(--lt-surface);
+        }
+        .calc-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+        }
+        .calc-table th {
+            background: linear-gradient(180deg, var(--blue-50) 0%, rgba(239,246,255,0.5) 100%);
+            color: var(--blue-700);
+            font-size: 0.66rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 11px 6px;
+            text-align: center;
+            border: 1px solid var(--lt-border);
+            border-bottom: 2px solid var(--blue-500);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        .calc-table td {
+            padding: 8px 5px;
+            text-align: center;
+            border: 1px solid var(--lt-border);
+            color: var(--lt-text-sec);
+            font-size: 0.77rem;
+            transition: background 0.15s ease;
+        }
+        .calc-table tbody tr:nth-child(even) td { background: var(--lt-subtle); }
+        .calc-table tbody tr:hover td { background: var(--blue-50); }
+        .calc-table .col-highlight { color: var(--blue-600); font-weight: 700; }
+        .calc-table .col-input { padding: 4px 2px; }
+
+        /* 输入框：白色仪器读数窗口 */
+        .calc-input {
+            width: 66px;
+            padding: 6px 7px;
+            background: var(--lt-surface);
+            border: 1.5px solid var(--lt-border-strong);
+            border-radius: 4px;
+            color: var(--lt-text);
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            text-align: center;
+            outline: none;
+            transition: all 0.2s ease;
+            letter-spacing: 0.02em;
+        }
+        .calc-input:focus {
+            border-color: var(--blue-500);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+            background: #fff;
+        }
+        .calc-input.correct {
+            border-color: #16A34A;
+            background: rgba(22,163,74,0.06);
+            color: #15803D;
+            font-weight: 700;
+            box-shadow: 0 0 0 2px rgba(22,163,74,0.12);
+        }
+        .calc-input.wrong {
+            border-color: #DC2626;
+            background: rgba(220,38,38,0.06);
+            color: #DC2626;
+            font-weight: 700;
+            box-shadow: 0 0 0 2px rgba(220,38,38,0.12);
+        }
+        .calc-input.pending {
+            border-color: var(--lt-border-strong);
+        }
+
+        .calc-verify-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            background: var(--lt-subtle);
+            border: 1px solid var(--lt-border);
+            border-radius: var(--radius-sm);
+        }
+        .calc-verify-msg {
+            font-size: 0.79rem;
+            font-family: var(--font-mono);
+            color: var(--lt-text-mute);
+            flex: 1;
+            transition: all 0.2s ease;
+        }
+        .calc-verify-msg.success { color: #16A34A; font-weight: 600; }
+        .calc-verify-msg.error { color: #DC2626; font-weight: 600; }
+
+        /* ════════════════════════════════════════════════════════════
+           模块二：经典物理图表 — 科研论文风格（亮色版）
+        ════════════════════════════════════════════════════════════ */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 16px;
+        }
+        .chart-box {
+            background: var(--lt-surface);
+            border: 1px solid var(--lt-border);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            position: relative;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+        }
+        .chart-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(6,182,212,0.2), transparent);
+        }
+        .chart-box-label {
+            font-size: 0.69rem;
+            color: #0891B2;
+            font-family: var(--font-mono);
+            margin-bottom: 10px;
+            letter-spacing: 0.04em;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .chart-canvas-wrap { position: relative; height: 310px; }
+        .chart-canvas-wrap-tall { height: 350px; }
+
+        /* 拟合摘要：数据面板 */
+        .fit-summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid var(--lt-border);
+        }
+        .fit-sum-item {
+            text-align: center;
+            padding: 12px 8px;
+            background: var(--lt-subtle);
+            border: 1px solid var(--lt-border);
+            border-radius: var(--radius-sm);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .fit-sum-item::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            background: #06B6D4;
+        }
+        .fit-sum-item:hover {
+            border-color: rgba(6,182,212,0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .fit-sum-item:hover::before { opacity: 1; }
+        .fit-sum-val {
+            font-family: var(--font-mono);
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--lt-text);
+            line-height: 1.2;
+        }
+        .fit-sum-lbl {
+            font-size: 0.61rem;
+            color: #0891B2;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            opacity: 0.75;
+        }
+
+        /* 公式黑板：学术推导区（亮色） */
+        #formulaBoardWrap {
+            margin-top: 18px !important;
+            padding: 20px !important;
+            border-radius: var(--radius-md) !important;
+            background: linear-gradient(135deg, rgba(6,182,212,0.03) 0%, var(--lt-subtle) 100%) !important;
+            border: 1px solid var(--lt-border) !important;
+            position: relative;
+            overflow: hidden;
+        }
+        #formulaBoardWrap::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 10%, rgba(6,182,212,0.18), transparent 90%);
+        }
+        #formulaDisplay {
+            font-size: 0.96rem !important;
+            line-height: 2.1 !important;
+            padding: 8px 0;
+        }
+
+        /* ════════════════════════════════════════════════════════════
+           模块三：误差自我剖析 — 诊断终端风格（亮色版）
+        ════════════════════════════════════════════════════════════ */
+        .error-trigger-banner {
+            display: none;
+            padding: 13px 17px;
+            background: linear-gradient(90deg, rgba(245,158,11,0.08) 0%, rgba(245,158,11,0.02) 100%);
+            border: 1px solid rgba(245,158,11,0.2);
+            border-left: 3px solid #F59E0B;
+            border-radius: var(--radius-sm);
+            margin-bottom: 16px;
+            align-items: center;
+            gap: 12px;
+        }
+        .error-trigger-banner.visible { display: flex; }
+        .error-trigger-icon { font-size: 1.2rem; flex-shrink: 0; }
+        .error-trigger-text { font-size: 0.84rem; color: var(--lt-text-sec); line-height: 1.5; }
+        .error-trigger-text strong { color: #D97706; }
+
+        /* Checklist：诊断项 */
+        .self-check-list { display: flex; flex-direction: column; gap: 0; }
+        .self-check-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 13px 15px;
+            border-bottom: 1px solid var(--lt-border);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .self-check-item:last-child { border-bottom: none; }
+        .self-check-item:hover { background: rgba(245,158,11,0.03); }
+        .self-check-item:has(input:checked) { background: rgba(245,158,11,0.05); }
+        .self-check-item input[type="checkbox"] {
+            appearance: none; -webkit-appearance: none;
+            width: 18px; height: 18px;
+            border: 1.5px solid var(--lt-border-strong);
+            border-radius: 4px;
+            background: var(--lt-surface);
+            cursor: pointer;
+            margin-top: 2px;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .self-check-item input[type="checkbox"]:hover { border-color: #F59E0B; }
+        .self-check-item input[type="checkbox"]:checked {
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+            border-color: #F59E0B;
+        }
+        .self-check-item input[type="checkbox"]:checked::after {
+            content: '\2713';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 11px;
+            font-weight: 800;
+            color: #fff;
+        }
+        .self-check-content { flex: 1; }
+        .self-check-q {
+            font-size: 0.86rem;
+            color: var(--lt-text);
+            font-weight: 600;
+            display: block;
+            margin-bottom: 3px;
+            line-height: 1.4;
+        }
+        .self-check-desc {
+            font-size: 0.74rem;
+            color: var(--lt-text-mute);
+            line-height: 1.55;
+        }
+
+        /* 解析面板（亮色终端输出） */
+        .self-check-analysis {
+            display: none;
+            margin: 11px 0 0 32px;
+            padding: 12px 14px;
+            background: var(--lt-subtle);
+            border-left: 2.5px solid #F59E0B;
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            font-size: 0.81rem;
+            color: var(--lt-text-sec);
+            line-height: 1.72;
+            font-family: var(--font-mono);
+            animation: analysisSlide 0.2s ease forwards;
+        }
+        @keyframes analysisSlide {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .self-check-analysis strong { color: #D97706; }
+        .self-check-submit-bar {
+            display: none;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px dashed rgba(245,158,11,0.25);
+            text-align: right;
+        }
+        .self-check-submit-bar.visible { display: block; }
+
+        /* ════════════════════════════════════════════════════════════
+           模块四：课后思考与成绩评定 — 学术成绩单风格（亮色版）
+        ════════════════════════════════════════════════════════════ */
+        .assess-grid {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 16px;
+        }
+
+        /* 思考题看板 */
+        .question-card {
+            background: linear-gradient(135deg, rgba(139,92,246,0.03) 0%, var(--lt-subtle) 100%);
+            border: 1px solid var(--lt-border);
+            border-radius: var(--radius-sm);
+            padding: 18px;
+            position: relative;
+        }
+        .question-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(139,92,246,0.15), transparent);
+        }
+        .question-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px; height: 24px;
+            background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+            color: #fff;
+            border-radius: 6px;
+            font-size: 0.73rem;
+            font-weight: 800;
+            margin-right: 8px;
+            box-shadow: 0 2px 6px rgba(139,92,246,0.2);
+        }
+        .question-text {
+            font-size: 0.89rem;
+            color: var(--lt-text);
+            line-height: 1.7;
+            margin-bottom: 14px;
+        }
+        .question-text strong { color: #7C3AED; }
+        .question-answer {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--lt-surface);
+            border: 1px solid var(--lt-border);
+            border-radius: var(--radius-sm);
+            color: var(--lt-text);
+            font-size: 0.86rem;
+            line-height: 1.75;
+            resize: vertical;
+            outline: none;
+            transition: all 0.2s ease;
+            font-family: var(--font-body);
+        }
+        .question-answer:focus {
+            border-color: #8B5CF6;
+            box-shadow: 0 0 0 3px rgba(139,92,246,0.08);
+        }
+        .question-answer::placeholder { color: var(--lt-text-mute); }
+        .question-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 11px;
+        }
+        .question-hint { font-size: 0.71rem; color: rgba(124,58,237,0.55); }
+        .question-save-btn { font-size: 0.78rem; }
+
+        /* 雷达图成绩评定 */
+        .radar-card {
+            background: var(--lt-surface);
+            border: 1px solid var(--lt-border);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+        }
+        .radar-canvas-wrap {
+            flex: 1;
+            position: relative;
+            min-height: 270px;
+        }
+        .radar-score-table {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid var(--lt-border);
+        }
+        .radar-score-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 7px 0;
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+        }
+        .radar-score-row + .radar-score-row { border-top: 1px dashed var(--lt-border); }
+        .radar-score-label { color: var(--lt-text-sec); }
+        .radar-score-val { font-weight: 700; color: var(--lt-text); }
+        .radar-total-row {
+            margin-top: 10px;
+            padding-top: 12px;
+            border-top: 1px solid var(--lt-border-strong) !important;
+            font-weight: 800;
+        }
+        .radar-total-val {
+            font-size: 1.12rem;
+            color: #7C3AED;
+        }
+
+        /* 综合等级标签 */
+        .grade-badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 4px;
+            font-size: 0.73rem;
+            font-weight: 700;
+            margin-left: 8px;
+            letter-spacing: 0.03em;
+        }
+        .grade-A { background: rgba(22,163,74,0.1); color: #16A34A; border: 1px solid rgba(22,163,74,0.2); }
+        .grade-B { background: rgba(139,92,246,0.08); color: #7C3AED; border: 1px solid rgba(139,92,246,0.18); }
+        .grade-C { background: rgba(245,158,11,0.08); color: #D97706; border: 1px solid rgba(245,158,11,0.18); }
+        .grade-D { background: rgba(220,38,38,0.08); color: #DC2626; border: 1px solid rgba(220,38,38,0.18); }
+
+        /* 分数进度条 */
+        .score-bar-track {
+            width: 100%;
+            height: 4px;
+            background: var(--lt-subtle);
+            border-radius: 2px;
+            margin-top: 4px;
+            overflow: hidden;
+        }
+        .score-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.6s ease;
+        }
+
+        /* ===== 思考题签导航 ===== */
+        .question-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+        .q-tab {
+            width: 36px; height: 28px;
+            border: 1px solid var(--lt-border);
+            background: var(--lt-surface);
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--lt-text-sec);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: var(--font-mono);
+        }
+        .q-tab:hover {
+            border-color: rgba(139,92,246,0.3);
+            color: #7C3AED;
+        }
+        .q-tab-active {
+            background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+            color: #fff !important;
+            border-color: transparent;
+            box-shadow: 0 2px 8px rgba(139,92,246,0.25);
+        }
+        .q-tab.answered::after {
+            content: '\2713';
+            display: block;
+            font-size: 0.6rem;
+            position: absolute;
+            top: -4px; right: -4px;
+            width: 14px; height: 14px;
+            background: #16A34A;
+            color: #fff;
+            border-radius: 50%;
+            line-height: 14px;
+            text-align: center;
+        }
+        .q-tab { position: relative; }
+
+        /* 提示折叠区 */
+        .question-hint-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 10px 14px;
+            background: linear-gradient(135deg, rgba(245,158,11,0.05), rgba(245,158,11,0.02));
+            border: 1px solid rgba(245,158,11,0.15);
+            border-radius: var(--radius-sm);
+            margin-bottom: 12px;
+            font-size: 0.82rem;
+            color: #92400E;
+            line-height: 1.6;
+            animation: hintSlideIn 0.25s ease;
+        }
+        @keyframes hintSlideIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .q-hint-icon { flex-shrink: 0; font-size: 0.95rem; }
+
+        /* ===== 实验报告摘要卡片 ===== */
+        .summary-card {
+            background: var(--lt-surface);
+            border: 1px solid var(--lt-border);
+            border-radius: var(--radius-sm);
+            padding: 18px 20px;
+            margin-top: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #8B5CF6, #06B6D4, #3B82F6);
+            opacity: 0.6;
+        }
+        .summary-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .summary-icon { font-size: 1rem; }
+        .summary-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--lt-text);
+        }
+        .summary-badge {
+            font-size: 0.65rem;
+            color: var(--lt-text-mute);
+            font-family: var(--font-mono);
+            letter-spacing: 0.08em;
+            margin-left: auto;
+            padding: 2px 8px;
+            background: var(--lt-subtle);
+            border-radius: 3px;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
+        }
+        .summary-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 10px 12px;
+            background: var(--lt-subtle);
+            border-radius: var(--radius-sm);
+            transition: transform 0.2s ease;
+        }
+        .summary-item:hover { transform: translateY(-1px); }
+        .summary-label {
+            font-size: 0.7rem;
+            color: var(--lt-text-mute);
+            font-family: var(--font-mono);
+        }
+        .summary-value {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--lt-text);
+            font-family: var(--font-mono);
+        }
+
+        /* ===== 自评 + 心得双栏 ===== */
+        .reflect-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1.4fr;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        /* 知识点自评卡 */
+        .selfcheck-card {
+            background: var(--lt-surface);
+            border: 1px solid var(--lt-border);
+            border-radius: var(--radius-sm);
+            padding: 16px 18px;
+        }
+        .selfcheck-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--lt-text);
+        }
+        .selfcheck-icon { font-size: 0.95rem; }
+        .selfcheck-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .selfcheck-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 9px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            color: var(--lt-text-sec);
+            line-height: 1.5;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        .selfcheck-item:hover {
+            background: rgba(139,92,246,0.03);
+            border-color: rgba(139,92,246,0.1);
+        }
+        .selfcheck-item input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 17px; height: 17px;
+            border: 2px solid var(--lt-border-strong);
+            border-radius: 4px;
+            flex-shrink: 0;
+            margin-top: 1px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .selfcheck-item input[type="checkbox"]:checked {
+            background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+            border-color: transparent;
+        }
+        .selfcheck-item input[type="checkbox"]:checked::after {
+            content: '\2713';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 800;
+        }
+        .selfcheck-item:has(input:checked) span {
+            color: var(--lt-text);
+            text-decoration: none;
+        }
+        .selfcheck-footer {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px dashed var(--lt-border);
+        }
+        .selfcheck-footer span {
+            display: block;
+            font-size: 0.72rem;
+            color: var(--lt-text-mute);
+            font-family: var(--font-mono);
+            margin-bottom: 6px;
+        }
+        .selfcheck-bar {
+            width: 100%;
+            height: 5px;
+            background: var(--lt-subtle);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .selfcheck-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #8B5CF6, #A78BFA);
+            border-radius: 3px;
+            transition: width 0.4s ease;
+            width: 0%;
+        }
+
+        /* 心得体会卡 */
+        .reflection-card {
+            background: var(--lt-surface);
+            border: 1px solid var(--lt-border);
+            border-radius: var(--radius-sm);
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+        }
+        .reflection-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--lt-text);
+        }
+        .reflection-icon { font-size: 0.95rem; }
+        .reflection-textarea {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--lt-subtle);
+            border: 1px solid var(--lt-border);
+            border-radius: var(--radius-sm);
+            color: var(--lt-text);
+            font-size: 0.85rem;
+            line-height: 1.75;
+            resize: vertical;
+            outline: none;
+            transition: all 0.2s ease;
+            font-family: var(--font-body);
+            flex: 1;
+            min-height: 120px;
+        }
+        .reflection-textarea:focus {
+            border-color: #8B5CF6;
+            box-shadow: 0 0 0 3px rgba(139,92,246,0.08);
+        }
+        .reflection-textarea::placeholder { color: var(--lt-text-mute); }
+        .reflection-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .reflection-hint { font-size: 0.71rem; color: rgba(124,58,237,0.55); }
+
+        /* 响应式：模块4 */
+        @media (max-width: 1024px) {
+            .assess-grid { grid-template-columns: 1fr; }
+            .radar-canvas-wrap { min-height: 220px; }
+            .summary-grid { grid-template-columns: repeat(3, 1fr); }
+            .reflect-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 767px) {
+            .summary-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        /* ===== 操作行 ===== */
+        .da-actions {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            margin-top: 26px;
+            flex-wrap: wrap;
+        }
+
+        /* ===== 空状态（亮色） ===== */
+        .da-empty-state {
+            display: none;
+            text-align: center;
+            padding: 84px 44px;
+            background: var(--lt-surface);
+            border: 1px solid var(--lt-border);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+        }
+        .da-empty-icon { font-size: 52px; opacity: 0.15; margin-bottom: 16px; }
+        .da-empty-title { font-size: 1.1rem; font-weight: 700; color: var(--lt-text); margin-bottom: 8px; }
+        .da-empty-desc { color: var(--lt-text-mute); font-size: 0.88rem; margin-bottom: 22px; line-height: 1.65; }
+
+        /* ===== 弹窗（亮色） ===== */
+        .da-modal-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(15,23,42,0.4);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            animation: modalOverlayIn 0.25s ease;
+        }
+        @keyframes modalOverlayIn { from { opacity: 0; } to { opacity: 1; } }
+        .da-modal {
+            background: var(--lt-surface);
+            border: 1px solid var(--lt-border);
+            border-radius: var(--radius-lg);
+            padding: 34px 38px;
+            width: 420px;
+            max-width: 90vw;
+            box-shadow:
+                0 24px 64px rgba(0,0,0,0.12),
+                0 0 0 1px rgba(0,0,0,0.04),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+            animation: modalSlideUp 0.3s cubic-bezier(0.16,1,0.3,1);
+        }
+        @keyframes modalSlideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .da-form-group { margin-bottom: 18px; }
+        .da-form-group label {
+            display: block;
+            font-size: 0.82rem;
+            color: var(--lt-text-sec);
+            font-weight: 600;
+            margin-bottom: 7px;
+        }
+        .da-input {
+            width: 100%;
+            padding: 11px 14px;
+            background: var(--lt-surface);
+            border: 1.5px solid var(--lt-border-strong);
+            border-radius: var(--radius-sm);
+            color: var(--lt-text);
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .da-input:focus { border-color: var(--blue-500); box-shadow: 0 0 0 3px rgba(59,130,246,0.08); }
+
+        /* ===== 状态图标 ===== */
+        .status-icon { font-size: 0.98rem; display: inline-block; }
+        .status-icon-correct { color: #16A34A; animation: statusPopIn 0.25s ease; }
+        .status-icon-wrong { color: #DC2626; animation: statusShake 0.3s ease; }
+        .status-icon-pending { color: var(--lt-text-mute); opacity: 0.5; }
+        @keyframes statusPopIn {
+            0%   { transform: scale(0); opacity: 0; }
+            60%  { transform: scale(1.25); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes statusShake {
+            0%,100% { transform: translateX(0); }
+            20%     { transform: translateX(-3px); }
+            40%     { transform: translateX(3px); }
+            60%     { transform: translateX(-2px); }
+            80%     { transform: translateX(2px); }
+        }
+
+        /* ===== 动效系统 ===== */
+
+        /* 模块交错入场 */
+        .da-module {
+            opacity: 0;
+            transform: translateY(18px);
+            animation: moduleSlideIn 0.4s cubic-bezier(0.16,1,0.3,1) forwards;
+        }
+        .da-module:nth-child(1) { animation-delay: 0.06s; }
+        .da-module:nth-child(2) { animation-delay: 0.18s; }
+        .da-module:nth-child(3) { animation-delay: 0.30s; }
+        .da-module:nth-child(4) { animation-delay: 0.42s; }
+        @keyframes moduleSlideIn {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 概览入场 */
+        #overview-card {
+            opacity: 0;
+            transform: translateY(12px);
+            animation: overviewSlide 0.45s ease 0s forwards;
+        }
+        @keyframes overviewSlide {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 表格行逐行滑入 */
+        .calc-table tbody tr {
+            opacity: 0;
+            transform: translateX(-10px);
+            animation: rowSlideIn 0.28s ease forwards;
+        }
+        @keyframes rowSlideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        /* 数字跳动 */
+        .fit-sum-val.updated { animation: numPulse 0.35s ease; }
+        @keyframes numPulse {
+            0%   { transform: scale(1); }
+            50%  { transform: scale(1.1); color: #0891B2; }
+            100% { transform: scale(1); }
+        }
+
+        /* 进度条填充 */
+        .score-bar-fill { width: 0 !important; animation: barFill 0.6s ease forwards; }
+        .score-bar-fill:nth-of-type(1) { animation-delay: 0.1s; }
+        .score-bar-fill:nth-of-type(2) { animation-delay: 0.2s; }
+        .score-bar-fill:nth-of-type(3) { animation-delay: 0.3s; }
+        @keyframes barFill { from { width: 0 !important; } }
+
+        /* 徽章弹入 */
+        .grade-badge { animation: badgePop 0.3s cubic-bezier(0.34,1.56,0.64,1) 0.5s both; }
+        @keyframes badgePop {
+            0%   { transform: scale(0); opacity: 0; }
+            70%  { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* 卡片 hover 上浮 */
+        .da-module {
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.2s ease;
+        }
+        .da-module:hover {
+            transform: translateY(-3px);
+            box-shadow:
+                0 6px 24px rgba(0,0,0,0.06),
+                0 0 0 1px rgba(59,130,246,0.06);
+        }
+
+        /* 公式淡入 */
+        #formulaDisplay.formula-ready { animation: formulaFadeIn 0.4s ease; }
+        @keyframes formulaFadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 验证闪烁 */
+        .calc-verify-msg.flash-success { animation: msgFlash 0.4s ease; }
+        @keyframes msgFlash {
+            0%,100% { opacity: 1; }
+            50%     { opacity: 0.4; }
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 1024px) {
+            .chart-grid, .assess-grid { grid-template-columns: 1fr; }
+            .fit-summary { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 767px) {
+            .da-container { padding: 58px 16px 36px; }
+            .da-overview { grid-template-columns: repeat(3, 1fr); }
+            .chart-canvas-wrap, .chart-canvas-wrap-tall { height: 260px; }
+            .calc-table { font-size: 0.7rem; }
+            .calc-input { width: 54px; }
+            .da-module-body { padding: 14px 16px; }
+            .assess-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 导航栏 -->
+<nav id="navbar" style="
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    height: 56px;
+    background: rgba(255,255,255,0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(148,163,184,0.2);
+    display: flex; align-items: center; padding: 0 28px;">
+    <div style="display:flex;align-items:center;gap:16px;">
+        <a href="../index.html" style="display:flex;align-items:center;gap:9px;text-decoration:none;">
+            <span style="font-size:16px;">&#9881;</span>
+            <span style="font-size:13px;font-weight:700;color:#1E293B;letter-spacing:0.03em;white-space:nowrap;">基于多智能体教学辅助的偏振光与蔗糖旋光现象仿真实验平台</span>
+        </a>
+        <span style="color:rgba(59,130,246,0.3);font-size:14px;">/</span>
+        <span style="font-size:13px;color:#64748B;font-weight:600;">数据分析</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:2px;margin-left:auto;" class="main-nav">
+        <a href="../index.html" class="nav-tab-item">首页</a>
+        <a href="theory.html" class="nav-tab-item">理论原理</a>
+        <a href="module-malus.html" class="nav-tab-item">马吕斯验证</a>
+        <a href="module-polarization-3d.html" class="nav-tab-item">3D偏振模拟</a>
+        <a href="experiment.html" class="nav-tab-item">主实验</a>
+        <a href="data-analysis.html" class="nav-tab-item nav-active">数据分析</a>
+        <a href="ideological-education.html" class="nav-tab-item">课程思政</a>
+        <a href="contact.html" class="nav-tab-item">关于我们</a>
+    </div>
+</nav>
+
+<main class="da-container">
+
+    <!-- 标题 -->
+    <header class="da-header">
+        <h1 class="da-title">&#128202; 实验数据处理与评定</h1>
+        <p class="da-subtitle">Data Processing &amp; Assessment Workbench</p>
+    </header>
+
+    <!-- 空状态 -->
+    <div id="no-data-warning" class="da-empty-state">
+        <div class="da-empty-icon">&#128214;</div>
+        <div class="da-empty-title">未找到实验数据</div>
+        <p class="da-empty-desc">请先完成仿真实验台中的实验，获取测量数据后再进行数据分析。</p>
+        <button class="btn btn-primary" onclick="location.href='experiment.html'">前往实验</button>
+    </div>
+
+    <div id="analysis-container">
+
+        <!-- 数据概览横条 -->
+        <section class="da-overview" id="overview-card">
+            <div class="da-ov-item"><div class="da-ov-label">学生姓名</div><div class="da-ov-value" id="student-name">&mdash;</div></div>
+            <div class="da-ov-item"><div class="da-ov-label">学号</div><div class="da-ov-value" id="student-id" style="color:#A1A1AA;">&mdash;</div></div>
+            <div class="da-ov-item"><div class="da-ov-label">实验日期</div><div class="da-ov-value" id="experiment-date" style="color:#A1A1AA;">&mdash;</div></div>
+            <div class="da-ov-item"><div class="da-ov-label">半荫片夹角 &delta;</div><div class="da-ov-value" id="half-shade-angle">&mdash;</div></div>
+            <div class="da-ov-item"><div class="da-ov-label">波长 &lambda;</div><div class="da-ov-value" id="wavelength" style="color:#A1A1AA;">&mdash;</div></div>
+            <div class="da-ov-item"><div class="da-ov-label">管长 L</div><div class="da-ov-value" id="tube-length" style="color:#A1A1AA;">&mdash;</div></div>
+            <div class="da-ov-item"><div class="da-ov-label">测量组数</div><div class="da-ov-value" id="measurement-count" style="color:#A1A1AA;">&mdash;</div></div>
+        </section>
+
+        <!-- ════════════ 模块一：原始数据与演算核对 ════════════ -->
+        <section class="da-module" id="module-calc">
+            <div class="da-module-head">
+                <span class="da-module-title"><span class="da-module-num">1</span> 原始数据与演算核对</span>
+                <span class="da-module-badge">DATA &amp; CALCULATION</span>
+            </div>
+            <div class="da-module-body">
+
+                <!-- 公式提示 -->
+                <div class="calc-formula-hint">
+                    <strong>&#9654; 计算公式：</strong>
+                    &Delta;A = |A - A&sub0;| &nbsp;&nbsp; (旋光角 = |末读数 &minus; 零点读数|)
+                </div>
+
+                <!-- 原始读数表（含手动输入列） -->
+                <div class="calc-table-wrap">
+                    <table class="calc-table" id="calcDataTable">
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>浓度 c<br><small>(g/mL)</small></th>
+                                <th>A&sub0;<br><small>零点读数 (&deg;)</small></th>
+                                <th>A<br><small>溶液末读数 (&deg;)</small></th>
+                                <th style="color:var(--accent-gold);">你的 &Delta;A<br><small>手动计算 (&deg;)</small></th>
+                                <th>系统值<br><small>(&deg;)</small></th>
+                                <th>状态</th>
+                            </tr>
+                        </thead>
+                        <tbody id="calcTableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- 验证操作栏 -->
+                <div class="calc-verify-bar">
+                    <span class="calc-verify-msg" id="calcVerifyMsg">请逐行填写你计算的旋光角，然后点击验证。</span>
+                    <button class="btn btn-sm btn-primary" onclick="verifyAllCalculations()">&#9989; 验证全部计算</button>
+                    <button class="btn btn-sm btn-ghost" onclick="autoFillCalculations()">&#8635; 自动填入参考值</button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ════════════ 模块二：经典物理图表 ════════════ -->
+        <section class="da-module" id="module-charts">
+            <div class="da-module-head">
+                <span class="da-module-title"><span class="da-module-num">2</span> 经典物理图表</span>
+                <span class="da-module-badge">STANDARD PHYSICS CHARTS</span>
+            </div>
+            <div class="da-module-body">
+                <div class="chart-grid">
+                    <!-- 左：拟合散点图（坐标纸风格） -->
+                    <div>
+                        <div class="chart-box">
+                            <div class="chart-box-label">&#128200; &theta;-c 线性关系散点图（坐标纸风格）</div>
+                            <div class="chart-canvas-wrap chart-canvas-wrap-tall">
+                                <canvas id="fitChart"></canvas>
+                            </div>
+                        </div>
+                        <!-- 拟合结果摘要 -->
+                        <div class="fit-summary" id="fitSummaryGrid">
+                            <div class="fit-sum-item">
+                                <div class="fit-sum-val" id="fitSumK">&mdash;</div>
+                                <div class="fit-sum-lbl">斜率 k</div>
+                            </div>
+                            <div class="fit-sum-item">
+                                <div class="fit-sum-val" id="fitSumB">&mdash;</div>
+                                <div class="fit-sum-lbl">截距 b</div>
+                            </div>
+                            <div class="fit-sum-item">
+                                <div class="fit-sum-val" id="fitSumR2">&mdash;</div>
+                                <div class="fit-sum-lbl">R&sup2;</div>
+                            </div>
+                            <div class="fit-sum-item">
+                                <div class="fit-sum-val" id="fitSumAlpha" style="color:var(--accent-gold);">&mdash;</div>
+                                <div class="fit-sum-lbl">[&alpha;] 计算值</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右：误差分布直方图 -->
+                    <div>
+                        <div class="chart-box" style="height:100%;">
+                            <div class="chart-box-label">&#128202; 读数残差分布直方图</div>
+                            <div class="chart-canvas-wrap chart-canvas-wrap-tall">
+                                <canvas id="histogramChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 动态公式黑板 -->
+                <div style="margin-top:14px;padding:14px;background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-sm);" id="formulaBoardWrap">
+                    <div style="font-size:0.7rem;color:var(--text-muted);font-family:var(--font-mono);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">&#128203; 推导公式黑板</div>
+                    <div class="da-formula-equation" id="formulaDisplay" style="font-family:var(--font-mono);font-size:0.92rem;color:var(--text-primary);text-align:center;line-height:1.9;">
+                        <span style="color:var(--text-muted);">等待数据加载...</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ════════════ 模块三：误差自我剖析 ════════════ -->
+        <section class="da-module" id="module-error">
+            <div class="da-module-head">
+                <span class="da-module-title"><span class="da-module-num">3</span> 误差自我剖析</span>
+                <span class="da-module-badge">ERROR SELF-REFLECTION</span>
+            </div>
+            <div class="da-module-body error-self-section">
+
+                <!-- 误差触发横幅（误差 > 5% 时显示） -->
+                <div class="error-trigger-banner" id="errorTriggerBanner">
+                    <span class="error-trigger-icon">&#9888;</span>
+                    <span class="error-trigger-text">
+                        本次测算的比旋光度相对误差超过 <strong id="triggerErrorVal">—%</strong>。
+                        请回顾你的实验过程，勾选下方你认为可能的操作失误原因：
+                    </span>
+                </div>
+
+                <!-- 自查 Checklist -->
+                <div class="self-check-list" id="selfCheckList">
+                    <label class="self-check-item">
+                        <input type="checkbox" class="self-check-cb" data-index="0">
+                        <div class="self-check-content">
+                            <span class="self-check-q">零点校准时，三分视场未完全等亮即记录了 A&sub0;。</span>
+                            <span class="self-check-desc">半荫视场的等亮度判断具有主观性，若在未完全调至等亮时就读取零点，会引入系统性偏差。</span>
+                            <div class="self-check-analysis" data-index="0">
+                                <strong>解析：</strong>三分视场法要求左、中、右三区域亮度一致。若零点偏移 &plusmn;0.05&deg;，所有后续旋光角都会携带该系统误差。建议：校准零点时反复微调检偏器，直到左右两暗区亮度完全对称。
+                            </div>
+                        </div>
+                    </label>
+                    <label class="self-check-item">
+                        <input type="checkbox" class="self-check-cb" data-index="1">
+                        <div class="self-check-content">
+                            <span class="self-check-q">旋光管内残留游动气泡，未完全排出。</span>
+                            <span class="self-check-desc">气泡会使有效光程变短且不稳定，导致同一样品多次读数不一致（随机误差增大）。</span>
+                            <div class="self-check-analysis" data-index="1">
+                                <strong>解析：</strong>气泡是旋光实验中最常见的随机误差来源之一。气泡位置随管身倾斜而移动，造成读数在 &plusmn;0.02~0.08&deg; 范围内波动。正确操作：将旋光管倾斜 45&deg; 缓慢旋转，使气泡集中到凸起处再开始测量。
+                            </div>
+                        </div>
+                    </label>
+                    <label class="self-check-item">
+                        <input type="checkbox" class="self-check-cb" data-index="2">
+                        <div class="self-check-content">
+                            <span class="self-check-q">环境温度明显高于 20&deg;C，未进行比旋光度温度补偿。</span>
+                            <span class="self-check-desc">蔗糖溶液的比旋光度随温度升高而线性下降，约 -0.02&deg;/(&deg;C&middot;dm)。</span>
+                            <div class="self-check-analysis" data-index="2">
+                                <strong>解析：</strong>标准比旋光度 [&alpha;] = 66.37&deg;&middot;mL/(dm&middot;g) 是在 20&deg;C 下标定的。温度每升高 1&deg;C，实测值约偏低 0.02&times;L（L 为管长）。若实验室温度为 25&deg;C 且 L=2dm，则引入约 0.2&deg; 的系统偏差。
+                            </div>
+                        </div>
+                    </label>
+                    <label class="self-check-item">
+                        <input type="checkbox" class="self-check-cb" data-index="3">
+                        <div class="self-check-content">
+                            <span class="self-check-q">样品浓度配制不准确（称量/定容误差）。</span>
+                            <span class="self-check-desc">浓度 c 是自变量，其误差会直接传递到旋光角的线性拟合斜率 k 中。</span>
+                            <div class="self-check-analysis" data-index="3">
+                                <strong>解析：</strong>根据误差传递公式 &sigma;k / k = &sigma;c / c，若浓度配制误差为 1%，则斜率 k 的误差也为 1%，最终比旋光度的误差同样放大。使用分析天平（精度 0.0001g）和容量瓶可有效控制此项。
+                            </div>
+                        </div>
+                    </label>
+                    <label class="self-check-item">
+                        <input type="checkbox" class="self-check-cb" data-index="4">
+                        <div class="self-check-content">
+                            <span class="self-check-q">读数时存在视差或刻度盘估读偏差。</span>
+                            <span class="self-check-desc">圆盘刻度的最小分度通常为 0.1&deg; 或 0.05&deg;，需要估读到下一位。</span>
+                            <div class="self-check-analysis" data-index="4">
+                                <strong>解析：</strong>人眼对圆形刻度盘的分辨极限约为 0.02&deg;。建议：保持视线垂直于刻度盘表面，同一组数据由同一人连续读取以减少个体差异。
+                            </div>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- 提交自查按钮 -->
+                <div class="self-check-submit-bar" id="selfCheckSubmitBar">
+                    <button class="btn btn-sm btn-primary" onclick="submitSelfReflection()">&#128221; 提交自查报告</button>
+                    <span id="selfCheckResult" style="font-size:0.78rem;color:var(--text-muted);margin-left:10px;"></span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ════════════ 模块四：课后思考与成绩评定 ════════════ -->
+        <section class="da-module" id="module-assess">
+            <div class="da-module-head">
+                <span class="da-module-title"><span class="da-module-num">4</span> 课后思考与综合成绩评定</span>
+                <span class="da-module-badge">ASSESSMENT &amp; REFLECTION</span>
+            </div>
+            <div class="da-module-body">
+
+                <!-- ══ 第一行：多题思考区 + 雷达图 ══ -->
+                <div class="assess-grid">
+
+                    <!-- 左：多题思考看板 -->
+                    <div class="question-card">
+                        <!-- 题签导航 -->
+                        <div class="question-tabs" id="questionTabs">
+                            <button class="q-tab q-tab-active" data-qidx="0" onclick="switchQuestion(0)">Q1</button>
+                            <button class="q-tab" data-qidx="1" onclick="switchQuestion(1)">Q2</button>
+                            <button class="q-tab" data-qidx="2" onclick="switchQuestion(2)">Q3</button>
+                            <button class="q-tab" data-qidx="3" onclick="switchQuestion(3)">Q4</button>
+                        </div>
+                        <!-- 题目内容 -->
+                        <div style="margin-bottom:10px;">
+                            <span class="question-num">Q</span>
+                            <span class="question-text" id="questionText">加载中...</span>
+                        </div>
+                        <!-- 提示区（默认折叠） -->
+                        <div class="question-hint-box" id="questionHintBox" style="display:none;">
+                            <span class="q-hint-icon">&#128161;</span>
+                            <span id="questionHintText"></span>
+                        </div>
+                        <!-- 作答区 -->
+                        <textarea id="questionAnswer" rows="5" class="question-answer"
+                            placeholder="请在此处作答，不少于 80 字..."></textarea>
+                        <div class="question-toolbar">
+                            <button class="btn btn-xs btn-ghost" onclick="toggleQuestionHint()">&#128161; 查看提示</button>
+                            <span class="question-hint" id="questionCharCount">建议字数 &ge; 80 字</span>
+                            <button class="btn btn-sm btn-secondary question-save-btn" onclick="saveQuestionAnswer()">保存作答</button>
+                        </div>
+                    </div>
+
+                    <!-- 右：雷达图成绩评定 -->
+                    <div class="radar-card">
+                        <div style="font-size:0.7rem;color:var(--text-muted);font-family:var(--font-mono);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">&#127942; 三维能力雷达图</div>
+                        <div class="radar-canvas-wrap">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                        <div class="radar-score-table" id="radarScoreTable"></div>
+                    </div>
+
+                </div><!-- /assess-grid -->
+
+                <!-- ══ 第二行：实验报告摘要卡片 ══ -->
+                <div class="summary-card" id="summaryCard">
+                    <div class="summary-header">
+                        <span class="summary-icon">&#128203;</span>
+                        <span class="summary-title">实验数据摘要</span>
+                        <span class="summary-badge">DATA SUMMARY</span>
+                    </div>
+                    <div class="summary-grid" id="summaryGrid">
+                        <div class="summary-item"><span class="summary-label">样品名称</span><span class="summary-value" id="sum-sample">&mdash;</span></div>
+                        <div class="summary-item"><span class="summary-label">测量组数</span><span class="summary-value" id="sum-count">&mdash;</span></div>
+                        <div class="summary-item"><span class="summary-label">比旋光度 [α]</span><span class="summary-value" id="sum-alpha">&mdash;</span></div>
+                        <div class="summary-item"><span class="summary-label">线性相关 R²</span><span class="summary-value" id="sum-r2">&mdash;</span></div>
+                        <div class="summary-item"><span class="summary-label">相对误差</span><span class="summary-value" id="sum-error">&mdash;</span></div>
+                        <div class="summary-item"><span class="summary-label">综合等级</span><span class="summary-value" id="sum-grade">&mdash;</span></div>
+                    </div>
+                </div>
+
+                <!-- ══ 第三行：知识点自评 + 心得体会 ══ -->
+                <div class="reflect-grid">
+
+                    <!-- 左：知识点掌握自评表 -->
+                    <div class="selfcheck-card">
+                        <div class="selfcheck-header">
+                            <span class="selfcheck-icon">&#127919;</span>
+                            <span>知识点掌握自评</span>
+                        </div>
+                        <div class="selfcheck-list" id="selfcheckList">
+                            <label class="selfcheck-item"><input type="checkbox" data-skill="optical-law"> <span>理解旋光定律 [α] = α / (L·C) 的物理意义</span></label>
+                            <label class="selfcheck-item"><input type="checkbox" data-skill="halfshade"> <span>掌握三分视场法判定消光位置的原理</span></label>
+                            <label class="selfcheck-item"><input type="checkbox" data-skill="zeropoint"> <span>理解零点校准 A₀ 对消除系统误差的作用</span></label>
+                            <label class="selfcheck-item"><input type="checkbox" data-skill="error-analysis"> <span>能够分析实验误差来源并给出改进建议</span></label>
+                            <label class="selfcheck-item"><input type="checkbox" data-skill="instrument"> <span>熟悉旋光仪结构及正确操作步骤</span></label>
+                            <label class="selfcheck-item"><input type="checkbox" data-skill="dispersion"> <span>了解旋光色散现象及其定量规律</span></label>
+                        </div>
+                        <div class="selfcheck-footer">
+                            <span id="selfcheckProgress">已掌握 0 / 6 项</span>
+                            <div class="selfcheck-bar"><div class="selfcheck-bar-fill" id="selfcheckBarFill"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- 右：实验总结与心得体会 -->
+                    <div class="reflection-card">
+                        <div class="reflection-header">
+                            <span class="reflection-icon">&#9998;</span>
+                            <span>实验总结与心得体会</span>
+                        </div>
+                        <textarea id="reflectionText" rows="5" class="reflection-textarea"
+                            placeholder="请写下你在本次实验中的收获、遇到的困难、解决思路，以及对实验方法的思考...&#10;&#10;例如：&#10;- 通过本次实验我掌握了...&#10;- 实验中遇到的问题是...&#10;- 我的改进想法是..."></textarea>
+                        <div class="reflection-toolbar">
+                            <span class="reflection-hint" id="reflectionCharCount">建议不少于 100 字</span>
+                            <button class="btn btn-sm btn-secondary" onclick="saveReflection()">&#128190; 保存心得</button>
+                        </div>
+                    </div>
+
+                </div><!-- /reflect-grid -->
+
+            </div>
+        </section>
+
+        <!-- 操作按钮 -->
+        <div class="da-actions">
+            <button class="btn btn-primary" onclick="generateReport()">&#128196; 生成完整实验报告</button>
+            <a href="experiment.html" class="btn btn-secondary" style="text-decoration:none;">&#128300; 返回实验台</a>
+            <button class="btn btn-ghost" onclick="exportToJSON()">&#128229; 导出数据 JSON</button>
+        </div>
+
+    </div><!-- /analysis-container -->
+</main>
+
+<!-- 学生信息弹窗 -->
+<div id="student-info-modal" class="da-modal-overlay">
+    <div class="da-modal">
+        <div style="text-align:center;margin-bottom:18px;">
+            <div style="font-size:36px;margin-bottom:6px;">&#128100;</div>
+            <h2 style="color:var(--text-primary);font-size:1.1rem;font-weight:700;margin-bottom:4px;">实验人员信息</h2>
+            <p style="color:var(--text-muted);font-size:0.82rem;">设置信息后将自动填入实验报告</p>
+        </div>
+        <div class="da-form-group">
+            <label>学生姓名</label>
+            <input type="text" id="input-student-name" value="张三" placeholder="请输入姓名" class="da-input">
+        </div>
+        <div class="da-form-group">
+            <label>学号</label>
+            <input type="text" id="input-student-id" value="123" placeholder="请输入学号" class="da-input">
+        </div>
+        <button onclick="confirmStudentInfo()" class="btn btn-primary" style="width:100%;">确认并继续</button>
+    </div>
+</div>
+
+<footer class="footer">
+    <p>&copy; 2025 基于多智能体教学辅助的偏振光与蔗糖旋光现象仿真实验平台 | 课程思政引领 + AI赋能</p>
+</footer>
+
+<script src="../js/physics-engine.js"></script>
+<script src="../js/app.js"></script>
+    
+    
+<script src="../js/data-analysis.js"></script>
+<script src="../js/platform-home-button.js"></script>
+</body>
+</html>

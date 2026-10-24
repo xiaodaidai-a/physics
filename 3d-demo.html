@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <script src="./pages-demo.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>夫琅禾费衍射虚拟仿真实验平台 - 3D实验演示</title>
+
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/diffraction-wavefront.css">
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+</head>
+
+<body>
+    
+    
+    <header>
+        <a href="index.html" class="back-link" style="position: absolute; left: 20px; top: 20px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="white" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+            返回首页
+        </a>
+        <h1>夫琅禾费衍射虚拟仿真实验平台</h1>
+    </header>
+
+    <main>
+        <div class="tabs">
+            <a href="theory.html" class="tab-btn" style="text-decoration: none;">实验原理</a>
+            <a href="3d-demo.html" class="tab-btn active" style="text-decoration: none;">3D实验演示</a>
+            <a href="simulation.html" class="tab-btn" style="text-decoration: none;">仿真实验</a>
+            <a href="ai-prediction.html" class="tab-btn" style="text-decoration: none;">实验数据分析</a>
+            <a href="ideological-education.html" class="tab-btn" style="text-decoration: none;">格物致知</a>
+            <a href="extension.html" class="tab-btn" style="text-decoration: none;">课外拓展</a>
+        </div>
+
+        <div class="tab-content">
+            <!-- 衍射波前传播观察舱 -->
+            <div id="3d-demo" class="tab-pane active">
+
+                <!-- 3D交互指南 -->
+                <div class="content-panel">
+                    <h3>3D交互指南</h3>
+                    <p>欢迎体验交互式单缝衍射波前传播 3D 模型。您可以按照以下步骤，自由探索光波经过孔径后的传播与成像过程：</p>
+                    <ol>
+                        <li><strong>自由探索：</strong> 使用鼠标拖动以旋转模型，滚动滚轮进行缩放。</li>
+                        <li><strong>开始演示：</strong> 点击"开始演示"按钮，观察入射波前经过单缝后在空间中扩展，并在接收屏上形成衍射图样。</li>
+                        <li><strong>空间切片：</strong> 切换"靠近孔径""中间区域""远场屏幕"，观察不同传播距离处的光场分布变化。</li>
+                        <li><strong>暂停与重置：</strong> 随时暂停动画或点击"重置"按钮，将场景恢复到初始状态。</li>
+                        <li><strong>进入实验室：</strong> 点击"进入虚拟实验室"，体验完整的夫琅禾费单缝衍射仿真实验装置。</li>
+                    </ol>
+                    <p>通过亲手操作，您将更直观地理解光的衍射现象及其波前传播规律。</p>
+                </div>
+
+                <!-- 顶部工具栏：控制按钮 + 进入虚拟实验室 -->
+                <div class="dwf-header">
+                    <div class="dwf-controls-bar">
+                        <button id="dwf-start" class="dwf-ctrl-btn start">开始演示</button>
+                        <button id="dwf-pause" class="dwf-ctrl-btn pause">暂停演示</button>
+                        <button id="dwf-reset" class="dwf-ctrl-btn reset">重置</button>
+                        <div class="dwf-divider"></div>
+                        <span class="dwf-group-label">空间切片：</span>
+                        <button class="dwf-ctrl-btn slice" data-dwf-slice="near">靠近孔径</button>
+                        <button class="dwf-ctrl-btn slice active" data-dwf-slice="mid">中间区域</button>
+                        <button class="dwf-ctrl-btn slice" data-dwf-slice="far">远场屏幕</button>
+                    </div>
+                    <button class="dwf-enter-lab-btn"
+                        onclick="window.open('世界/virtual-experiment-final.html', '_blank')">进入虚拟实验室</button>
+                </div>
+
+                <!-- 3D 可视化区域（全宽） -->
+                <div class="dwf-layout">
+                    <div class="dwf-scene-wrap">
+                        <div id="dwf-scene-container"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2026 夫琅禾费衍射虚拟仿真实验平台</p>
+    </footer>
+
+    <script src="js/diffraction-wavefront.js"></script>
+
+    <!-- 上划按钮 -->
+    <div class="scroll-to-top" id="scrollToTop">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="white" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+        </svg>
+    </div>
+
+    <script>
+        // 上划按钮功能
+        document.addEventListener('DOMContentLoaded', function () {
+            const scrollToTopBtn = document.getElementById('scrollToTop');
+
+            window.addEventListener('scroll', function () {
+                if (window.pageYOffset > 300) {
+                    scrollToTopBtn.classList.add('visible');
+                } else {
+                    scrollToTopBtn.classList.remove('visible');
+                }
+            });
+
+            scrollToTopBtn.addEventListener('click', function () {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
